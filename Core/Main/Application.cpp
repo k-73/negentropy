@@ -7,14 +7,8 @@
 #include <imgui.h>
 #include <imgui_impl_sdl2.h>
 #include <imgui_impl_sdlrenderer2.h>
-#ifdef TRACY_ENABLE
-#include <tracy/Tracy.hpp>
-#endif
 
 Application::Application() : m_renderer(std::make_unique<Renderer>()), m_eventHandler(std::make_unique<EventHandler>()), m_diagramData(std::make_unique<DiagramData>()) {
-#ifdef TRACY_ENABLE
-    ZoneScoped;
-#endif
     spdlog::info("Initializing application...");
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0)
@@ -73,9 +67,6 @@ Application::Application() : m_renderer(std::make_unique<Renderer>()), m_eventHa
 }
 
 Application::~Application() {
-#ifdef TRACY_ENABLE
-    ZoneScoped;
-#endif
     spdlog::info("Shutting down application...");
     
     m_running = false;
@@ -103,13 +94,7 @@ Application::~Application() {
 }
 
 void Application::Run() {
-#ifdef TRACY_ENABLE
-    ZoneScoped;
-#endif
     while (m_running) {
-#ifdef TRACY_ENABLE
-        FrameMark;
-#endif
         ProcessEvents();
         Update();
         RenderFrame();
@@ -132,9 +117,6 @@ void Application::InitializeImGui() {
 }
 
 void Application::ProcessEvents() noexcept {
-#ifdef TRACY_ENABLE
-    ZoneScoped;
-#endif
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         ImGui_ImplSDL2_ProcessEvent(&event);
@@ -151,16 +133,10 @@ void Application::ProcessEvents() noexcept {
 }
 
 void Application::Update() noexcept {
-#ifdef TRACY_ENABLE
-    ZoneScoped;
-#endif
 }
 
 void Application::RenderFrame() noexcept {
-#ifdef TRACY_ENABLE
-    ZoneScoped;
-#endif
-    
+
     ImGui_ImplSDLRenderer2_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
@@ -178,10 +154,7 @@ void Application::RenderFrame() noexcept {
 }
 
 void Application::RenderUI() noexcept {
-#ifdef TRACY_ENABLE
-    ZoneScoped;
-#endif
-    
+
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("New", "Ctrl+N")) {}
@@ -269,4 +242,3 @@ void Application::RenderPropertiesPanel() noexcept {
     
     ImGui::End();
 }
-
