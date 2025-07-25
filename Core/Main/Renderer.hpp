@@ -12,11 +12,20 @@ public:
     ~Renderer() = default;
 
     bool Initialize(SDL_Window* window) {
+        // Try hardware accelerated first, fallback to software if needed
         m_renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
         if (!m_renderer) {
-            std::fprintf(stderr, "SDL_CreateRenderer error: %s\n", SDL_GetError());
-            return false;
+            // Fallback to software rendering
+            m_renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+            if (!m_renderer) {
+                std::fprintf(stderr, "SDL_CreateRenderer error: %s\n", SDL_GetError());
+                return false;
+            }
         }
+        
+        // Set blend mode for proper transparency
+        SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
+        
         return true;
     }
 
