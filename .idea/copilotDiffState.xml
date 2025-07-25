@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotDiffPersistence">
+    <option name="pendingDiffs">
+      <map>
+        <entry key="$PROJECT_DIR$/Core/Main/Application.cpp">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/Core/Main/Application.cpp" />
+              <option name="updatedContent" value="#include &quot;Application.hpp&quot;&#10;#include &lt;stdexcept&gt;&#10;#include &lt;iostream&gt;&#10;&#10;Application::Application() {&#10;    if (SDL_Init(SDL_INIT_VIDEO) != 0) {&#10;        throw std::runtime_error(&quot;SDL_Init error: &quot; + std::string(SDL_GetError()));&#10;    }&#10;&#10;    m_window = SDL_CreateWindow(&quot;Diagram Editor&quot;,&#10;                                SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720,&#10;                                SDL_WINDOW_SHOWN);&#10;    if (!m_window) {&#10;        throw std::runtime_error(&quot;SDL_CreateWindow error: &quot; + std::string(SDL_GetError()));&#10;    }&#10;&#10;    m_renderer.Initialize(m_window);&#10;}&#10;&#10;Application::~Application() {&#10;    m_renderer.Cleanup();&#10;    if (m_window) {&#10;        SDL_DestroyWindow(m_window);&#10;    }&#10;    SDL_Quit();&#10;}&#10;&#10;void Application::Run() {&#10;    while (m_running) {&#10;        m_eventHandler.ProcessEvents(m_diagramData.GetCamera(), m_diagramData.GetBlocks(), m_running);&#10;        RenderFrame();&#10;    }&#10;}&#10;&#10;void Application::RenderFrame() {&#10;    m_renderer.Clear();&#10;    m_renderer.DrawGrid(m_diagramData.GetCamera());&#10;    m_renderer.DrawBlocks(m_diagramData.GetBlocks(), m_diagramData.GetCamera());&#10;    m_renderer.Present();&#10;}&#10;" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/Core/Main/Application.hpp">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/Core/Main/Application.hpp" />
+              <option name="originalContent" value="#pragma once&#10;&#10;#include &lt;SDL.h&gt;&#10;#include &lt;cstdio&gt;&#10;#include &quot;Renderer.hpp&quot;&#10;#include &quot;EventHandler.hpp&quot;&#10;#include &quot;DiagramData.hpp&quot;&#10;&#10;class Application {&#10;public:&#10;    Application() = default;&#10;    ~Application() = default;&#10;&#10;    Application(const Application&amp;) = delete;&#10;    Application&amp; operator=(const Application&amp;) = delete;&#10;    Application(Application&amp;&amp;) = delete;&#10;    Application&amp; operator=(Application&amp;&amp;) = delete;&#10;&#10;    int Run() {&#10;        if (!Init()) {&#10;            return 1;&#10;        }&#10;&#10;        while (m_running) {&#10;            m_eventHandler.ProcessEvents(m_diagramData.GetCamera(), m_diagramData.GetBlocks(), m_running);&#10;            RenderFrame();&#10;        }&#10;&#10;        CleanUp();&#10;        return 0;&#10;    }&#10;&#10;private:&#10;    bool Init() {&#10;        if (SDL_Init(SDL_INIT_VIDEO) != 0) {&#10;            std::fprintf(stderr, &quot;SDL_Init error: %s\n&quot;, SDL_GetError());&#10;            return false;&#10;        }&#10;&#10;        m_window = SDL_CreateWindow(&quot;Diagram Editor&quot;,&#10;                                    SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720,&#10;                                    SDL_WINDOW_SHOWN);&#10;        if (!m_window) {&#10;            std::fprintf(stderr, &quot;SDL_CreateWindow error: %s\n&quot;, SDL_GetError());&#10;            return false;&#10;        }&#10;&#10;        if (!m_renderer.Initialize(m_window)) {&#10;            return false;&#10;        }&#10;&#10;        return true;&#10;    }&#10;&#10;    void RenderFrame() {&#10;        m_renderer.Clear();&#10;        m_renderer.DrawGrid(m_diagramData.GetCamera());&#10;        m_renderer.DrawBlocks(m_diagramData.GetBlocks(), m_diagramData.GetCamera());&#10;        m_renderer.Present();&#10;    }&#10;&#10;    void CleanUp() {&#10;        m_renderer.Cleanup();&#10;        if (m_window) {&#10;            SDL_DestroyWindow(m_window);&#10;            m_window = nullptr;&#10;        }&#10;        SDL_Quit();&#10;    }&#10;&#10;    bool m_running = true;&#10;    SDL_Window* m_window = nullptr;&#10;&#10;    Renderer m_renderer;&#10;    EventHandler m_eventHandler;&#10;    DiagramData m_diagramData;&#10;};&#10;" />
+              <option name="updatedContent" value="#pragma once&#10;&#10;#include &lt;SDL.h&gt;&#10;#include &quot;Renderer.hpp&quot;&#10;#include &quot;EventHandler.hpp&quot;&#10;#include &quot;DiagramData.hpp&quot;&#10;&#10;class Application {&#10;public:&#10;    Application();&#10;    ~Application();&#10;&#10;    Application(const Application&amp;) = delete;&#10;    Application&amp; operator=(const Application&amp;) = delete;&#10;    Application(Application&amp;&amp;) = delete;&#10;    Application&amp; operator=(Application&amp;&amp;) = delete;&#10;&#10;    void Run();&#10;&#10;private:&#10;    void RenderFrame();&#10;&#10;    bool m_running = true;&#10;    SDL_Window* m_window = nullptr;&#10;&#10;    Renderer m_renderer;&#10;    EventHandler m_eventHandler;&#10;    DiagramData m_diagramData;&#10;};" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/Core/main.cpp">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/Core/main.cpp" />
+              <option name="originalContent" value="#include &quot;Main/Application.hpp&quot;&#10;&#10;int main(int, char**) {&#10;    Application app;&#10;&#10;    app.Run();&#10;&#10;    return 0;&#10;}&#10;" />
+              <option name="updatedContent" value="#include &quot;Main/Application.hpp&quot;&#10;#include &lt;iostream&gt;&#10;#include &lt;stdexcept&gt;&#10;&#10;int main(int, char**) {&#10;    try {&#10;        Application app;&#10;&#10;        app.Run();&#10;    } catch (const std::exception&amp; e) {&#10;        std::cerr &lt;&lt; &quot;An error occurred: &quot; &lt;&lt; e.what() &lt;&lt; std::endl;&#10;        return 1;&#10;    }&#10;    return 0;&#10;}" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
