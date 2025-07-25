@@ -29,7 +29,6 @@ Application::Application() : m_eventHandler(std::make_unique<EventHandler>()), m
     spdlog::info("Application initialized successfully");
 
     RefreshWorkspaceFiles();
-    RenderFrame();
     SDL_Delay(16);
     SDL_ShowWindow(m_window);
 }
@@ -52,6 +51,10 @@ Application::~Application() {
 
 void Application::Run() {
     while (m_running) {
+        ImGui_ImplSDLRenderer2_NewFrame();
+        ImGui_ImplSDL2_NewFrame();
+        ImGui::NewFrame();
+
         ProcessEvents();
         Update();
         RenderFrame();
@@ -83,7 +86,17 @@ void Application::ProcessEvents() noexcept {
             return;
         }
         
-        if (!ImGui::GetIO().WantCaptureMouse && !ImGui::GetIO().WantCaptureKeyboard) {
+        // Only check WantCaptureMouse for mouse events, and allow events when ImGui doesn't want them
+        bool shouldProcessEvent = true;
+        if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP || event.type == SDL_MOUSEMOTION) {
+            // For mouse events, check if ImGui wants to capture them
+            shouldProcessEvent = !ImGui::GetIO().WantCaptureMouse;
+        } else if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP || event.type == SDL_TEXTINPUT) {
+            // For keyboard events, check if ImGui wants to capture them
+            shouldProcessEvent = !ImGui::GetIO().WantCaptureKeyboard;
+        }
+
+        if (shouldProcessEvent) {
             m_eventHandler->HandleEvent(event, m_diagramData->GetCamera(), m_diagramData->GetBlocks());
         }
     }
@@ -93,11 +106,6 @@ void Application::Update() noexcept {
 }
 
 void Application::RenderFrame() noexcept {
-
-    ImGui_ImplSDLRenderer2_NewFrame();
-    ImGui_ImplSDL2_NewFrame();
-    ImGui::NewFrame();
-    
     RenderUI();
     
     m_renderer.Clear();
