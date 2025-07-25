@@ -3,9 +3,6 @@
 #include "../Diagram/Camera.hpp"
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
-#ifdef TRACY_ENABLE
-#include <tracy/Tracy.hpp>
-#endif
 
 bool Renderer::Initialize(SDL_Window* window) noexcept {
     m_renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -21,17 +18,11 @@ bool Renderer::Initialize(SDL_Window* window) noexcept {
 }
 
 void Renderer::Clear() noexcept {
-#ifdef TRACY_ENABLE
-    ZoneScoped;
-#endif
     SDL_SetRenderDrawColor(m_renderer, 30, 30, 30, 255);
     SDL_RenderClear(m_renderer);
 }
 
 void Renderer::DrawGrid(const Diagram::Camera& camera) noexcept {
-#ifdef TRACY_ENABLE
-    ZoneScoped;
-#endif
     SDL_SetRenderDrawColor(m_renderer, 50, 50, 50, 255);
     constexpr int step = 50;
     int w, h;
@@ -47,9 +38,6 @@ void Renderer::DrawGrid(const Diagram::Camera& camera) noexcept {
 }
 
 void Renderer::DrawBlocks(const std::vector<Diagram::Block>& blocks, const Diagram::Camera& camera) noexcept {
-#ifdef TRACY_ENABLE
-    ZoneScoped;
-#endif
     for (const auto& block : blocks) {
         const auto screenPos = camera.WorldToScreen(block.position);
         const SDL_FRect rect = {screenPos.x, screenPos.y, block.size.x, block.size.y};
