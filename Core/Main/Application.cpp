@@ -1,4 +1,7 @@
 #include "Application.hpp"
+#include "Renderer.hpp"
+#include "EventHandler.hpp"
+#include "DiagramData.hpp"
 #include <stdexcept>
 #include <spdlog/spdlog.h>
 #include <imgui.h>
@@ -8,7 +11,7 @@
 #include <tracy/Tracy.hpp>
 #endif
 
-Application::Application() {
+Application::Application() : m_renderer(std::make_unique<Renderer>()), m_eventHandler(std::make_unique<EventHandler>()), m_diagramData(std::make_unique<DiagramData>()) {
 #ifdef TRACY_ENABLE
     ZoneScoped;
 #endif
@@ -56,7 +59,7 @@ Application::Application() {
     
     spdlog::info("Created SDL2 renderer successfully");
 
-    if (!m_renderer.Initialize(m_sdlRenderer)) {
+    if (!m_renderer->Initialize(m_sdlRenderer)) {
         SDL_DestroyRenderer(m_sdlRenderer);
         SDL_DestroyWindow(m_window);
         SDL_Quit();
@@ -83,7 +86,7 @@ Application::~Application() {
         ImGui::DestroyContext();
     }
     
-    m_renderer.Cleanup();
+    m_renderer->Cleanup();
     
     if (m_sdlRenderer) {
         SDL_DestroyRenderer(m_sdlRenderer);
@@ -128,7 +131,7 @@ void Application::InitializeImGui() {
     spdlog::info("ImGui initialized with SDL2 renderer");
 }
 
-void Application::ProcessEvents() {
+void Application::ProcessEvents() noexcept {
 #ifdef TRACY_ENABLE
     ZoneScoped;
 #endif
@@ -138,21 +141,22 @@ void Application::ProcessEvents() {
         
         if (event.type == SDL_QUIT || (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE)) {
             m_running = false;
+            return;
         }
         
-        if (!ImGui::GetIO().WantCaptureMouse) {
-            m_eventHandler.ProcessEvents(m_diagramData.GetCamera(), m_diagramData.GetBlocks(), m_running);
+        if (!ImGui::GetIO().WantCaptureMouse && !ImGui::GetIO().WantCaptureKeyboard) {
+            m_eventHandler->HandleEvent(event, m_diagramData->GetCamera(), m_diagramData->GetBlocks());
         }
     }
 }
 
-void Application::Update() {
+void Application::Update() noexcept {
 #ifdef TRACY_ENABLE
     ZoneScoped;
 #endif
 }
 
-void Application::RenderFrame() {
+void Application::RenderFrame() noexcept {
 #ifdef TRACY_ENABLE
     ZoneScoped;
 #endif
@@ -163,9 +167,9 @@ void Application::RenderFrame() {
     
     RenderUI();
     
-    m_renderer.Clear();
-    m_renderer.DrawGrid(m_diagramData.GetCamera());
-    m_renderer.DrawBlocks(m_diagramData.GetBlocks(), m_diagramData.GetCamera());
+    m_renderer->Clear();
+    m_renderer->DrawGrid(m_diagramData->GetCamera());
+    m_renderer->DrawBlocks(m_diagramData->GetBlocks(), m_diagramData->GetCamera());
     
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), m_sdlRenderer);
@@ -173,7 +177,7 @@ void Application::RenderFrame() {
     SDL_RenderPresent(m_sdlRenderer);
 }
 
-void Application::RenderUI() {
+void Application::RenderUI() noexcept {
 #ifdef TRACY_ENABLE
     ZoneScoped;
 #endif
@@ -214,11 +218,11 @@ void Application::RenderUI() {
     }
 }
 
-void Application::RenderPropertiesPanel() {
+void Application::RenderPropertiesPanel() noexcept {
     ImGui::Begin("Properties", &m_showProperties);
     
-    auto& blocks = m_diagramData.GetBlocks();
-    auto& camera = m_diagramData.GetCamera();
+    auto& blocks = m_diagramData->GetBlocks();
+    auto& camera = m_diagramData->GetCamera();
     
     ImGui::Text("Camera Position: (%.1f, %.1f)", camera.position.x, camera.position.y);
     ImGui::Text("Blocks Count: %zu", blocks.size());

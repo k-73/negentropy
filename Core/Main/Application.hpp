@@ -1,9 +1,11 @@
 #pragma once
 
 #include <SDL.h>
-#include "Renderer.hpp"
-#include "EventHandler.hpp"
-#include "DiagramData.hpp"
+#include <memory>
+
+class Renderer;
+class EventHandler;
+class DiagramData;
 
 class Application {
 public:
@@ -19,11 +21,11 @@ public:
 
 private:
     void InitializeImGui();
-    void ProcessEvents();
-    void Update();
-    void RenderFrame();
-    void RenderUI();
-    void RenderPropertiesPanel();
+    void ProcessEvents() noexcept;
+    void Update() noexcept;
+    void RenderFrame() noexcept;
+    void RenderUI() noexcept;
+    void RenderPropertiesPanel() noexcept;
 
     bool m_running = true;
     SDL_Window* m_window = nullptr;
@@ -32,7 +34,7 @@ private:
     bool m_showProperties = true;
     bool m_showDemo = false;
 
-    Renderer m_renderer;
-    EventHandler m_eventHandler;
-    DiagramData m_diagramData;
+    std::unique_ptr<Renderer> m_renderer;
+    std::unique_ptr<EventHandler> m_eventHandler;
+    std::unique_ptr<DiagramData> m_diagramData;
 };

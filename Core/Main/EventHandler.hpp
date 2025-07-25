@@ -11,21 +11,18 @@ class EventHandler {
 public:
     EventHandler() = default;
     ~EventHandler() = default;
+    
+    EventHandler(const EventHandler&) = delete;
+    EventHandler& operator=(const EventHandler&) = delete;
+    EventHandler(EventHandler&&) = delete;
+    EventHandler& operator=(EventHandler&&) = delete;
 
-    bool ProcessEvents(Diagram::Camera& camera, std::vector<Diagram::Block>& blocks, bool& running) {
-        SDL_Event e;
-        while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT || (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)) {
-                running = false;
-            }
-
-            HandleMouseEvents(e, camera, blocks);
-        }
-        return true;
+    void HandleEvent(const SDL_Event& event, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks) noexcept {
+        HandleMouseEvents(event, camera, blocks);
     }
 
 private:
-    void HandleMouseEvents(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks) {
+    void HandleMouseEvents(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks) noexcept {
         if (e.type == SDL_MOUSEBUTTONDOWN) {
             HandleMouseButtonDown(e, camera, blocks);
         }
@@ -37,7 +34,7 @@ private:
         }
     }
 
-    void HandleMouseButtonDown(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks) {
+    void HandleMouseButtonDown(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks) noexcept {
         if (e.button.button == SDL_BUTTON_MIDDLE) {
             camera.panning = true;
             camera.panStart = camera.position;
@@ -58,14 +55,14 @@ private:
         }
     }
 
-    void HandleMouseButtonUp(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks) {
+    void HandleMouseButtonUp(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks) noexcept {
         if (e.button.button == SDL_BUTTON_MIDDLE) camera.panning = false;
         if (e.button.button == SDL_BUTTON_LEFT) {
             for (auto& b : blocks) b.dragging = false;
         }
     }
 
-    void HandleMouseMotion(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks) {
+    void HandleMouseMotion(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks) noexcept {
         const glm::vec2 currentMouse{static_cast<float>(e.motion.x), static_cast<float>(e.motion.y)};
         
         if (camera.panning) {

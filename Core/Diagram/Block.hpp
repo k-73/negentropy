@@ -22,11 +22,11 @@ namespace Diagram {
         bool dragging = false;
         glm::vec2 dragOffset{0.0f};
 
-        [[nodiscard]] glm::vec4 GetRect() const {
+        [[nodiscard]] constexpr glm::vec4 GetRect() const noexcept {
             return {position.x, position.y, size.x, size.y};
         }
 
-        [[nodiscard]] bool Contains(glm::vec2 point) const {
+        [[nodiscard]] constexpr bool Contains(glm::vec2 point) const noexcept {
             return point.x >= position.x && point.y >= position.y &&
                    point.x < position.x + size.x && point.y < position.y + size.y;
         }

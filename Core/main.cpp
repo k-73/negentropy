@@ -2,14 +2,16 @@
 #include <iostream>
 #include <stdexcept>
 
-int main(int, char**) {
+int main() noexcept {
     try {
         Application app;
-
         app.Run();
+        return 0;
     } catch (const std::exception& e) {
-        std::cerr << "An error occurred: " << e.what() << std::endl;
-        return 1;
+        std::cerr << "Error: " << e.what() << '\n';
+        return -1;
+    } catch (...) {
+        std::cerr << "Unknown error occurred\n";
+        return -2;
     }
-    return 0;
 }
