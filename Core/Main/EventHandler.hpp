@@ -70,7 +70,7 @@ private:
         
         if (camera.panning) {
             const glm::vec2 mouseDelta = currentMouse - camera.mouseStart;
-            camera.position = camera.panStart - mouseDelta;
+            camera.position = camera.panStart - mouseDelta / camera.zoom;
         }
         
         const glm::vec2 worldPos = camera.ScreenToWorld(currentMouse);
