@@ -28,19 +28,20 @@ void Renderer::DrawGrid(const Diagram::Camera& camera) noexcept {
     int w, h;
     SDL_GetRendererOutputSize(m_renderer, &w, &h);
     
-    const int offsetX = -static_cast<int>(static_cast<int>(camera.position.x) % step);
-    const int offsetY = -static_cast<int>(static_cast<int>(camera.position.y) % step);
+    const float scaledStep = step * camera.zoom;
+    const int offsetX = -static_cast<int>(static_cast<int>(camera.position.x * camera.zoom) % static_cast<int>(scaledStep));
+    const int offsetY = -static_cast<int>(static_cast<int>(camera.position.y * camera.zoom) % static_cast<int>(scaledStep));
     
-    for (int x = offsetX; x < w; x += step)
-        SDL_RenderDrawLine(m_renderer, x, 0, x, h);
-    for (int y = offsetY; y < h; y += step)
-        SDL_RenderDrawLine(m_renderer, 0, y, w, y);
+    for (float x = offsetX; x < w; x += scaledStep)
+        SDL_RenderDrawLine(m_renderer, static_cast<int>(x), 0, static_cast<int>(x), h);
+    for (float y = offsetY; y < h; y += scaledStep)
+        SDL_RenderDrawLine(m_renderer, 0, static_cast<int>(y), w, static_cast<int>(y));
 }
 
 void Renderer::DrawBlocks(const std::vector<Diagram::Block>& blocks, const Diagram::Camera& camera) noexcept {
     for (const auto& block : blocks) {
         const auto screenPos = camera.WorldToScreen(block.position);
-        const SDL_FRect rect = {screenPos.x, screenPos.y, block.size.x, block.size.y};
+        const SDL_FRect rect = {screenPos.x, screenPos.y, block.size.x * camera.zoom, block.size.y * camera.zoom};
         
         const auto r = static_cast<Uint8>(block.color.r * 255.0f);
         const auto g = static_cast<Uint8>(block.color.g * 255.0f);

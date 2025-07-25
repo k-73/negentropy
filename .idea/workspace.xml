@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="BackendCodeEditorMiscSettings">
-    <option name="/Default/Environment/Hierarchy/GeneratedFilesCacheKey/Timestamp/@EntryValue" value="113" type="long" />
+    <option name="/Default/Environment/Hierarchy/GeneratedFilesCacheKey/Timestamp/@EntryValue" value="5" type="long" />
     <option name="/Default/Housekeeping/FeatureSuggestion/FeatureSuggestionManager/DisabledSuggesters/=SwitchToGoToActionSuggester/@EntryIndexedValue" value="true" type="bool" />
   </component>
   <component name="CMakePresetLoader">{
@@ -32,10 +32,7 @@
     <list default="true" id="122315c9-d864-4069-a5d2-bcec3a6e27d5" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/copilotDiffState.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/copilotDiffState.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Core/Main/Application.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Main/Application.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Core/Main/Application.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Main/Application.hpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Core/Main/DiagramData.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Main/DiagramData.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Workspace/Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Workspace/Default.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -115,8 +112,8 @@
       </method>
     </configuration>
     <list>
-      <item itemvalue="CMake Application.negentropy" />
       <item itemvalue="CMake Application.glm" />
+      <item itemvalue="CMake Application.negentropy" />
       <item itemvalue="CMake Application.spdlog" />
     </list>
   </component>
@@ -131,6 +128,8 @@
       <workItem from="1753467507443" duration="235000" />
       <workItem from="1753467748708" duration="138000" />
       <workItem from="1753467894794" duration="78000" />
+      <workItem from="1753483181647" duration="265000" />
+      <workItem from="1753483453967" duration="1000" />
     </task>
     <servers />
   </component>

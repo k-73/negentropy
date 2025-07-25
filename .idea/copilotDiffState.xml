@@ -56,14 +56,6 @@
             </PendingDiffInfo>
           </value>
         </entry>
-        <entry key="$PROJECT_DIR$/Workspace/Default.xml">
-          <value>
-            <PendingDiffInfo>
-              <option name="filePath" value="$PROJECT_DIR$/Workspace/Default.xml" />
-              <option name="updatedContent" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&#10;&lt;diagram&gt;&#10;    &lt;camera&gt;&#10;        &lt;position x=&quot;0.0&quot; y=&quot;0.0&quot; /&gt;&#10;    &lt;/camera&gt;&#10;    &lt;blocks&gt;&#10;        &lt;block type=&quot;Start&quot;&gt;&#10;            &lt;position x=&quot;50.0&quot; y=&quot;50.0&quot; /&gt;&#10;            &lt;size x=&quot;120.0&quot; y=&quot;60.0&quot; /&gt;&#10;            &lt;label&gt;Start&lt;/label&gt;&#10;            &lt;color r=&quot;0.35&quot; g=&quot;0.47&quot; b=&quot;0.78&quot; a=&quot;1.0&quot; /&gt;&#10;        &lt;/block&gt;&#10;        &lt;block type=&quot;Process&quot;&gt;&#10;            &lt;position x=&quot;250.0&quot; y=&quot;150.0&quot; /&gt;&#10;            &lt;size x=&quot;120.0&quot; y=&quot;60.0&quot; /&gt;&#10;            &lt;label&gt;Some Action&lt;/label&gt;&#10;            &lt;color r=&quot;0.35&quot; g=&quot;0.47&quot; b=&quot;0.78&quot; a=&quot;1.0&quot; /&gt;&#10;        &lt;/block&gt;&#10;        &lt;block type=&quot;Decision&quot;&gt;&#10;            &lt;position x=&quot;50.0&quot; y=&quot;250.0&quot; /&gt;&#10;            &lt;size x=&quot;120.0&quot; y=&quot;60.0&quot; /&gt;&#10;            &lt;label&gt;Is it good?&lt;/label&gt;&#10;            &lt;color r=&quot;0.35&quot; g=&quot;0.47&quot; b=&quot;0.78&quot; a=&quot;1.0&quot; /&gt;&#10;        &lt;/block&gt;&#10;        &lt;block type=&quot;End&quot;&gt;&#10;            &lt;position x=&quot;250.0&quot; y=&quot;350.0&quot; /&gt;&#10;            &lt;size x=&quot;120.0&quot; y=&quot;60.0&quot; /&gt;&#10;            &lt;label&gt;End&lt;/label&gt;&#10;            &lt;color r=&quot;0.35&quot; g=&quot;0.47&quot; b=&quot;0.78&quot; a=&quot;1.0&quot; /&gt;&#10;        &lt;/block&gt;&#10;    &lt;/blocks&gt;&#10;&lt;/diagram&gt;&#10;" />
-            </PendingDiffInfo>
-          </value>
-        </entry>
       </map>
     </option>
   </component>

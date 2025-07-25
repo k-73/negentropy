@@ -11,9 +11,20 @@ class EventHandler {
 public:
     static void HandleEvent(const SDL_Event& event, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks) noexcept {
         HandleMouseEvents(event, camera, blocks);
+        HandleScrollEvents(event, camera);
     }
 
 private:
+    static void HandleScrollEvents(const SDL_Event& e, Diagram::Camera& camera) noexcept {
+        if (e.type == SDL_MOUSEWHEEL) {
+            int mouseX, mouseY;
+            SDL_GetMouseState(&mouseX, &mouseY);
+            
+            const float zoomFactor = e.wheel.y > 0 ? 1.1f : 0.9f;
+            camera.ZoomAt({static_cast<float>(mouseX), static_cast<float>(mouseY)}, zoomFactor);
+        }
+    }
+
     static void HandleMouseEvents(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks) noexcept {
         if (e.type == SDL_MOUSEBUTTONDOWN) {
             HandleMouseButtonDown(e, camera, blocks);
