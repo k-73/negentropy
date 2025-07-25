@@ -8,16 +8,16 @@ class DiagramData {
 public:
     DiagramData() {
         m_blocks = {
-            {{100, 100, 120, 60}, "Start"},
-            {{320, 180, 140, 60}, "Process"},
-            {{560, 120, 120, 60}, "End"}
+            {{100.0f, 100.0f}, {120.0f, 60.0f}, "Start", Diagram::BlockType::Start, {0.2f, 0.8f, 0.2f, 1.0f}},
+            {{320.0f, 180.0f}, {140.0f, 60.0f}, "Process", Diagram::BlockType::Process, {0.35f, 0.47f, 0.78f, 1.0f}},
+            {{560.0f, 120.0f}, {120.0f, 60.0f}, "End", Diagram::BlockType::End, {0.8f, 0.2f, 0.2f, 1.0f}}
         };
     }
 
-    const std::vector<Diagram::Block>& GetBlocks() const { return m_blocks; }
+    [[nodiscard]] const std::vector<Diagram::Block>& GetBlocks() const { return m_blocks; }
     std::vector<Diagram::Block>& GetBlocks() { return m_blocks; }
 
-    const Diagram::Camera& GetCamera() const { return m_camera; }
+    [[nodiscard]] const Diagram::Camera& GetCamera() const { return m_camera; }
     Diagram::Camera& GetCamera() { return m_camera; }
 
 private:

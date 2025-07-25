@@ -3,6 +3,7 @@
 #include <SDL.h>
 #include <vector>
 #include <algorithm>
+#include <glm/vec2.hpp>
 #include "../Diagram/Block.hpp"
 #include "../Diagram/Camera.hpp"
 
@@ -39,18 +40,17 @@ private:
     void HandleMouseButtonDown(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks) {
         if (e.button.button == SDL_BUTTON_MIDDLE) {
             camera.panning = true;
-            camera.panStart = {(int)camera.x, (int)camera.y};
-            camera.mouseStart = {e.button.x, e.button.y};
+            camera.panStart = camera.position;
+            camera.mouseStart = {static_cast<float>(e.button.x), static_cast<float>(e.button.y)};
         }
         if (e.button.button == SDL_BUTTON_LEFT) {
-            const float wx = e.button.x + camera.x;
-            const float wy = e.button.y + camera.y;
+            const glm::vec2 worldPos = camera.ScreenToWorld({static_cast<float>(e.button.x), static_cast<float>(e.button.y)});
 
-            for (int i = (int)blocks.size() - 1; i >= 0; --i) {
+            for (int i = static_cast<int>(blocks.size()) - 1; i >= 0; --i) {
                 auto& b = blocks[i];
-                if (Diagram::PointInRect(b.rect, wx, wy)) {
+                if (b.Contains(worldPos)) {
                     b.dragging = true;
-                    b.dragOffset = {wx - b.rect.x, wy - b.rect.y};
+                    b.dragOffset = worldPos - b.position;
                     std::rotate(blocks.begin() + i, blocks.begin() + i + 1, blocks.end());
                     break;
                 }
@@ -66,16 +66,17 @@ private:
     }
 
     void HandleMouseMotion(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks) {
+        const glm::vec2 currentMouse{static_cast<float>(e.motion.x), static_cast<float>(e.motion.y)};
+        
         if (camera.panning) {
-            camera.x = camera.panStart.x - (e.motion.x - camera.mouseStart.x);
-            camera.y = camera.panStart.y - (e.motion.y - camera.mouseStart.y);
+            const glm::vec2 mouseDelta = currentMouse - camera.mouseStart;
+            camera.position = camera.panStart - mouseDelta;
         }
-        const float wx = e.motion.x + camera.x;
-        const float wy = e.motion.y + camera.y;
+        
+        const glm::vec2 worldPos = camera.ScreenToWorld(currentMouse);
         for (auto& b : blocks) {
             if (b.dragging) {
-                b.rect.x = wx - b.dragOffset.x;
-                b.rect.y = wy - b.dragOffset.y;
+                b.position = worldPos - b.dragOffset;
             }
         }
     }

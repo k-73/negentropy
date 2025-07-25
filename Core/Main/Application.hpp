@@ -18,10 +18,19 @@ public:
     void Run();
 
 private:
+    void InitializeImGui();
+    void ProcessEvents();
+    void Update();
     void RenderFrame();
+    void RenderUI();
+    void RenderPropertiesPanel();
 
     bool m_running = true;
     SDL_Window* m_window = nullptr;
+    SDL_Renderer* m_sdlRenderer = nullptr;
+    
+    bool m_showProperties = true;
+    bool m_showDemo = false;
 
     Renderer m_renderer;
     EventHandler m_eventHandler;

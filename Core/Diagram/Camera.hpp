@@ -1,12 +1,20 @@
 #pragma once
 
-#include <SDL.h>
+#include <glm/vec2.hpp>
 
 namespace Diagram {
     struct Camera {
-        float x = 0, y = 0;
+        glm::vec2 position{0.0f};
         bool panning = false;
-        SDL_Point panStart{};
-        SDL_Point mouseStart{};
+        glm::vec2 panStart{0.0f};
+        glm::vec2 mouseStart{0.0f};
+
+        [[nodiscard]] glm::vec2 WorldToScreen(glm::vec2 worldPos) const {
+            return worldPos - position;
+        }
+
+        [[nodiscard]] glm::vec2 ScreenToWorld(glm::vec2 screenPos) const {
+            return screenPos + position;
+        }
     };
 }
