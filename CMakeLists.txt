@@ -66,7 +66,7 @@ set(IMGUI_SOURCES
 
 add_executable(negentropy ${SOURCES} ${IMGUI_SOURCES})
 
-target_include_directories(negentropy PRIVATE 
+target_include_directories(negentropy PRIVATE
     Core
     ${imgui_SOURCE_DIR}
     ${imgui_SOURCE_DIR}/backends

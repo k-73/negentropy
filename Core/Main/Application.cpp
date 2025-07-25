@@ -51,7 +51,7 @@ void Application::Run() {
     }
 }
 
-void Application::InitializeImGui() {
+void Application::InitializeImGui() const {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();

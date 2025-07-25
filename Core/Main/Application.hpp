@@ -19,14 +19,14 @@ public:
     void Run();
 
 private:
-    void InitializeImGui();
+    void InitializeImGui() const;
     void ProcessEvents() noexcept;
     void Update() noexcept;
     void RenderFrame() noexcept;
     void RenderUI() noexcept;
     void RenderPropertiesPanel() noexcept;
 
-    void InitSDL();
+    static void InitSDL();
     void CreateWindow();
 
     bool m_running = true;
