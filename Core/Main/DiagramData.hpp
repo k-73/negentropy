@@ -7,7 +7,6 @@
 class DiagramData {
 public:
     DiagramData() {
-        // Initialize with some default blocks
         m_blocks = {
             {{100, 100, 120, 60}, "Start"},
             {{320, 180, 140, 60}, "Process"},
