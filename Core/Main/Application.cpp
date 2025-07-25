@@ -7,6 +7,12 @@
 #include <imgui.h>
 #include <imgui_impl_sdl2.h>
 #include <imgui_impl_sdlrenderer2.h>
+#include <filesystem>
+#include <vector>
+#include <string>
+#include "../Utils/Path.hpp"
+
+namespace fs = std::filesystem;
 
 Application::Application() : m_eventHandler(std::make_unique<EventHandler>()), m_diagramData(std::make_unique<DiagramData>()) {
     InitSDL();
@@ -22,6 +28,7 @@ Application::Application() : m_eventHandler(std::make_unique<EventHandler>()), m
     
     spdlog::info("Application initialized successfully");
 
+    RefreshWorkspaceFiles();
     RenderFrame();
     SDL_Delay(16);
     SDL_ShowWindow(m_window);
@@ -107,9 +114,17 @@ void Application::RenderUI() noexcept {
 
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
-            if (ImGui::MenuItem("New", "Ctrl+N")) {}
-            if (ImGui::MenuItem("Open", "Ctrl+O")) {}
-            if (ImGui::MenuItem("Save", "Ctrl+S")) {}
+            if (ImGui::BeginMenu("Load")) {
+                for (const auto& file : m_workspaceFiles) {
+                    if (ImGui::MenuItem(file.c_str())) {
+                        m_diagramData->Load((Utils::GetWorkspacePath() / file).string());
+                    }
+                }
+                ImGui::EndMenu();
+            }
+            if (ImGui::MenuItem("Save")) {
+                m_diagramData->Save((Utils::GetWorkspacePath() / "Default.xml").string());
+            }
             ImGui::Separator();
             if (ImGui::MenuItem("Exit", "Alt+F4")) {
                 m_running = false;
@@ -191,6 +206,16 @@ void Application::RenderPropertiesPanel() noexcept {
     }
     
     ImGui::End();
+}
+
+void Application::RefreshWorkspaceFiles() {
+    m_workspaceFiles.clear();
+    const auto path = Utils::GetWorkspacePath();
+    for (const auto & entry : fs::directory_iterator(path)) {
+        if (entry.is_regular_file() && entry.path().extension() == ".xml") {
+            m_workspaceFiles.push_back(entry.path().filename().string());
+        }
+    }
 }
 
 void Application::InitSDL() {

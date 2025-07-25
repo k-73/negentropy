@@ -41,7 +41,13 @@ FetchContent_Declare(
   GIT_TAG v0.9.7
 )
 
-FetchContent_MakeAvailable(nlohmann_json spdlog imgui glm entt magic_enum)
+FetchContent_Declare(
+  pugixml
+  GIT_REPOSITORY https://github.com/zeux/pugixml.git
+  GIT_TAG v1.14
+)
+
+FetchContent_MakeAvailable(nlohmann_json spdlog imgui glm entt magic_enum pugixml)
 
 find_package(SDL2 REQUIRED)
 
@@ -72,6 +78,8 @@ target_include_directories(negentropy PRIVATE
     ${imgui_SOURCE_DIR}/backends
 )
 
+target_compile_definitions(negentropy PRIVATE PROJECT_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
+
 target_link_libraries(negentropy PRIVATE
     SDL2::SDL2 
     nlohmann_json::nlohmann_json 
@@ -79,4 +87,5 @@ target_link_libraries(negentropy PRIVATE
     glm::glm
     EnTT::EnTT
     magic_enum::magic_enum
+    pugixml::pugixml
 )
