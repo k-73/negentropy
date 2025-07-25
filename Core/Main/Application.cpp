@@ -8,12 +8,17 @@
 #include <imgui_impl_sdl2.h>
 #include <imgui_impl_sdlrenderer2.h>
 
-Application::Application() : m_renderer(std::make_unique<Renderer>()), m_eventHandler(std::make_unique<EventHandler>()), m_diagramData(std::make_unique<DiagramData>()) {
+Application::Application() : m_eventHandler(std::make_unique<EventHandler>()), m_diagramData(std::make_unique<DiagramData>()) {
     spdlog::info("Initializing application...");
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0)
         throw std::runtime_error("SDL_Init error: " + std::string(SDL_GetError()));
     
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+    SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0");
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
+    SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
+
     int displayIndex = 0;
     int mouseX, mouseY;
     SDL_GetGlobalMouseState(&mouseX, &mouseY);
@@ -29,32 +34,16 @@ Application::Application() : m_renderer(std::make_unique<Renderer>()), m_eventHa
         }
     }
 
-    // Create window without OpenGL
     m_window = SDL_CreateWindow("Negentropy - Diagram Editor",
                                 SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex), 
                                 SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex), 1280, 720,
-                                SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+                                SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
     if (!m_window) {
         SDL_Quit();
         throw std::runtime_error("SDL_CreateWindow error: " + std::string(SDL_GetError()));
     }
 
-    // Create SDL2 renderer
-    m_sdlRenderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (!m_sdlRenderer) {
-        spdlog::warn("Failed to create accelerated renderer, trying software...");
-        m_sdlRenderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_SOFTWARE);
-        if (!m_sdlRenderer) {
-            SDL_DestroyWindow(m_window);
-            SDL_Quit();
-            throw std::runtime_error("Failed to create SDL renderer: " + std::string(SDL_GetError()));
-        }
-    }
-    
-    spdlog::info("Created SDL2 renderer successfully");
-
-    if (!m_renderer->Initialize(m_sdlRenderer)) {
-        SDL_DestroyRenderer(m_sdlRenderer);
+    if (!m_renderer.Initialize(m_window)) {
         SDL_DestroyWindow(m_window);
         SDL_Quit();
         throw std::runtime_error("Failed to initialize renderer");
@@ -63,6 +52,9 @@ Application::Application() : m_renderer(std::make_unique<Renderer>()), m_eventHa
     InitializeImGui();
     
     spdlog::info("Application initialized successfully");
+
+    RenderFrame();
+    SDL_Delay(16);
     SDL_ShowWindow(m_window);
 }
 
@@ -71,19 +63,12 @@ Application::~Application() {
     
     m_running = false;
     
-    if (ImGui::GetCurrentContext()) {
-        ImGui_ImplSDLRenderer2_Shutdown();
-        ImGui_ImplSDL2_Shutdown();
-        ImGui::DestroyContext();
-    }
-    
-    m_renderer->Cleanup();
-    
-    if (m_sdlRenderer) {
-        SDL_DestroyRenderer(m_sdlRenderer);
-        m_sdlRenderer = nullptr;
-    }
-    
+    ImGui_ImplSDLRenderer2_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+
+    m_renderer.Cleanup();
+
     if (m_window) {
         SDL_DestroyWindow(m_window);
         m_window = nullptr;
@@ -110,9 +95,9 @@ void Application::InitializeImGui() {
     
     ImGui::StyleColorsDark();
     
-    ImGui_ImplSDL2_InitForSDLRenderer(m_window, m_sdlRenderer);
-    ImGui_ImplSDLRenderer2_Init(m_sdlRenderer);
-    
+    ImGui_ImplSDL2_InitForSDLRenderer(m_window, m_renderer.GetSDLRenderer());
+    ImGui_ImplSDLRenderer2_Init(m_renderer.GetSDLRenderer());
+
     spdlog::info("ImGui initialized with SDL2 renderer");
 }
 
@@ -143,14 +128,14 @@ void Application::RenderFrame() noexcept {
     
     RenderUI();
     
-    m_renderer->Clear();
-    m_renderer->DrawGrid(m_diagramData->GetCamera());
-    m_renderer->DrawBlocks(m_diagramData->GetBlocks(), m_diagramData->GetCamera());
-    
+    m_renderer.Clear();
+    m_renderer.DrawGrid(m_diagramData->GetCamera());
+    m_renderer.DrawBlocks(m_diagramData->GetBlocks(), m_diagramData->GetCamera());
+
     ImGui::Render();
-    ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), m_sdlRenderer);
-    
-    SDL_RenderPresent(m_sdlRenderer);
+    ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), m_renderer.GetSDLRenderer());
+
+    m_renderer.Present();
 }
 
 void Application::RenderUI() noexcept {

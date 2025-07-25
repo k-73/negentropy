@@ -18,7 +18,7 @@ public:
     Renderer(Renderer&&) = delete;
     Renderer& operator=(Renderer&&) = delete;
 
-    [[nodiscard]] bool Initialize(SDL_Renderer* renderer) noexcept;
+    [[nodiscard]] bool Initialize(SDL_Window* window) noexcept;
     void Clear() noexcept;
     void DrawGrid(const Diagram::Camera& camera) noexcept;
     void DrawBlocks(const std::vector<Diagram::Block>& blocks, const Diagram::Camera& camera) noexcept;

@@ -7,9 +7,15 @@
 #include <tracy/Tracy.hpp>
 #endif
 
-bool Renderer::Initialize(SDL_Renderer* renderer) noexcept {
-    m_renderer = renderer;
-    if (!m_renderer) return false;
+bool Renderer::Initialize(SDL_Window* window) noexcept {
+    m_renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (!m_renderer) {
+        m_renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+        if (!m_renderer) {
+            m_renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+            if (!m_renderer) return false;
+        }
+    }
     SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
     return true;
 }
