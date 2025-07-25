@@ -10,7 +10,14 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/nlohmann/json.git
   GIT_TAG v3.12.0
 )
-FetchContent_MakeAvailable(nlohmann_json)
+
+FetchContent_Declare(
+  spdlog
+  GIT_REPOSITORY https://github.com/gabime/spdlog.git
+  GIT_TAG v1.15.3
+)
+
+FetchContent_MakeAvailable(nlohmann_json spdlog)
 
 find_package(SDL2 REQUIRED)
 
@@ -20,4 +27,4 @@ add_executable(negentropy ${SOURCES})
 
 target_include_directories(negentropy PRIVATE Core)
 
-target_link_libraries(negentropy PRIVATE SDL2::SDL2 nlohmann_json::nlohmann_json)
+target_link_libraries(negentropy PRIVATE SDL2::SDL2 nlohmann_json::nlohmann_json spdlog::spdlog)
