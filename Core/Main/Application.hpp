@@ -26,6 +26,9 @@ private:
     void RenderUI() noexcept;
     void RenderPropertiesPanel() noexcept;
 
+    void InitSDL();
+    void CreateWindow();
+
     bool m_running = true;
     SDL_Window* m_window = nullptr;
     Renderer m_renderer;

@@ -9,39 +9,8 @@
 #include <imgui_impl_sdlrenderer2.h>
 
 Application::Application() : m_eventHandler(std::make_unique<EventHandler>()), m_diagramData(std::make_unique<DiagramData>()) {
-    spdlog::info("Initializing application...");
-
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0)
-        throw std::runtime_error("SDL_Init error: " + std::string(SDL_GetError()));
-    
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
-    SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0");
-    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
-    SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
-
-    int displayIndex = 0;
-    int mouseX, mouseY;
-    SDL_GetGlobalMouseState(&mouseX, &mouseY);
-    int numDisplays = SDL_GetNumVideoDisplays();
-    
-    for (int i = 0; i < numDisplays; i++) {
-        SDL_Rect displayBounds;
-        if (SDL_GetDisplayBounds(i, &displayBounds) == 0 &&
-            mouseX >= displayBounds.x && mouseX < displayBounds.x + displayBounds.w &&
-            mouseY >= displayBounds.y && mouseY < displayBounds.y + displayBounds.h) {
-            displayIndex = i;
-            break;
-        }
-    }
-
-    m_window = SDL_CreateWindow("Negentropy - Diagram Editor",
-                                SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex), 
-                                SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex), 1280, 720,
-                                SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-    if (!m_window) {
-        SDL_Quit();
-        throw std::runtime_error("SDL_CreateWindow error: " + std::string(SDL_GetError()));
-    }
+    InitSDL();
+    CreateWindow();
 
     if (!m_renderer.Initialize(m_window)) {
         SDL_DestroyWindow(m_window);
@@ -61,13 +30,9 @@ Application::Application() : m_eventHandler(std::make_unique<EventHandler>()), m
 Application::~Application() {
     spdlog::info("Shutting down application...");
     
-    m_running = false;
-    
     ImGui_ImplSDLRenderer2_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
-
-    m_renderer.Cleanup();
 
     if (m_window) {
         SDL_DestroyWindow(m_window);
@@ -226,4 +191,42 @@ void Application::RenderPropertiesPanel() noexcept {
     }
     
     ImGui::End();
+}
+
+void Application::InitSDL() {
+    spdlog::info("Initializing SDL...");
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0)
+        throw std::runtime_error("SDL_Init error: " + std::string(SDL_GetError()));
+
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+    SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0");
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
+    SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
+}
+
+void Application::CreateWindow() {
+    spdlog::info("Creating window...");
+    int displayIndex = 0;
+    int mouseX, mouseY;
+    SDL_GetGlobalMouseState(&mouseX, &mouseY);
+    int numDisplays = SDL_GetNumVideoDisplays();
+
+    for (int i = 0; i < numDisplays; i++) {
+        SDL_Rect displayBounds;
+        if (SDL_GetDisplayBounds(i, &displayBounds) == 0 &&
+            mouseX >= displayBounds.x && mouseX < displayBounds.x + displayBounds.w &&
+            mouseY >= displayBounds.y && mouseY < displayBounds.y + displayBounds.h) {
+            displayIndex = i;
+            break;
+        }
+    }
+
+    m_window = SDL_CreateWindow("Negentropy - Diagram Editor",
+                                SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex),
+                                SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex), 1280, 720,
+                                SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+    if (!m_window) {
+        SDL_Quit();
+        throw std::runtime_error("SDL_CreateWindow error: " + std::string(SDL_GetError()));
+    }
 }

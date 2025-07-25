@@ -70,9 +70,6 @@ void Renderer::Present() noexcept {
     SDL_RenderPresent(m_renderer);
 }
 
-void Renderer::Cleanup() noexcept {
-    m_renderer = nullptr;
-}
 
 SDL_Renderer* Renderer::GetSDLRenderer() const noexcept {
     return m_renderer;
