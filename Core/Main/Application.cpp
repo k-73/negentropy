@@ -191,7 +191,8 @@ void Application::RenderPropertiesPanel() noexcept {
             }
             ImGui::DragFloat2("Position", &block.data.position.x, 1.0f);
             ImGui::DragFloat2("Size", &block.data.size.x, 1.0f, 10.0f, 500.0f);
-            ImGui::ColorEdit4("Color", &block.data.backgroundColor.x);
+            ImGui::ColorEdit4("Background Color", &block.data.backgroundColor.x);
+            ImGui::ColorEdit4("Border Color", &block.data.borderColor.x);
             
             const char* typeNames[] = {"Start", "Process", "Decision", "End"};
             int currentType = static_cast<int>(block.data.type);
