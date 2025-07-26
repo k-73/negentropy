@@ -180,34 +180,15 @@ void Application::RenderPropertiesPanel() noexcept {
     
     for (size_t i = 0; i < blocks.size(); ++i) {
         auto& block = blocks[i];
-        ImGui::PushID(static_cast<int>(i));
         
         if (ImGui::CollapsingHeader(("Block " + std::to_string(i + 1)).c_str())) {
-            char labelBuffer[256];
-            strncpy(labelBuffer, block.data.label.c_str(), sizeof(labelBuffer) - 1);
-            labelBuffer[sizeof(labelBuffer) - 1] = '\0';
-            if (ImGui::InputText("Label", labelBuffer, sizeof(labelBuffer))) {
-                block.data.label = labelBuffer;
-            }
-            ImGui::DragFloat2("Position", &block.data.position.x, 1.0f);
-            ImGui::DragFloat2("Size", &block.data.size.x, 1.0f, 10.0f, 500.0f);
-            ImGui::ColorEdit4("Background Color", &block.data.backgroundColor.x);
-            ImGui::ColorEdit4("Border Color", &block.data.borderColor.x);
-            
-            const char* typeNames[] = {"Start", "Process", "Decision", "End"};
-            int currentType = static_cast<int>(block.data.type);
-            if (ImGui::Combo("Type", &currentType, typeNames, 4)) {
-                block.data.type = static_cast<Diagram::Block::Type>(currentType);
-            }
+            block.RenderUI(static_cast<int>(i));
             
             if (ImGui::Button("Delete")) {
                 blocks.erase(blocks.begin() + i);
-                ImGui::PopID();
                 break;
             }
         }
-        
-        ImGui::PopID();
     }
     
     ImGui::End();

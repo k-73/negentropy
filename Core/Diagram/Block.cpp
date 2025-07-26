@@ -1,6 +1,8 @@
 #include "Block.hpp"
 #include "Camera.hpp"
+#include <imgui.h>
 #include <iostream>
+#include <cstring>
 
 namespace Diagram {
     bool Block::HandleEvent(const SDL_Event& event, const Camera& camera) noexcept {
@@ -72,5 +74,29 @@ namespace Diagram {
         if (m_dragging) {
             data.position = worldPos - m_dragOffset;
         }
+    }
+
+    void Block::RenderUI(int id) noexcept {
+        ImGui::PushID(id);
+        
+        char labelBuffer[256];
+        std::strncpy(labelBuffer, data.label.c_str(), sizeof(labelBuffer) - 1);
+        labelBuffer[sizeof(labelBuffer) - 1] = '\0';
+        if (ImGui::InputText("Label", labelBuffer, sizeof(labelBuffer))) {
+            data.label = labelBuffer;
+        }
+        
+        ImGui::DragFloat2("Position", &data.position.x, 1.0f);
+        ImGui::DragFloat2("Size", &data.size.x, 1.0f, 10.0f, 500.0f);
+        ImGui::ColorEdit4("Background", &data.backgroundColor.x);
+        ImGui::ColorEdit4("Border", &data.borderColor.x);
+        
+        const char* typeNames[] = {"Start", "Process", "Decision", "End"};
+        int currentType = static_cast<int>(data.type);
+        if (ImGui::Combo("Type", &currentType, typeNames, 4)) {
+            data.type = static_cast<Type>(currentType);
+        }
+        
+        ImGui::PopID();
     }
 }
