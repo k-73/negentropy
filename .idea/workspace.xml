@@ -59,15 +59,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="122315c9-d864-4069-a5d2-bcec3a6e27d5" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Core/Diagram/Block.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Diagram/Block.hpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Core/Diagram/Camera.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Diagram/Camera.hpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Core/Main/Application.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Main/Application.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Core/Main/DiagramData.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Main/DiagramData.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Core/Main/EventHandler.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Main/EventHandler.hpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Core/Main/Renderer.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Main/Renderer.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Core/Utils/XMLSerialization.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Utils/XMLSerialization.hpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
