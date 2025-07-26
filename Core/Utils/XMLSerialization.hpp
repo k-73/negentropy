@@ -13,33 +13,16 @@ namespace XML::detail {
         static std::string name(std::size_t i) { return "c" + std::to_string(i); }
     };
 
-    template<>
-    struct component_policy<glm::vec2> {
+    template<int L, typename T, glm::qualifier Q>
+    struct component_policy<glm::vec<L, T, Q>> {
         static std::string name(std::size_t i) {
-            if (i == 0) return "x";
-            if (i == 1) return "y";
-            return "c" + std::to_string(i);
-        }
-    };
-
-    template<>
-    struct component_policy<glm::vec3> {
-        static std::string name(std::size_t i) {
-            if (i == 0) return "x";
-            if (i == 1) return "y";
-            if (i == 2) return "z";
-            return "c" + std::to_string(i);
-        }
-    };
-
-    template<>
-    struct component_policy<glm::vec4> {
-        static std::string name(std::size_t i) {
-            if (i == 0) return "x";
-            if (i == 1) return "y";
-            if (i == 2) return "z";
-            if (i == 3) return "w";
-            return "c" + std::to_string(i);
+            switch (i) {
+                case 0: return "x";
+                case 1: return "y";
+                case 2: return "z";
+                case 3: return "w";
+                default: return "c" + std::to_string(i);
+            }
         }
     };
 
