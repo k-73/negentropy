@@ -1,20 +1,28 @@
 <?xml version="1.0"?>
 <diagram>
 	<camera>
-		<position x="0" y="0" />
-		<zoom>1</zoom>
+		<position x="-81.7357178" y="90.0134888" />
+		<zoom>1.01501918</zoom>
 	</camera>
 	<blocks>
 		<block>
-			<position x="131" y="247" />
+			<position x="157.286163" y="451.308228" />
 			<size x="120" y="60" />
-			<label>Start</label>
+			<label>Block 5</label>
 			<type>Process</type>
 			<backgroundColor x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
-			<borderColor x="1" y="0" z="1" w="1" />
+			<borderColor x="1" y="1" z="1" w="1" />
 		</block>
 		<block>
-			<position x="296" y="256" />
+			<position x="18.8449993" y="449.58432" />
+			<size x="120" y="60" />
+			<label>Block 6</label>
+			<type>Process</type>
+			<backgroundColor x="1" y="0.880434752" z="0" w="1" />
+			<borderColor x="0.989130497" y="1" z="0" w="1" />
+		</block>
+		<block>
+			<position x="289.138" y="371.32428" />
 			<size x="120" y="60" />
 			<label>Is it good?</label>
 			<type>Process</type>
@@ -22,7 +30,15 @@
 			<borderColor x="1" y="1" z="1" w="1" />
 		</block>
 		<block>
-			<position x="288" y="176" />
+			<position x="19.9408264" y="299.299622" />
+			<size x="120" y="60" />
+			<label>Start</label>
+			<type>Process</type>
+			<backgroundColor x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
+			<borderColor x="1" y="0" z="1" w="1" />
+		</block>
+		<block>
+			<position x="157.953186" y="338.558472" />
 			<size x="120" y="60" />
 			<label>End</label>
 			<type>Process</type>
@@ -30,12 +46,20 @@
 			<borderColor x="1" y="0.125490203" z="0.600000024" w="1" />
 		</block>
 		<block>
-			<position x="141" y="147" />
+			<position x="295.67688" y="230.742264" />
 			<size x="120" y="60" />
 			<label>Some Action</label>
 			<type>Process</type>
 			<backgroundColor x="0.349019617" y="0" z="0.78039217" w="0.180392161" />
 			<borderColor x="1" y="0" z="0" w="1" />
+		</block>
+		<block>
+			<position x="333.817596" y="554.580627" />
+			<size x="120" y="60" />
+			<label>Block 7</label>
+			<type>Process</type>
+			<backgroundColor x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
+			<borderColor x="1" y="1" z="1" w="1" />
 		</block>
 	</blocks>
 </diagram>
