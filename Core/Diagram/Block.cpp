@@ -76,7 +76,7 @@ namespace Diagram {
         }
     }
 
-    void Block::RenderUI(int id) noexcept {
+    void Block::RenderUI(const int id) noexcept {
         ImGui::PushID(id);
         
         char labelBuffer[256];

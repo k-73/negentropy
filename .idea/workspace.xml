@@ -59,10 +59,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="122315c9-d864-4069-a5d2-bcec3a6e27d5" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Core/Diagram/Block.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Diagram/Block.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Core/Diagram/Block.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Diagram/Block.hpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Core/Main/Application.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Main/Application.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Core/Main/Application.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Main/Application.hpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
