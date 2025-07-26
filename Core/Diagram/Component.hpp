@@ -7,9 +7,9 @@
 namespace Diagram {
     struct Camera;
     
-    class DiagramElement {
+    class Component {
     public:
-        virtual ~DiagramElement() = default;
+        virtual ~Component() = default;
         
         virtual bool HandleEvent(const SDL_Event& event, const Camera& camera) noexcept = 0;
         virtual void Render(SDL_Renderer* renderer, const Camera& camera) const noexcept = 0;

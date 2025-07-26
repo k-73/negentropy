@@ -6,12 +6,12 @@
 #include <pugixml.hpp>
 #include <SDL.h>
 #include "../Utils/XMLSerialization.hpp"
-#include "DiagramElement.hpp"
+#include "Component.hpp"
 
 namespace Diagram {
     struct Camera;
     
-    class Block : public DiagramElement {
+    class Block : public Component {
     public:
         enum class Type {
             Start,

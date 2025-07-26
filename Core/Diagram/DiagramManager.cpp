@@ -38,7 +38,7 @@ namespace Diagram {
         m_elements.clear();
     }
 
-    DiagramElement* DiagramManager::GetElement(size_t index) const noexcept {
+    Component* DiagramManager::GetElement(size_t index) const noexcept {
         if (index < m_elements.size()) {
             return m_elements[index].get();
         }
