@@ -44,13 +44,13 @@ FetchContent_Declare(
 FetchContent_Declare(
   pugixml
   GIT_REPOSITORY https://github.com/zeux/pugixml.git
-  GIT_TAG v1.14
+  GIT_TAG v1.15
 )
 
 FetchContent_Declare(
   boost_pfr
   GIT_REPOSITORY https://github.com/boostorg/pfr.git
-  GIT_TAG "boost-1.85.0"
+  GIT_TAG "boost-1.88.0"
 )
 
 FetchContent_MakeAvailable(
