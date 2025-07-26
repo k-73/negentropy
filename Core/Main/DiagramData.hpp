@@ -4,6 +4,7 @@
 #include <string>
 #include "../Diagram/Block.hpp"
 #include "../Diagram/Camera.hpp"
+#include "../Diagram/Grid.hpp"
 
 class DiagramData {
 public:
@@ -23,7 +24,11 @@ public:
     [[nodiscard]] const Diagram::Camera& GetCamera() const noexcept { return m_camera; }
     [[nodiscard]] Diagram::Camera& GetCamera() noexcept { return m_camera; }
 
+    [[nodiscard]] const Diagram::Grid& GetGrid() const noexcept { return m_grid; }
+    [[nodiscard]] Diagram::Grid& GetGrid() noexcept { return m_grid; }
+
 private:
     std::vector<Diagram::Block> m_blocks;
     Diagram::Camera m_camera;
+    Diagram::Grid m_grid;
 };

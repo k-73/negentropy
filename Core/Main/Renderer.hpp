@@ -6,6 +6,7 @@
 namespace Diagram {
     struct Block;
     struct Camera;
+    struct Grid;
 }
 
 class Renderer {
@@ -20,7 +21,7 @@ public:
 
     [[nodiscard]] bool Initialize(SDL_Window* window) noexcept;
     void Clear() const noexcept;
-    void DrawGrid(const Diagram::Camera& camera) const noexcept;
+    void DrawGrid(const Diagram::Camera& camera, const Diagram::Grid& grid) const noexcept;
     void DrawBlocks(const std::vector<Diagram::Block>& blocks, const Diagram::Camera& camera) const noexcept;
     void Present() const noexcept;
 

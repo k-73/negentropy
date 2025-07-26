@@ -24,6 +24,10 @@ void DiagramData::Load(const std::string& filePath) {
         m_camera.xml_deserialize(cameraNode);
     }
 
+    if (auto gridNode = diagram.child("grid")) {
+        m_grid.xml_deserialize(gridNode);
+    }
+
     for (pugi::xml_node blockNode : diagram.child("blocks").children("block")) {
         Diagram::Block block;
         block.xml_deserialize(blockNode);
@@ -37,6 +41,9 @@ void DiagramData::Save(const std::string& filePath) const {
 
     auto cameraNode = diagram.append_child("camera");
     m_camera.xml_serialize(cameraNode);
+
+    auto gridNode = diagram.append_child("grid");
+    m_grid.xml_serialize(gridNode);
 
     auto blocksNode = diagram.append_child("blocks");
     for (const auto& block : m_blocks) {

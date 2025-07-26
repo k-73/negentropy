@@ -106,7 +106,7 @@ void Application::RenderFrame() noexcept {
     RenderUI();
     
     m_renderer.Clear();
-    m_renderer.DrawGrid(m_diagramData->GetCamera());
+    m_renderer.DrawGrid(m_diagramData->GetCamera(), m_diagramData->GetGrid());
     m_renderer.DrawBlocks(m_diagramData->GetBlocks(), m_diagramData->GetCamera());
 
     ImGui::Render();

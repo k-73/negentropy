@@ -4,6 +4,11 @@
 		<position x="-81.7357178" y="90.0134888" />
 		<zoom>1.01501918</zoom>
 	</camera>
+	<grid>
+		<smallStep>10</smallStep>
+		<largeStep>50</largeStep>
+		<visible>true</visible>
+	</grid>
 	<blocks>
 		<block>
 			<position x="157.286163" y="451.308228" />

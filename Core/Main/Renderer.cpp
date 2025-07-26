@@ -1,6 +1,7 @@
 #include "Renderer.hpp"
 #include "../Diagram/Block.hpp"
 #include "../Diagram/Camera.hpp"
+#include "../Diagram/Grid.hpp"
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 
@@ -22,20 +23,31 @@ void Renderer::Clear() const noexcept {
     SDL_RenderClear(m_renderer);
 }
 
-void Renderer::DrawGrid(const Diagram::Camera& camera) const noexcept {
-    SDL_SetRenderDrawColor(m_renderer, 50, 50, 50, 255);
-    constexpr int step = 50;
+void Renderer::DrawGrid(const Diagram::Camera& camera, const Diagram::Grid& grid) const noexcept {
+    if (!grid.settings.visible) return;
+    
     int w, h;
     SDL_GetRendererOutputSize(m_renderer, &w, &h);
     
-    const float scaledStep = step * camera.data.zoom;
-    const int offsetX = -static_cast<int>(static_cast<int>(camera.data.position.x * camera.data.zoom) % static_cast<int>(scaledStep));
-    const int offsetY = -static_cast<int>(static_cast<int>(camera.data.position.y * camera.data.zoom) % static_cast<int>(scaledStep));
+    const auto params = grid.CalculateRenderParams(camera, w, h);
     
-    for (auto x = static_cast<float>(offsetX); x < w; x += scaledStep)
+    SDL_SetRenderDrawColor(m_renderer, 40, 40, 40, 255);
+    for (float x = params.baseOffsetX; x < w; x += params.smallScaled)
         SDL_RenderDrawLine(m_renderer, static_cast<int>(x), 0, static_cast<int>(x), h);
-    for (auto y = static_cast<float>(offsetY); y < h; y += scaledStep)
+    for (float y = params.baseOffsetY; y < h; y += params.smallScaled)
         SDL_RenderDrawLine(m_renderer, 0, static_cast<int>(y), w, static_cast<int>(y));
+    
+    SDL_SetRenderDrawColor(m_renderer, 60, 60, 60, 255);
+    int lineIndex = 0;
+    for (float x = params.baseOffsetX; x < w; x += params.smallScaled, ++lineIndex) {
+        if (lineIndex % params.largeStepMultiplier == 0)
+            SDL_RenderDrawLine(m_renderer, static_cast<int>(x), 0, static_cast<int>(x), h);
+    }
+    lineIndex = 0;
+    for (float y = params.baseOffsetY; y < h; y += params.smallScaled, ++lineIndex) {
+        if (lineIndex % params.largeStepMultiplier == 0)
+            SDL_RenderDrawLine(m_renderer, 0, static_cast<int>(y), w, static_cast<int>(y));
+    }
 }
 
 void Renderer::DrawBlocks(const std::vector<Diagram::Block>& blocks, const Diagram::Camera& camera) const noexcept {
