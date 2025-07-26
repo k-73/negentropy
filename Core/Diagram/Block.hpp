@@ -4,10 +4,15 @@
 #include <glm/vec4.hpp>
 #include <string>
 #include <pugixml.hpp>
+#include <SDL.h>
 #include "../Utils/XMLSerialization.hpp"
+#include "DiagramElement.hpp"
 
 namespace Diagram {
-    struct Block {
+    struct Camera;
+    
+    class Block : public DiagramElement {
+    public:
         enum class Type {
             Start,
             Process,
@@ -23,24 +28,25 @@ namespace Diagram {
             glm::vec4 color{0.35f, 0.47f, 0.78f, 1.0f};
         } data;
 
-        bool dragging = false;
-        glm::vec2 dragOffset{0.0f};
-
         [[nodiscard]] constexpr glm::vec4 GetRect() const noexcept {
             return {data.position.x, data.position.y, data.size.x, data.size.y};
         }
 
-        [[nodiscard]] constexpr bool Contains(glm::vec2 point) const noexcept {
-            return point.x >= data.position.x && point.y >= data.position.y &&
-                   point.x < data.position.x + data.size.x && point.y < data.position.y + data.size.y;
-        }
+        bool HandleEvent(const SDL_Event& event, const Camera& camera) noexcept override;
+        void Render(SDL_Renderer* renderer, const Camera& camera) const noexcept override;
+        bool Contains(glm::vec2 point) const noexcept override;
+        void xml_serialize(pugi::xml_node& node) const override;
+        void xml_deserialize(const pugi::xml_node& node) override;
+        const char* GetTypeName() const noexcept override { return "Block"; }
+        
+        void OnMouseDown(glm::vec2 worldPos) noexcept;
+        void OnMouseUp() noexcept;
+        void OnMouseMove(glm::vec2 worldPos) noexcept;
 
-        void xml_serialize(pugi::xml_node& node) const {
-            XML::auto_serialize(data, node);
-        }
+        [[nodiscard]] bool IsDragging() const noexcept { return m_dragging; }
 
-        void xml_deserialize(const pugi::xml_node& node) {
-            XML::auto_deserialize(data, node);
-        }
+    private:
+        bool m_dragging = false;
+        glm::vec2 m_dragOffset{0.0f};
     };
 }

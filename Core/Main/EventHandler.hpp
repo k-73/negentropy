@@ -44,13 +44,9 @@ private:
             camera.mouseStart = {static_cast<float>(e.button.x), static_cast<float>(e.button.y)};
         }
         if (e.button.button == SDL_BUTTON_LEFT) {
-            const glm::vec2 worldPos = camera.ScreenToWorld({static_cast<float>(e.button.x), static_cast<float>(e.button.y)});
-
             for (int i = static_cast<int>(blocks.size()) - 1; i >= 0; --i) {
-                auto& b = blocks[i];
-                if (b.Contains(worldPos)) {
-                    b.dragging = true;
-                    b.dragOffset = worldPos - b.data.position;
+                auto& block = blocks[i];
+                if (block.HandleEvent(e, camera)) {
                     std::rotate(blocks.begin() + i, blocks.begin() + i + 1, blocks.end());
                     break;
                 }
@@ -61,7 +57,9 @@ private:
     static void HandleMouseButtonUp(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks) noexcept {
         if (e.button.button == SDL_BUTTON_MIDDLE) camera.panning = false;
         if (e.button.button == SDL_BUTTON_LEFT) {
-            for (auto& b : blocks) b.dragging = false;
+            for (auto& block : blocks) {
+                block.HandleEvent(e, camera);
+            }
         }
     }
 
@@ -73,11 +71,8 @@ private:
             camera.data.position = camera.panStart - mouseDelta / camera.data.zoom;
         }
         
-        const glm::vec2 worldPos = camera.ScreenToWorld(currentMouse);
-        for (auto& b : blocks) {
-            if (b.dragging) {
-                b.data.position = worldPos - b.dragOffset;
-            }
+        for (auto& block : blocks) {
+            block.HandleEvent(e, camera);
         }
     }
 };
