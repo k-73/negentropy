@@ -6,15 +6,12 @@
 #include <string>
 #include <string_view>
 
-// ---------- policies ----------
 namespace XML::detail {
     template<class T>
     struct component_policy {
-        // domyślne nazwy atrybutów: c0, c1, ...
         static std::string name(std::size_t i) { return "c" + std::to_string(i); }
     };
 
-    // specjalizacja np. dla glm::vec*
     template<class T>
     concept HasLength = requires { T::length(); };
 
@@ -27,7 +24,6 @@ namespace XML::detail {
     template<class T>
     concept Indexable = (comp_count<T>() > 0) && requires(T v) { v[0]; };
 
-    // text-value writers
     template<class T>
     constexpr bool use_text_v =
         std::is_arithmetic_v<T> ||
@@ -35,7 +31,6 @@ namespace XML::detail {
         std::is_enum_v<T>;
 }
 
-// ---------- serialize / deserialize single field ----------
 namespace XML {
     using namespace detail;
 
@@ -55,7 +50,6 @@ namespace XML {
                 node.append_attribute(component_policy<T>::name(i).c_str()).set_value(field[i]);
             }
         } else {
-            // fallback: recurse into aggregates
             auto_serialize(field, node);
         }
     }

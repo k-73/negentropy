@@ -13,13 +13,6 @@
 			<color c0="0.349999994" c1="0.469999999" c2="0.779999971" c3="1" />
 		</block>
 		<block>
-			<position c0="271" c1="78" />
-			<size c0="120" c1="60" />
-			<label>Start</label>
-			<type>Process</type>
-			<color c0="0.349999994" c1="0.469999999" c2="0.779999971" c3="1" />
-		</block>
-		<block>
 			<position c0="180" c1="224" />
 			<size c0="120" c1="60" />
 			<label>Some Action</label>
@@ -30,6 +23,13 @@
 			<position c0="-10" c1="14" />
 			<size c0="120" c1="60" />
 			<label>End</label>
+			<type>Process</type>
+			<color c0="0.349999994" c1="0.469999999" c2="0.779999971" c3="1" />
+		</block>
+		<block>
+			<position c0="399" c1="116" />
+			<size c0="120" c1="60" />
+			<label>Start</label>
 			<type>Process</type>
 			<color c0="0.349999994" c1="0.469999999" c2="0.779999971" c3="1" />
 		</block>
