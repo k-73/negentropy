@@ -28,8 +28,11 @@ make
 - **Middle mouse drag**: Pan camera view
 - **Mouse wheel**: Zoom in/out  
 - **Left click**: Select and drag blocks
-- **Menu → File → Load**: Open saved diagrams
+- **Menu → File → Load**: Open saved diagrams and load them
+- **Menu → File → Save**: Save the current diagram to workspace
+- **Menu → File → Exit**: Exit the application
 - **Menu → View → Properties**: Toggle editing panel
+- **Menu → View → Demo**: Open ImGui demo window
 
 ## Dependencies
 

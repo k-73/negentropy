@@ -3,7 +3,8 @@
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 #include <string>
-#include <magic_enum/magic_enum.hpp>
+#include <pugixml.hpp>
+#include "../Utils/XMLSerialization.hpp"
 
 namespace Diagram {
     enum class BlockType {
@@ -13,12 +14,14 @@ namespace Diagram {
         End
     };
 
-    struct Block {
+    struct Block : public XML::Serializable<Block> {
         glm::vec2 position{0.0f};
         glm::vec2 size{120.0f, 60.0f};
         std::string label;
         BlockType type = BlockType::Process;
         glm::vec4 color{0.35f, 0.47f, 0.78f, 1.0f};
+        
+        // Runtime state (not serialized)
         bool dragging = false;
         glm::vec2 dragOffset{0.0f};
 
@@ -29,6 +32,22 @@ namespace Diagram {
         [[nodiscard]] constexpr bool Contains(glm::vec2 point) const noexcept {
             return point.x >= position.x && point.y >= position.y &&
                    point.x < position.x + size.x && point.y < position.y + size.y;
+        }
+
+        void xml_serialize(pugi::xml_node& node) const {
+            XML_FIELD(node, type);
+            XML_FIELD(node, position);
+            XML_FIELD(node, size);
+            XML_FIELD(node, label);
+            XML_FIELD(node, color);
+        }
+
+        void xml_deserialize(const pugi::xml_node& node) {
+            XML_FIELD_LOAD(node, type);
+            XML_FIELD_LOAD(node, position);
+            XML_FIELD_LOAD(node, size);
+            XML_FIELD_LOAD(node, label);
+            XML_FIELD_LOAD(node, color);
         }
     };
 }

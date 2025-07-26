@@ -2,11 +2,15 @@
 
 #include <glm/vec2.hpp>
 #include <algorithm>
+#include <pugixml.hpp>
+#include "../Utils/XMLSerialization.hpp"
 
 namespace Diagram {
-    struct Camera {
+    struct Camera : public XML::Serializable<Camera> {
         glm::vec2 position{0.0f};
         float zoom = 1.0f;
+        
+        // Runtime state (not serialized)
         bool panning = false;
         glm::vec2 panStart{0.0f};
         glm::vec2 mouseStart{0.0f};
@@ -31,6 +35,16 @@ namespace Diagram {
             SetZoom(zoom * factor);
             const glm::vec2 worldPosAfterZoom = ScreenToWorld(screenPos);
             position += worldPosBeforeZoom - worldPosAfterZoom;
+        }
+
+        void xml_serialize(pugi::xml_node& node) const {
+            XML_FIELD(node, position);
+            XML_FIELD(node, zoom);
+        }
+
+        void xml_deserialize(const pugi::xml_node& node) {
+            XML_FIELD_LOAD(node, position);
+            XML_FIELD_LOAD(node, zoom);
         }
     };
 }
