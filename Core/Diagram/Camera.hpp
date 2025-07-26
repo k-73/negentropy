@@ -5,13 +5,11 @@
 #include "../Utils/XMLSerialization.hpp"
 
 namespace Diagram {
-    struct CameraData {
-        glm::vec2 position{0.0f};
-        float zoom = 1.0f;
-    };
-
     struct Camera {
-        CameraData data;
+        struct Data {
+            glm::vec2 position{0.0f};
+            float zoom = 1.0f;
+        } data;
         
         bool panning = false;
         glm::vec2 panStart{0.0f};
