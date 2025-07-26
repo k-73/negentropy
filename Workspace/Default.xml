@@ -27,7 +27,7 @@
 			<color x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
 		</block>
 		<block>
-			<position x="283" y="99" />
+			<position x="262" y="294" />
 			<size x="120" y="60" />
 			<label>Is it good?</label>
 			<type>Process</type>

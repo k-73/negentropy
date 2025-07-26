@@ -172,7 +172,7 @@ void Application::RenderPropertiesPanel() noexcept {
     if (ImGui::Button("Add Block")) {
         blocks.emplace_back();
         auto& newBlock = blocks.back();
-        newBlock.data.position = {100.0f + blocks.size() * 150.0f, 100.0f};
+        newBlock.data.position = {100.0f + static_cast<float>(blocks.size()) * 150.0f, 100.0f};
         newBlock.data.label = "Block " + std::to_string(blocks.size());
     }
     

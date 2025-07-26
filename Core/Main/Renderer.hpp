@@ -21,7 +21,7 @@ public:
     [[nodiscard]] bool Initialize(SDL_Window* window) noexcept;
     void Clear() noexcept;
     void DrawGrid(const Diagram::Camera& camera) noexcept;
-    void DrawBlocks(const std::vector<Diagram::Block>& blocks, const Diagram::Camera& camera) noexcept;
+    void DrawBlocks(const std::vector<Diagram::Block>& blocks, const Diagram::Camera& camera) const noexcept;
     void Present() noexcept;
 
     [[nodiscard]] SDL_Renderer* GetSDLRenderer() const noexcept;

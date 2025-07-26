@@ -31,7 +31,7 @@ void DiagramData::Load(const std::string& filePath) {
     }
 }
 
-void DiagramData::Save(const std::string& filePath) {
+void DiagramData::Save(const std::string& filePath) const {
     pugi::xml_document doc;
     auto diagram = doc.append_child("diagram");
 
@@ -43,6 +43,6 @@ void DiagramData::Save(const std::string& filePath) {
         auto blockNode = blocksNode.append_child("block");
         block.xml_serialize(blockNode);
     }
-    
+
     doc.save_file(filePath.c_str());
 }

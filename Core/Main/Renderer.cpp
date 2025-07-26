@@ -32,13 +32,13 @@ void Renderer::DrawGrid(const Diagram::Camera& camera) noexcept {
     const int offsetX = -static_cast<int>(static_cast<int>(camera.data.position.x * camera.data.zoom) % static_cast<int>(scaledStep));
     const int offsetY = -static_cast<int>(static_cast<int>(camera.data.position.y * camera.data.zoom) % static_cast<int>(scaledStep));
     
-    for (float x = offsetX; x < w; x += scaledStep)
+    for (auto x = static_cast<float>(offsetX); x < w; x += scaledStep)
         SDL_RenderDrawLine(m_renderer, static_cast<int>(x), 0, static_cast<int>(x), h);
-    for (float y = offsetY; y < h; y += scaledStep)
+    for (auto y = static_cast<float>(offsetY); y < h; y += scaledStep)
         SDL_RenderDrawLine(m_renderer, 0, static_cast<int>(y), w, static_cast<int>(y));
 }
 
-void Renderer::DrawBlocks(const std::vector<Diagram::Block>& blocks, const Diagram::Camera& camera) noexcept {
+void Renderer::DrawBlocks(const std::vector<Diagram::Block>& blocks, const Diagram::Camera& camera) const noexcept {
     for (const auto& block : blocks) {
         const auto screenPos = camera.WorldToScreen(block.data.position);
         const SDL_FRect rect = {screenPos.x, screenPos.y, block.data.size.x * camera.data.zoom, block.data.size.y * camera.data.zoom};

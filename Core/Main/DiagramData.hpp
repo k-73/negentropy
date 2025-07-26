@@ -15,7 +15,7 @@ public:
     DiagramData& operator=(DiagramData&&) = delete;
 
     void Load(const std::string& filePath);
-    void Save(const std::string& filePath);
+    void Save(const std::string& filePath) const;
 
     [[nodiscard]] const std::vector<Diagram::Block>& GetBlocks() const noexcept { return m_blocks; }
     [[nodiscard]] std::vector<Diagram::Block>& GetBlocks() noexcept { return m_blocks; }
