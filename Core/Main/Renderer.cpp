@@ -43,14 +43,20 @@ void Renderer::DrawBlocks(const std::vector<Diagram::Block>& blocks, const Diagr
         const auto screenPos = camera.WorldToScreen(block.data.position);
         const SDL_FRect rect = {screenPos.x, screenPos.y, block.data.size.x * camera.data.zoom, block.data.size.y * camera.data.zoom};
         
-        const auto r = static_cast<Uint8>(block.data.color.r * 255.0f);
-        const auto g = static_cast<Uint8>(block.data.color.g * 255.0f);
-        const auto b = static_cast<Uint8>(block.data.color.b * 255.0f);
-        const auto a = static_cast<Uint8>(block.data.color.a * 255.0f);
+        const auto r = static_cast<Uint8>(block.data.backgroundColor.r * 255.0f);
+        const auto g = static_cast<Uint8>(block.data.backgroundColor.g * 255.0f);
+        const auto b = static_cast<Uint8>(block.data.backgroundColor.b * 255.0f);
+        const auto a = static_cast<Uint8>(block.data.backgroundColor.a * 255.0f);
         
         SDL_SetRenderDrawColor(m_renderer, r, g, b, a);
         SDL_RenderFillRectF(m_renderer, &rect);
-        SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
+        
+        const auto borderR = static_cast<Uint8>(block.data.borderColor.r * 255.0f);
+        const auto borderG = static_cast<Uint8>(block.data.borderColor.g * 255.0f);
+        const auto borderB = static_cast<Uint8>(block.data.borderColor.b * 255.0f);
+        const auto borderA = static_cast<Uint8>(block.data.borderColor.a * 255.0f);
+        
+        SDL_SetRenderDrawColor(m_renderer, borderR, borderG, borderB, borderA);
         SDL_RenderDrawRectF(m_renderer, &rect);
     }
 }

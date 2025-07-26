@@ -6,32 +6,36 @@
 	</camera>
 	<blocks>
 		<block>
-			<position x="111" y="288" />
-			<size x="120" y="60" />
-			<label>Start</label>
-			<type>Process</type>
-			<color x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
-		</block>
-		<block>
 			<position x="282" y="178" />
 			<size x="120" y="60" />
 			<label>End</label>
 			<type>Process</type>
-			<color x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
+			<backgroundColor x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
+			<borderColor x="1" y="1" z="1" w="1" />
 		</block>
 		<block>
-			<position x="262" y="294" />
-			<size x="120" y="60" />
-			<label>Is it good?</label>
-			<type>Process</type>
-			<color x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
-		</block>
-		<block>
-			<position x="116" y="187" />
+			<position x="133" y="177" />
 			<size x="120" y="60" />
 			<label>Some Action</label>
 			<type>Process</type>
-			<color x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
+			<backgroundColor x="0.349999994" y="0.0" z="0.779999971" w="1" />
+			<borderColor x="1" y="0" z="0" w="1" />
+		</block>
+		<block>
+			<position x="131" y="247" />
+			<size x="120" y="60" />
+			<label>Start</label>
+			<type>Process</type>
+			<backgroundColor x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
+			<borderColor x="1" y="0" z="1" w="1" />
+		</block>
+		<block>
+			<position x="296" y="256" />
+			<size x="120" y="60" />
+			<label>Is it good?</label>
+			<type>Process</type>
+			<backgroundColor x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
+			<borderColor x="1" y="1" z="1" w="1" />
 		</block>
 	</blocks>
 </diagram>

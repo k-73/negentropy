@@ -25,7 +25,8 @@ namespace Diagram {
             glm::vec2 size{120.0f, 60.0f};
             std::string label;
             Type type = Type::Process;
-            glm::vec4 color{0.35f, 0.47f, 0.78f, 1.0f};
+            glm::vec4 backgroundColor{0.35f, 0.47f, 0.78f, 1.0f};
+            glm::vec4 borderColor{1.0f, 1.0f, 1.0f, 1.0f};
         } data;
 
         [[nodiscard]] constexpr glm::vec4 GetRect() const noexcept {

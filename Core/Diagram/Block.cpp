@@ -1,5 +1,6 @@
 #include "Block.hpp"
 #include "Camera.hpp"
+#include <iostream>
 
 namespace Diagram {
     bool Block::HandleEvent(const SDL_Event& event, const Camera& camera) noexcept {
@@ -28,14 +29,20 @@ namespace Diagram {
         const auto screenPos = camera.WorldToScreen(data.position);
         const SDL_FRect rect = {screenPos.x, screenPos.y, data.size.x * camera.data.zoom, data.size.y * camera.data.zoom};
         
-        const auto r = static_cast<Uint8>(data.color.r * 255.0f);
-        const auto g = static_cast<Uint8>(data.color.g * 255.0f);
-        const auto b = static_cast<Uint8>(data.color.b * 255.0f);
-        const auto a = static_cast<Uint8>(data.color.a * 255.0f);
+        const auto bgR = static_cast<Uint8>(data.backgroundColor.r * 255.0f);
+        const auto bgG = static_cast<Uint8>(data.backgroundColor.g * 255.0f);
+        const auto bgB = static_cast<Uint8>(data.backgroundColor.b * 255.0f);
+        const auto bgA = static_cast<Uint8>(data.backgroundColor.a * 255.0f);
         
-        SDL_SetRenderDrawColor(renderer, r, g, b, a);
+        SDL_SetRenderDrawColor(renderer, bgR, bgG, bgB, bgA);
         SDL_RenderFillRectF(renderer, &rect);
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        
+        const auto borderR = static_cast<Uint8>(data.borderColor.r * 255.0f);
+        const auto borderG = static_cast<Uint8>(data.borderColor.g * 255.0f);
+        const auto borderB = static_cast<Uint8>(data.borderColor.b * 255.0f);
+        const auto borderA = static_cast<Uint8>(data.borderColor.a * 255.0f);
+        
+        SDL_SetRenderDrawColor(renderer, borderR, borderG, borderB, borderA);
         SDL_RenderDrawRectF(renderer, &rect);
     }
 
