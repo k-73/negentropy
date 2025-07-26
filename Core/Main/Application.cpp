@@ -93,7 +93,7 @@ void Application::ProcessEvents() noexcept {
         }
 
         if (shouldProcessEvent) {
-            m_eventHandler->HandleEvent(event, m_diagramData->GetCamera(), m_diagramData->GetBlocks());
+            EventHandler::HandleEvent(event, m_diagramData->GetCamera(), m_diagramData->GetBlocks());
         }
     }
 }
