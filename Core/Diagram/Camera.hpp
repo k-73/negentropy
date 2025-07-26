@@ -38,17 +38,12 @@ namespace Diagram {
         }
 
         void xml_serialize(pugi::xml_node& node) const {
-            auto posNode = node.append_child("position");
-            XML::serialize(posNode, "x", position.x);
-            XML::serialize(posNode, "y", position.y);
+            XML_NODE(node, "position", XML::f("x", position.x), XML::f("y", position.y));
             XML_FIELD(node, zoom);
         }
 
         void xml_deserialize(const pugi::xml_node& node) {
-            if (auto posNode = node.child("position")) {
-                XML::deserialize(posNode, "x", position.x);
-                XML::deserialize(posNode, "y", position.y);
-            }
+            XML_NODE_LOAD(node, "position", XML::f("x", position.x), XML::f("y", position.y));
             XML_FIELD_LOAD(node, zoom);
         }
     };

@@ -5,6 +5,7 @@
 #include <type_traits>
 #include <string>
 #include <tuple>
+#include <iostream>
 #include <magic_enum/magic_enum.hpp>
 
 namespace XML {
@@ -65,14 +66,41 @@ namespace XML {
         }
     }
 
-    // Helper function for creating structured XML nodes
+    // Helper to extract value from reference_wrapper or pass through
     template<typename T>
-    inline void serialize_struct(pugi::xml_node& parent, const char* name, 
-                                 std::initializer_list<std::pair<const char*, T>> fields) {
+    decltype(auto) get_value(std::reference_wrapper<T> ref) {
+        return ref.get();
+    }
+
+    template<typename T>
+    decltype(auto) get_value(T&& value) {
+        return std::forward<T>(value);
+    }
+
+    // Modern C++20 structured serialization using fold expressions
+    template<typename... Args>
+    inline void serialize_node(pugi::xml_node& parent, const char* name, Args&&... args) {
         auto child = parent.append_child(name);
-        for (const auto& field : fields) {
-            serialize(child, field.first, field.second);
+        ((serialize(child, args.first, get_value(args.second))), ...);
+    }
+
+    template<typename... Args>
+    inline void deserialize_node(const pugi::xml_node& parent, const char* name, Args&&... args) {
+        if (auto child = parent.child(name)) {
+            ((deserialize(child, args.first, get_value(args.second))), ...);
         }
+    }
+
+    // Field factory for cleaner syntax - fixed for deserialize
+    template<typename T>
+    constexpr auto f(const char* name, T& value) {
+        return std::make_pair(name, std::ref(value));
+    }
+
+    // Const version for serialize
+    template<typename T>
+    constexpr auto f(const char* name, const T& value) {
+        return std::make_pair(name, std::cref(value));
     }
 
     // CRTP base for automatic serialization
@@ -95,7 +123,10 @@ namespace XML {
     #define XML_FIELD_LOAD(node, field) \
         XML::deserialize(node, #field, field)
 
-    // Macro for structured serialization (future use)
-    #define XML_STRUCT(node, name, ...) \
-        XML::serialize_struct(node, name, {__VA_ARGS__})
+    // Ultra-compact macros for structured serialization
+    #define XML_NODE(node, name, ...) \
+        XML::serialize_node(node, name, __VA_ARGS__)
+
+    #define XML_NODE_LOAD(node, name, ...) \
+        XML::deserialize_node(node, name, __VA_ARGS__)
 }

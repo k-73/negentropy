@@ -23,7 +23,7 @@
 			<color r="0.349999994" g="0.469999999" b="0.779999971" a="1" />
 		</block>
 		<block type="Start">
-			<position x="613" y="170" />
+			<position x="296" y="311" />
 			<size x="120" y="60" />
 			<label>Start</label>
 			<color r="0.349999994" g="0.469999999" b="0.779999971" a="1" />

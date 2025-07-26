@@ -36,45 +36,20 @@ namespace Diagram {
 
         void xml_serialize(pugi::xml_node& node) const {
             XML_FIELD(node, type);
-            
-            auto posNode = node.append_child("position");
-            XML::serialize(posNode, "x", position.x);
-            XML::serialize(posNode, "y", position.y);
-            
-            auto sizeNode = node.append_child("size");
-            XML::serialize(sizeNode, "x", size.x);
-            XML::serialize(sizeNode, "y", size.y);
-            
+            XML_NODE(node, "position", XML::f("x", position.x), XML::f("y", position.y));
+            XML_NODE(node, "size", XML::f("x", size.x), XML::f("y", size.y));
             XML_FIELD(node, label);
-            
-            auto colorNode = node.append_child("color");
-            XML::serialize(colorNode, "r", color.r);
-            XML::serialize(colorNode, "g", color.g);
-            XML::serialize(colorNode, "b", color.b);
-            XML::serialize(colorNode, "a", color.a);
+            XML_NODE(node, "color", XML::f("r", color.r), XML::f("g", color.g), 
+                                    XML::f("b", color.b), XML::f("a", color.a));
         }
 
         void xml_deserialize(const pugi::xml_node& node) {
             XML_FIELD_LOAD(node, type);
-            
-            // Test basic loading first
-            if (auto posNode = node.child("position")) {
-                XML::deserialize(posNode, "x", position.x);
-                XML::deserialize(posNode, "y", position.y);
-            }
-            if (auto sizeNode = node.child("size")) {
-                XML::deserialize(sizeNode, "x", size.x);
-                XML::deserialize(sizeNode, "y", size.y);
-            }
-            
+            XML_NODE_LOAD(node, "position", XML::f("x", position.x), XML::f("y", position.y));
+            XML_NODE_LOAD(node, "size", XML::f("x", size.x), XML::f("y", size.y));
             XML_FIELD_LOAD(node, label);
-            
-            if (auto colorNode = node.child("color")) {
-                XML::deserialize(colorNode, "r", color.r);
-                XML::deserialize(colorNode, "g", color.g);
-                XML::deserialize(colorNode, "b", color.b);
-                XML::deserialize(colorNode, "a", color.a);
-            }
+            XML_NODE_LOAD(node, "color", XML::f("r", color.r), XML::f("g", color.g), 
+                                          XML::f("b", color.b), XML::f("a", color.a));
         }
     };
 }
