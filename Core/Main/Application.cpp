@@ -115,7 +115,9 @@ void Application::RenderFrame() noexcept {
 }
 
 void Application::RenderUI() noexcept {
-
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.0f, 3.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 3.0f));
+    
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
             if (ImGui::BeginMenu("Load")) {
@@ -150,6 +152,8 @@ void Application::RenderUI() noexcept {
         
         ImGui::EndMainMenuBar();
     }
+    
+    ImGui::PopStyleVar(2);
     
     if (m_showProperties) {
         RenderPropertiesPanel();
@@ -233,7 +237,7 @@ void Application::SetupVSCodeStyle() noexcept {
     colors[ImGuiCol_TitleBg]             = ImVec4(0.13f, 0.14f, 0.15f, 1.00f);
     colors[ImGuiCol_TitleBgActive]       = ImVec4(0.13f, 0.14f, 0.15f, 1.00f);
     colors[ImGuiCol_TitleBgCollapsed]    = ImVec4(0.13f, 0.14f, 0.15f, 1.00f);
-    colors[ImGuiCol_MenuBarBg]           = ImVec4(0.16f, 0.16f, 0.21f, 1.00f);
+    colors[ImGuiCol_MenuBarBg]           = ImVec4(0.13f, 0.14f, 0.15f, 1.00f);
     colors[ImGuiCol_ScrollbarBg]         = ImVec4(0.13f, 0.14f, 0.15f, 1.00f);
     colors[ImGuiCol_ScrollbarGrab]       = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
     colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
@@ -274,16 +278,16 @@ void Application::SetupVSCodeStyle() noexcept {
     colors[ImGuiCol_NavWindowingDimBg]   = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
     colors[ImGuiCol_ModalWindowDimBg]    = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 
-    // VS Code Style Settings
-    style.WindowPadding        = ImVec2(6.0f, 6.0f);
-    style.FramePadding         = ImVec2(8.0f, 4.0f);
-    style.CellPadding          = ImVec2(4.0f, 2.0f);
-    style.ItemSpacing          = ImVec2(8.0f, 4.0f);
-    style.ItemInnerSpacing     = ImVec2(4.0f, 4.0f);
+    // Compact VS Code Style Settings
+    style.WindowPadding        = ImVec2(4.0f, 4.0f);
+    style.FramePadding         = ImVec2(6.0f, 2.0f);
+    style.CellPadding          = ImVec2(2.0f, 1.0f);
+    style.ItemSpacing          = ImVec2(4.0f, 2.0f);
+    style.ItemInnerSpacing     = ImVec2(2.0f, 2.0f);
     style.TouchExtraPadding    = ImVec2(0.0f, 0.0f);
-    style.IndentSpacing        = 16.0f;
-    style.ScrollbarSize        = 14.0f;
-    style.GrabMinSize          = 10.0f;
+    style.IndentSpacing        = 12.0f;
+    style.ScrollbarSize        = 12.0f;
+    style.GrabMinSize          = 8.0f;
 
     // Borders
     style.WindowBorderSize     = 1.0f;
