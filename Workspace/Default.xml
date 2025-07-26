@@ -1,37 +1,37 @@
 <?xml version="1.0"?>
 <diagram>
 	<camera>
-		<position c0="0" c1="0" />
+		<position x="0" y="0" />
 		<zoom>1</zoom>
 	</camera>
 	<blocks>
 		<block>
-			<position c0="87" c1="160" />
-			<size c0="120" c1="60" />
+			<position x="413" y="179" />
+			<size x="120" y="60" />
 			<label>Is it good?</label>
 			<type>Process</type>
-			<color c0="0.349999994" c1="0.469999999" c2="0.779999971" c3="1" />
+			<color x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
 		</block>
 		<block>
-			<position c0="180" c1="224" />
-			<size c0="120" c1="60" />
-			<label>Some Action</label>
-			<type>Process</type>
-			<color c0="0.349999994" c1="0.469999999" c2="0.779999971" c3="1" />
-		</block>
-		<block>
-			<position c0="-10" c1="14" />
-			<size c0="120" c1="60" />
-			<label>End</label>
-			<type>Process</type>
-			<color c0="0.349999994" c1="0.469999999" c2="0.779999971" c3="1" />
-		</block>
-		<block>
-			<position c0="399" c1="116" />
-			<size c0="120" c1="60" />
+			<position x="111" y="288" />
+			<size x="120" y="60" />
 			<label>Start</label>
 			<type>Process</type>
-			<color c0="0.349999994" c1="0.469999999" c2="0.779999971" c3="1" />
+			<color x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
+		</block>
+		<block>
+			<position x="280" y="282" />
+			<size x="120" y="60" />
+			<label>End</label>
+			<type>Process</type>
+			<color x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
+		</block>
+		<block>
+			<position x="432" y="278" />
+			<size x="120" y="60" />
+			<label>Some Action</label>
+			<type>Process</type>
+			<color x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
 		</block>
 	</blocks>
 </diagram>
