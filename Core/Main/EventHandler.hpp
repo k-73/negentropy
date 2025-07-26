@@ -40,7 +40,7 @@ private:
     static void HandleMouseButtonDown(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks) noexcept {
         if (e.button.button == SDL_BUTTON_MIDDLE) {
             camera.panning = true;
-            camera.panStart = camera.position;
+            camera.panStart = camera.data.position;
             camera.mouseStart = {static_cast<float>(e.button.x), static_cast<float>(e.button.y)};
         }
         if (e.button.button == SDL_BUTTON_LEFT) {
@@ -50,7 +50,7 @@ private:
                 auto& b = blocks[i];
                 if (b.Contains(worldPos)) {
                     b.dragging = true;
-                    b.dragOffset = worldPos - b.position;
+                    b.dragOffset = worldPos - b.data.position;
                     std::rotate(blocks.begin() + i, blocks.begin() + i + 1, blocks.end());
                     break;
                 }
@@ -70,13 +70,13 @@ private:
         
         if (camera.panning) {
             const glm::vec2 mouseDelta = currentMouse - camera.mouseStart;
-            camera.position = camera.panStart - mouseDelta / camera.zoom;
+            camera.data.position = camera.panStart - mouseDelta / camera.data.zoom;
         }
         
         const glm::vec2 worldPos = camera.ScreenToWorld(currentMouse);
         for (auto& b : blocks) {
             if (b.dragging) {
-                b.position = worldPos - b.dragOffset;
+                b.data.position = worldPos - b.dragOffset;
             }
         }
     }

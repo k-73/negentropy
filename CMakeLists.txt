@@ -47,7 +47,22 @@ FetchContent_Declare(
   GIT_TAG v1.14
 )
 
-FetchContent_MakeAvailable(nlohmann_json spdlog imgui glm entt magic_enum pugixml)
+FetchContent_Declare(
+  boost_pfr
+  GIT_REPOSITORY https://github.com/boostorg/pfr.git
+  GIT_TAG "boost-1.85.0"
+)
+
+FetchContent_MakeAvailable(
+    boost_pfr
+    nlohmann_json
+    spdlog
+    imgui
+    glm
+    entt
+    magic_enum
+    pugixml
+)
 
 find_package(SDL2 REQUIRED)
 
@@ -76,16 +91,20 @@ target_include_directories(negentropy PRIVATE
     Core
     ${imgui_SOURCE_DIR}
     ${imgui_SOURCE_DIR}/backends
+    ${glm_SOURCE_DIR}
+    ${magic_enum_SOURCE_DIR}/include
+    ${entt_SOURCE_DIR}/src
+    ${boost_pfr_SOURCE_DIR}/include
 )
 
 target_compile_definitions(negentropy PRIVATE PROJECT_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 
-target_link_libraries(negentropy PRIVATE
-    SDL2::SDL2 
-    nlohmann_json::nlohmann_json 
-    spdlog::spdlog
-    glm::glm
-    EnTT::EnTT
-    magic_enum::magic_enum
-    pugixml::pugixml
+target_link_libraries(negentropy
+        PRIVATE
+        SDL2::SDL2 
+        spdlog::spdlog
+        EnTT::EnTT
+        nlohmann_json::nlohmann_json
+        magic_enum::magic_enum
+        pugixml::pugixml
 )

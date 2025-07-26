@@ -1,50 +1,43 @@
 #pragma once
 
 #include <glm/vec2.hpp>
-#include <algorithm>
 #include <pugixml.hpp>
 #include "../Utils/XMLSerialization.hpp"
 
 namespace Diagram {
-    struct Camera : public XML::Serializable<Camera> {
+    struct CameraData {
         glm::vec2 position{0.0f};
         float zoom = 1.0f;
+    };
+
+    struct Camera {
+        CameraData data;
         
-        // Runtime state (not serialized)
         bool panning = false;
         glm::vec2 panStart{0.0f};
         glm::vec2 mouseStart{0.0f};
 
-        static constexpr float MIN_ZOOM = 0.1f;
-        static constexpr float MAX_ZOOM = 5.0f;
-
-        [[nodiscard]] constexpr glm::vec2 WorldToScreen(glm::vec2 worldPos) const noexcept {
-            return (worldPos - position) * zoom;
+        [[nodiscard]] glm::vec2 ScreenToWorld(glm::vec2 screenPos) const {
+            return (screenPos / data.zoom) + data.position;
         }
 
-        [[nodiscard]] constexpr glm::vec2 ScreenToWorld(glm::vec2 screenPos) const noexcept {
-            return screenPos / zoom + position;
+        [[nodiscard]] glm::vec2 WorldToScreen(glm::vec2 worldPos) const {
+            return (worldPos - data.position) * data.zoom;
         }
 
-        void SetZoom(float newZoom) noexcept {
-            zoom = std::clamp(newZoom, MIN_ZOOM, MAX_ZOOM);
-        }
-
-        void ZoomAt(glm::vec2 screenPos, float factor) noexcept {
-            const glm::vec2 worldPosBeforeZoom = ScreenToWorld(screenPos);
-            SetZoom(zoom * factor);
-            const glm::vec2 worldPosAfterZoom = ScreenToWorld(screenPos);
-            position += worldPosBeforeZoom - worldPosAfterZoom;
+        void ZoomAt(glm::vec2 screenPos, float factor) {
+            glm::vec2 worldPosBefore = ScreenToWorld(screenPos);
+            data.zoom *= factor;
+            glm::vec2 worldPosAfter = ScreenToWorld(screenPos);
+            data.position += worldPosBefore - worldPosAfter;
         }
 
         void xml_serialize(pugi::xml_node& node) const {
-            XML_NODE(node, "position", XML::f("x", position.x), XML::f("y", position.y));
-            XML_FIELD(node, zoom);
+            XML::auto_serialize(data, node);
         }
 
         void xml_deserialize(const pugi::xml_node& node) {
-            XML_NODE_LOAD(node, "position", XML::f("x", position.x), XML::f("y", position.y));
-            XML_FIELD_LOAD(node, zoom);
+            XML::auto_deserialize(data, node);
         }
     };
 }

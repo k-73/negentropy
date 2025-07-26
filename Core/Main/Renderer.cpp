@@ -28,9 +28,9 @@ void Renderer::DrawGrid(const Diagram::Camera& camera) noexcept {
     int w, h;
     SDL_GetRendererOutputSize(m_renderer, &w, &h);
     
-    const float scaledStep = step * camera.zoom;
-    const int offsetX = -static_cast<int>(static_cast<int>(camera.position.x * camera.zoom) % static_cast<int>(scaledStep));
-    const int offsetY = -static_cast<int>(static_cast<int>(camera.position.y * camera.zoom) % static_cast<int>(scaledStep));
+    const float scaledStep = step * camera.data.zoom;
+    const int offsetX = -static_cast<int>(static_cast<int>(camera.data.position.x * camera.data.zoom) % static_cast<int>(scaledStep));
+    const int offsetY = -static_cast<int>(static_cast<int>(camera.data.position.y * camera.data.zoom) % static_cast<int>(scaledStep));
     
     for (float x = offsetX; x < w; x += scaledStep)
         SDL_RenderDrawLine(m_renderer, static_cast<int>(x), 0, static_cast<int>(x), h);
@@ -40,13 +40,13 @@ void Renderer::DrawGrid(const Diagram::Camera& camera) noexcept {
 
 void Renderer::DrawBlocks(const std::vector<Diagram::Block>& blocks, const Diagram::Camera& camera) noexcept {
     for (const auto& block : blocks) {
-        const auto screenPos = camera.WorldToScreen(block.position);
-        const SDL_FRect rect = {screenPos.x, screenPos.y, block.size.x * camera.zoom, block.size.y * camera.zoom};
+        const auto screenPos = camera.WorldToScreen(block.data.position);
+        const SDL_FRect rect = {screenPos.x, screenPos.y, block.data.size.x * camera.data.zoom, block.data.size.y * camera.data.zoom};
         
-        const auto r = static_cast<Uint8>(block.color.r * 255.0f);
-        const auto g = static_cast<Uint8>(block.color.g * 255.0f);
-        const auto b = static_cast<Uint8>(block.color.b * 255.0f);
-        const auto a = static_cast<Uint8>(block.color.a * 255.0f);
+        const auto r = static_cast<Uint8>(block.data.color.r * 255.0f);
+        const auto g = static_cast<Uint8>(block.data.color.g * 255.0f);
+        const auto b = static_cast<Uint8>(block.data.color.b * 255.0f);
+        const auto a = static_cast<Uint8>(block.data.color.a * 255.0f);
         
         SDL_SetRenderDrawColor(m_renderer, r, g, b, a);
         SDL_RenderFillRectF(m_renderer, &rect);

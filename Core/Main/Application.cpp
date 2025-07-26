@@ -170,14 +170,14 @@ void Application::RenderPropertiesPanel() noexcept {
     auto& blocks = m_diagramData->GetBlocks();
     auto& camera = m_diagramData->GetCamera();
     
-    ImGui::Text("Camera Position: (%.1f, %.1f)", camera.position.x, camera.position.y);
+    ImGui::Text("Camera Position: (%.1f, %.1f)", camera.data.position.x, camera.data.position.y);
     ImGui::Text("Blocks Count: %zu", blocks.size());
     
     if (ImGui::Button("Add Block")) {
         blocks.emplace_back();
         auto& newBlock = blocks.back();
-        newBlock.position = {100.0f + blocks.size() * 150.0f, 100.0f};
-        newBlock.label = "Block " + std::to_string(blocks.size());
+        newBlock.data.position = {100.0f + blocks.size() * 150.0f, 100.0f};
+        newBlock.data.label = "Block " + std::to_string(blocks.size());
     }
     
     ImGui::Separator();
@@ -188,19 +188,19 @@ void Application::RenderPropertiesPanel() noexcept {
         
         if (ImGui::CollapsingHeader(("Block " + std::to_string(i + 1)).c_str())) {
             char labelBuffer[256];
-            strncpy(labelBuffer, block.label.c_str(), sizeof(labelBuffer) - 1);
+            strncpy(labelBuffer, block.data.label.c_str(), sizeof(labelBuffer) - 1);
             labelBuffer[sizeof(labelBuffer) - 1] = '\0';
             if (ImGui::InputText("Label", labelBuffer, sizeof(labelBuffer))) {
-                block.label = labelBuffer;
+                block.data.label = labelBuffer;
             }
-            ImGui::DragFloat2("Position", &block.position.x, 1.0f);
-            ImGui::DragFloat2("Size", &block.size.x, 1.0f, 10.0f, 500.0f);
-            ImGui::ColorEdit4("Color", &block.color.x);
+            ImGui::DragFloat2("Position", &block.data.position.x, 1.0f);
+            ImGui::DragFloat2("Size", &block.data.size.x, 1.0f, 10.0f, 500.0f);
+            ImGui::ColorEdit4("Color", &block.data.color.x);
             
             const char* typeNames[] = {"Start", "Process", "Decision", "End"};
-            int currentType = static_cast<int>(block.type);
+            int currentType = static_cast<int>(block.data.type);
             if (ImGui::Combo("Type", &currentType, typeNames, 4)) {
-                block.type = static_cast<Diagram::BlockType>(currentType);
+                block.data.type = static_cast<Diagram::BlockType>(currentType);
             }
             
             if (ImGui::Button("Delete")) {

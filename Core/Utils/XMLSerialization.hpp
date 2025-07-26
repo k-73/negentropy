@@ -1,132 +1,104 @@
 #pragma once
 
 #include <pugixml.hpp>
-#include <concepts>
-#include <type_traits>
 #include <string>
-#include <tuple>
-#include <iostream>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 #include <magic_enum/magic_enum.hpp>
+#include <boost/pfr.hpp>
+#include <type_traits>
+#include <string_view>
 
 namespace XML {
     template<typename T>
-    concept XMLSerializable = requires(T& obj, const pugi::xml_node& node) {
-        obj.serialize_to_xml(node);
-        obj.deserialize_from_xml(node);
-    };
+    concept IsGlmVec = std::is_same_v<T, glm::vec2> || std::is_same_v<T, glm::vec3> || std::is_same_v<T, glm::vec4>;
 
     template<typename T>
-    concept EnumType = std::is_enum_v<T>;
-
-    template<typename T>
-    concept ArithmeticType = std::is_arithmetic_v<T>;
-
-    template<typename T>
-    concept StructuredBindable = requires(T& obj) {
-        std::tuple_size<std::remove_cvref_t<T>>::value;
-    };
-
-    // Core serialization for basic types
-    template<ArithmeticType T>
-    void serialize(pugi::xml_node& node, const char* name, const T& value) {
-        node.append_attribute(name).set_value(value);
-    }
-
-    template<ArithmeticType T>
-    void deserialize(const pugi::xml_node& node, const char* name, T& value) {
-        if (auto attr = node.attribute(name)) {
-            if constexpr (std::is_same_v<T, float>) value = attr.as_float();
-            else if constexpr (std::is_same_v<T, double>) value = attr.as_double();
-            else if constexpr (std::is_same_v<T, int>) value = attr.as_int();
-            else if constexpr (std::is_same_v<T, bool>) value = attr.as_bool();
+    void serialize_field(pugi::xml_node& parent, std::string_view name, const T& field) {
+        auto node = parent.append_child(name.data());
+        if constexpr (std::is_enum_v<T>) {
+            node.text().set(magic_enum::enum_name(field).data());
+        } else if constexpr (std::is_arithmetic_v<T>) {
+            node.text().set(field);
+        } else if constexpr (std::is_same_v<T, std::string>) {
+            node.text().set(field.c_str());
+        } else if constexpr (IsGlmVec<T>) {
+            bool isColor = (name == "color");
+            if constexpr (T::length() >= 1) {
+                node.append_attribute(isColor ? "r" : "x").set_value(field.x);
+            }
+            if constexpr (T::length() >= 2) {
+                node.append_attribute(isColor ? "g" : "y").set_value(field.y);
+            }
+            if constexpr (T::length() >= 3) {
+                node.append_attribute(isColor ? "b" : "z").set_value(field.z);
+            }
+            if constexpr (T::length() >= 4) {
+                node.append_attribute(isColor ? "a" : "w").set_value(field.w);
+            }
         }
     }
 
-    // String specialization
-    inline void serialize(pugi::xml_node& node, const char* name, const std::string& value) {
-        node.append_child(name).text().set(value.c_str());
-    }
+    template<typename T>
+    void deserialize_field(const pugi::xml_node& parent, std::string_view name, T& field) {
+        auto node = parent.child(name.data());
+        if (!node) return;
 
-    inline void deserialize(const pugi::xml_node& node, const char* name, std::string& value) {
-        if (auto child = node.child(name)) {
-            value = child.text().as_string();
+        if constexpr (std::is_enum_v<T>) {
+            auto value = magic_enum::enum_cast<T>(node.text().as_string());
+            if (value.has_value()) {
+                field = value.value();
+            }
+        } else if constexpr (std::is_same_v<T, bool>) {
+            field = node.text().as_bool();
+        } else if constexpr (std::is_integral_v<T>) {
+            field = node.text().as_llong();
+        } else if constexpr (std::is_floating_point_v<T>) {
+            field = node.text().as_double();
+        } else if constexpr (std::is_same_v<T, std::string>) {
+            field = node.text().as_string();
+        } else if constexpr (IsGlmVec<T>) {
+            bool isColor = (name == "color");
+            if constexpr (T::length() >= 1) {
+                field.x = node.attribute(isColor ? "r" : "x").as_float();
+            }
+            if constexpr (T::length() >= 2) {
+                field.y = node.attribute(isColor ? "g" : "y").as_float();
+            }
+            if constexpr (T::length() >= 3) {
+                field.z = node.attribute(isColor ? "b" : "z").as_float();
+            }
+            if constexpr (T::length() >= 4) {
+                field.w = node.attribute(isColor ? "a" : "w").as_float();
+            }
         }
     }
 
-    // Enum specialization
-    template<EnumType T>
-    inline void serialize(pugi::xml_node& node, const char* name, const T& value) {
-        node.append_attribute(name).set_value(magic_enum::enum_name(value).data());
-    }
-
-    template<EnumType T>
-    inline void deserialize(const pugi::xml_node& node, const char* name, T& value) {
-        if (auto attr = node.attribute(name)) {
-            value = magic_enum::enum_cast<T>(attr.as_string()).value_or(T{});
-        }
-    }
-
-    // Helper to extract value from reference_wrapper or pass through
     template<typename T>
-    decltype(auto) get_value(std::reference_wrapper<T> ref) {
-        return ref.get();
+    void auto_serialize(const T& obj, pugi::xml_node& node) {
+        boost::pfr::for_each_field(obj, [&]<typename FieldType>(const FieldType& field, size_t idx) {
+            constexpr auto names = boost::pfr::names_as_array<T>();
+            serialize_field(node, names[idx], field);
+        });
     }
 
     template<typename T>
-    decltype(auto) get_value(T&& value) {
-        return std::forward<T>(value);
+    void auto_deserialize(T& obj, const pugi::xml_node& node) {
+        boost::pfr::for_each_field(obj, [&]<typename FieldType>(FieldType& field, size_t idx) {
+            constexpr auto names = boost::pfr::names_as_array<T>();
+            deserialize_field(node, names[idx], field);
+        });
     }
 
-    // Modern C++20 structured serialization using fold expressions
-    template<typename... Args>
-    inline void serialize_node(pugi::xml_node& parent, const char* name, Args&&... args) {
-        auto child = parent.append_child(name);
-        ((serialize(child, args.first, get_value(args.second))), ...);
-    }
-
-    template<typename... Args>
-    inline void deserialize_node(const pugi::xml_node& parent, const char* name, Args&&... args) {
-        if (auto child = parent.child(name)) {
-            ((deserialize(child, args.first, get_value(args.second))), ...);
-        }
-    }
-
-    // Field factory for cleaner syntax - fixed for deserialize
     template<typename T>
-    constexpr auto f(const char* name, T& value) {
-        return std::make_pair(name, std::ref(value));
-    }
-
-    // Const version for serialize
-    template<typename T>
-    constexpr auto f(const char* name, const T& value) {
-        return std::make_pair(name, std::cref(value));
-    }
-
-    // CRTP base for automatic serialization
-    template<typename Derived>
-    class Serializable {
-    public:
-        void serialize_to_xml(pugi::xml_node& node) const {
-            static_cast<const Derived*>(this)->xml_serialize(node);
+    struct Serializable {
+        void xml_serialize(pugi::xml_node& node) const {
+            auto_serialize(static_cast<const T&>(*this), node);
         }
 
-        void deserialize_from_xml(const pugi::xml_node& node) {
-            static_cast<Derived*>(this)->xml_deserialize(node);
+        void xml_deserialize(const pugi::xml_node& node) {
+            auto_deserialize(static_cast<T&>(*this), node);
         }
     };
-
-    // Macro for easy field registration
-    #define XML_FIELD(node, field) \
-        XML::serialize(node, #field, field)
-
-    #define XML_FIELD_LOAD(node, field) \
-        XML::deserialize(node, #field, field)
-
-    // Ultra-compact macros for structured serialization
-    #define XML_NODE(node, name, ...) \
-        XML::serialize_node(node, name, __VA_ARGS__)
-
-    #define XML_NODE_LOAD(node, name, ...) \
-        XML::deserialize_node(node, name, __VA_ARGS__)
 }

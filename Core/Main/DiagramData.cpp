@@ -22,13 +22,13 @@ void DiagramData::Load(const std::string& filePath) {
 
     // Load camera using new serialization system
     if (auto cameraNode = diagram.child("camera")) {
-        m_camera.deserialize_from_xml(cameraNode);
+        m_camera.xml_deserialize(cameraNode);
     }
 
     // Load blocks using new serialization system
     for (pugi::xml_node blockNode : diagram.child("blocks").children("block")) {
         Diagram::Block block;
-        block.deserialize_from_xml(blockNode);
+        block.xml_deserialize(blockNode);
         m_blocks.push_back(block);
     }
 }
@@ -39,13 +39,13 @@ void DiagramData::Save(const std::string& filePath) {
 
     // Save camera using new serialization system
     auto cameraNode = diagram.append_child("camera");
-    m_camera.serialize_to_xml(cameraNode);
+    m_camera.xml_serialize(cameraNode);
 
     // Save blocks using new serialization system
     auto blocksNode = diagram.append_child("blocks");
     for (const auto& block : m_blocks) {
         auto blockNode = blocksNode.append_child("block");
-        block.serialize_to_xml(blockNode);
+        block.xml_serialize(blockNode);
     }
     
     doc.save_file(filePath.c_str());
