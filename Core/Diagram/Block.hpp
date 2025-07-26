@@ -7,24 +7,22 @@
 #include "../Utils/XMLSerialization.hpp"
 
 namespace Diagram {
-    enum class BlockType {
-        Start,
-        Process,
-        Decision,
-        End
-    };
-
-    struct BlockData {
-        glm::vec2 position{0.0f};
-        glm::vec2 size{120.0f, 60.0f};
-        std::string label;
-        BlockType type = BlockType::Process;
-        glm::vec4 color{0.35f, 0.47f, 0.78f, 1.0f};
-    };
-
     struct Block {
-        BlockData data;
-        
+        enum class Type {
+            Start,
+            Process,
+            Decision,
+            End
+        };
+
+        struct Data {
+            glm::vec2 position{0.0f};
+            glm::vec2 size{120.0f, 60.0f};
+            std::string label;
+            Type type = Type::Process;
+            glm::vec4 color{0.35f, 0.47f, 0.78f, 1.0f};
+        } data;
+
         bool dragging = false;
         glm::vec2 dragOffset{0.0f};
 

@@ -6,13 +6,6 @@
 	</camera>
 	<blocks>
 		<block>
-			<position x="413" y="179" />
-			<size x="120" y="60" />
-			<label>Is it good?</label>
-			<type>Process</type>
-			<color x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
-		</block>
-		<block>
 			<position x="111" y="288" />
 			<size x="120" y="60" />
 			<label>Start</label>
@@ -20,16 +13,23 @@
 			<color x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
 		</block>
 		<block>
-			<position x="280" y="282" />
+			<position x="432" y="278" />
+			<size x="120" y="60" />
+			<label>Some Action</label>
+			<type>Process</type>
+			<color x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
+		</block>
+		<block>
+			<position x="282" y="178" />
 			<size x="120" y="60" />
 			<label>End</label>
 			<type>Process</type>
 			<color x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
 		</block>
 		<block>
-			<position x="432" y="278" />
+			<position x="283" y="99" />
 			<size x="120" y="60" />
-			<label>Some Action</label>
+			<label>Is it good?</label>
 			<type>Process</type>
 			<color x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
 		</block>

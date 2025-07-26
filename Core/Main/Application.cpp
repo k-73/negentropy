@@ -196,7 +196,7 @@ void Application::RenderPropertiesPanel() noexcept {
             const char* typeNames[] = {"Start", "Process", "Decision", "End"};
             int currentType = static_cast<int>(block.data.type);
             if (ImGui::Combo("Type", &currentType, typeNames, 4)) {
-                block.data.type = static_cast<Diagram::BlockType>(currentType);
+                block.data.type = static_cast<Diagram::Block::Type>(currentType);
             }
             
             if (ImGui::Button("Delete")) {
