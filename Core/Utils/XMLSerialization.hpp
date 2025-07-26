@@ -80,7 +80,6 @@ namespace XML {
         }
     }
 
-    // ---------- aggregate helpers ----------
     template<typename T>
     void auto_serialize(const T& obj, pugi::xml_node& node) {
         boost::pfr::for_each_field(obj, [&]<typename F>(const F& f, std::size_t i) {

@@ -66,8 +66,7 @@ void Application::InitializeImGui() const {
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    // io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    
+
     ImGui::StyleColorsDark();
     
     ImGui_ImplSDL2_InitForSDLRenderer(m_window, m_renderer.GetSDLRenderer());
@@ -86,13 +85,10 @@ void Application::ProcessEvents() noexcept {
             return;
         }
         
-        // Only check WantCaptureMouse for mouse events, and allow events when ImGui doesn't want them
         bool shouldProcessEvent = true;
         if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP || event.type == SDL_MOUSEMOTION || event.type == SDL_MOUSEWHEEL) {
-            // For mouse events, check if ImGui wants to capture them
             shouldProcessEvent = !ImGui::GetIO().WantCaptureMouse;
         } else if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP || event.type == SDL_TEXTINPUT) {
-            // For keyboard events, check if ImGui wants to capture them
             shouldProcessEvent = !ImGui::GetIO().WantCaptureKeyboard;
         }
 
