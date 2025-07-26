@@ -34,7 +34,8 @@
       <change beforePath="$PROJECT_DIR$/Core/Diagram/Block.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Diagram/Block.hpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Core/Diagram/Camera.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Diagram/Camera.hpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Core/Main/DiagramData.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Main/DiagramData.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Core/Utils/XMLSerialization.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Utils/XMLSerialization.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Workspace/Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Workspace/Default.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

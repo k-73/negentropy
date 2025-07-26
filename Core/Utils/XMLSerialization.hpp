@@ -3,9 +3,8 @@
 #include <pugixml.hpp>
 #include <concepts>
 #include <type_traits>
-#include <glm/vec2.hpp>
-#include <glm/vec4.hpp>
 #include <string>
+#include <tuple>
 #include <magic_enum/magic_enum.hpp>
 
 namespace XML {
@@ -21,7 +20,12 @@ namespace XML {
     template<typename T>
     concept ArithmeticType = std::is_arithmetic_v<T>;
 
-    // Core serialization functions for basic types
+    template<typename T>
+    concept StructuredBindable = requires(T& obj) {
+        std::tuple_size<std::remove_cvref_t<T>>::value;
+    };
+
+    // Core serialization for basic types
     template<ArithmeticType T>
     void serialize(pugi::xml_node& node, const char* name, const T& value) {
         node.append_attribute(name).set_value(value);
@@ -48,7 +52,7 @@ namespace XML {
         }
     }
 
-    // Enum specialization using magic_enum
+    // Enum specialization
     template<EnumType T>
     inline void serialize(pugi::xml_node& node, const char* name, const T& value) {
         node.append_attribute(name).set_value(magic_enum::enum_name(value).data());
@@ -61,35 +65,13 @@ namespace XML {
         }
     }
 
-    // GLM vec2 specialization
-    inline void serialize(pugi::xml_node& node, const char* name, const glm::vec2& value) {
-        auto child = node.append_child(name);
-        serialize(child, "x", value.x);
-        serialize(child, "y", value.y);
-    }
-
-    inline void deserialize(const pugi::xml_node& node, const char* name, glm::vec2& value) {
-        if (auto child = node.child(name)) {
-            deserialize(child, "x", value.x);
-            deserialize(child, "y", value.y);
-        }
-    }
-
-    // GLM vec4 specialization
-    inline void serialize(pugi::xml_node& node, const char* name, const glm::vec4& value) {
-        auto child = node.append_child(name);
-        serialize(child, "r", value.r);
-        serialize(child, "g", value.g);
-        serialize(child, "b", value.b);
-        serialize(child, "a", value.a);
-    }
-
-    inline void deserialize(const pugi::xml_node& node, const char* name, glm::vec4& value) {
-        if (auto child = node.child(name)) {
-            deserialize(child, "r", value.r);
-            deserialize(child, "g", value.g);
-            deserialize(child, "b", value.b);
-            deserialize(child, "a", value.a);
+    // Helper function for creating structured XML nodes
+    template<typename T>
+    inline void serialize_struct(pugi::xml_node& parent, const char* name, 
+                                 std::initializer_list<std::pair<const char*, T>> fields) {
+        auto child = parent.append_child(name);
+        for (const auto& field : fields) {
+            serialize(child, field.first, field.second);
         }
     }
 
@@ -112,4 +94,8 @@ namespace XML {
 
     #define XML_FIELD_LOAD(node, field) \
         XML::deserialize(node, #field, field)
+
+    // Macro for structured serialization (future use)
+    #define XML_STRUCT(node, name, ...) \
+        XML::serialize_struct(node, name, {__VA_ARGS__})
 }
