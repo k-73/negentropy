@@ -40,7 +40,7 @@ namespace Diagram {
         void OnMouseMove(glm::vec2 worldPos) noexcept;
         void RenderUI(int id) noexcept;
 
-        [[nodiscard]] bool IsDragging() const noexcept { return m_dragging; }
+        bool IsDragging() const noexcept { return m_dragging; }
 
     private:
         bool m_dragging = false;
