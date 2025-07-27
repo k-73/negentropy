@@ -76,10 +76,10 @@ namespace Diagram {
                     SDL_RenderDrawLineF(renderer, leftPoint.x, leftPoint.y, rightPoint.x, rightPoint.y);
                 }
             }
-            
-            const glm::vec2 gridCenterWorld{0.0f, 0.0f};
-            const glm::vec2 crossMinWorld{-5.0f, -5.0f};
-            const glm::vec2 crossMaxWorld{5.0f, 5.0f};
+
+            constexpr glm::vec2 gridCenterWorld{0.0f, 0.0f};
+            constexpr glm::vec2 crossMinWorld{-5.0f, -5.0f};
+            constexpr glm::vec2 crossMaxWorld{5.0f, 5.0f};
             
             const glm::vec2 centerScreen = camera.WorldToScreen(gridCenterWorld, screenSize);
             const glm::vec2 crossMinScreen = camera.WorldToScreen(crossMinWorld, screenSize);
