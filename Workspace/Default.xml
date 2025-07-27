@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Diagram>
 	<Camera>
-		<position x="28.7173843" y="6.67353439" />
-		<zoom>11.8224573</zoom>
+		<position x="19.4393959" y="12.098671" />
+		<zoom>18.5521545</zoom>
 	</Camera>
 	<Grid>
 		<smallStep>1</smallStep>
@@ -19,7 +19,7 @@
 			<borderColor x="1" y="0" z="0" w="1" />
 		</Block>
 		<Block>
-			<position x="30" y="0" />
+			<position x="30" y="-0" />
 			<size x="10" y="5" />
 			<label>Block 31</label>
 			<type>Process</type>

@@ -132,37 +132,38 @@ void Application::RenderUI() noexcept {
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 3.0f));
     
     if (ImGui::BeginMainMenuBar()) {
-        if (ImGui::BeginMenu("File")) {
-            if (ImGui::BeginMenu("Load")) {
+        if (ImGui::BeginMenu((ICON_FA_FILE "  File"))) {
+            if (ImGui::BeginMenu((ICON_FA_FOLDER_OPEN "  Load"))) {
                 for (const auto& file : m_workspaceFiles) {
-                    if (ImGui::MenuItem(file.c_str())) {
+                    std::string menuItem = std::string(ICON_FA_FILE_ALT) + "  " + file;
+                    if (ImGui::MenuItem(menuItem.c_str())) {
                         m_currentFilePath = (Utils::GetWorkspacePath() / file).string();
                         m_diagramData.Load(m_currentFilePath);
                     }
                 }
                 ImGui::EndMenu();
             }
-            if (ImGui::MenuItem("Save", "Ctrl+S")) {
+            if (ImGui::MenuItem((ICON_FA_SAVE "  Save"), "Ctrl+S")) {
                 SaveDiagram();
             }
             ImGui::Separator();
-            if (ImGui::MenuItem("Exit", "Alt+F4")) {
+            if (ImGui::MenuItem((ICON_FA_TIMES "  Exit"), "Alt+F4")) {
                 m_running = false;
             }
             ImGui::EndMenu();
         }
         
-        if (ImGui::BeginMenu("Edit")) {
-            if (ImGui::MenuItem("Undo", "Ctrl+Z")) {}
-            if (ImGui::MenuItem("Redo", "Ctrl+Y")) {}
+        if (ImGui::BeginMenu((ICON_FA_EDIT "  Edit"))) {
+            if (ImGui::MenuItem((ICON_FA_UNDO "  Undo"), "Ctrl+Z")) {}
+            if (ImGui::MenuItem((ICON_FA_REDO "  Redo"), "Ctrl+Y")) {}
             ImGui::EndMenu();
         }
         
-        if (ImGui::BeginMenu("View")) {
-            ImGui::MenuItem("Properties", nullptr, &m_showProperties);
-            ImGui::MenuItem("Component Tree", nullptr, &m_showComponentTree);
-            ImGui::MenuItem("Component Editor", nullptr, &m_showComponentEditor);
-            ImGui::MenuItem("Demo", nullptr, &m_showDemo);
+        if (ImGui::BeginMenu((ICON_FA_EYE "  View"))) {
+            ImGui::MenuItem((ICON_FA_WRENCH "  Properties"), nullptr, &m_showProperties);
+            ImGui::MenuItem((ICON_FA_SITEMAP "  Component Tree"), nullptr, &m_showComponentTree);
+            ImGui::MenuItem((ICON_FA_EDIT "  Component Editor"), nullptr, &m_showComponentEditor);
+            ImGui::MenuItem((ICON_FA_MAGIC "  Demo"), nullptr, &m_showDemo);
             ImGui::EndMenu();
         }
         
@@ -201,7 +202,7 @@ void Application::RenderPropertiesPanel() noexcept {
     ImGui::Text("Camera: (%.1f, %.1f) Zoom: %.2f", camera.data.position.x, camera.data.position.y, camera.data.zoom);
     ImGui::Text("Blocks: %zu", blockCount);
     
-    if (ImGui::Button("[F1] Add Block")) {
+    if (ImGui::Button((ICON_FA_PLUS "  [F1] Add Block"))) {
         m_diagramData.AddBlock(false, m_window);
     }
     

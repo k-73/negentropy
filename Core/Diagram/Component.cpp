@@ -2,6 +2,7 @@
 #include "Block.hpp"
 #include "imgui.h"
 #include <algorithm>
+#include "../Utils/IconsFontAwesome5.h"
 
 namespace Diagram {
     ComponentBase* ComponentBase::s_selected = nullptr;
@@ -52,7 +53,16 @@ namespace Diagram {
             flags |= ImGuiTreeNodeFlags_Selected;
         }
 
-        bool nodeOpen = ImGui::TreeNodeEx(node.name.c_str(), flags);
+        // Determine icon based on component type
+        const char* icon = ICON_FA_STOP_CIRCLE;
+        if (node.component) {
+            icon = ICON_FA_CUBE;
+        } else if (node.name == "Scene") {
+            icon = ICON_FA_SITEMAP;
+        }
+
+        std::string displayName = std::string(icon) + "  " + node.name;
+        bool nodeOpen = ImGui::TreeNodeEx(displayName.c_str(), flags);
         
         if (ImGui::IsItemClicked() && node.component) {
             Select(node.component);
