@@ -177,7 +177,7 @@ void Application::RenderPropertiesPanel() noexcept {
     auto& components = m_diagramData.GetComponents();
     auto& camera = m_diagramData.GetCamera();
     
-    size_t blockCount = m_diagramData.GetBlocks().size();
+    size_t blockCount = m_diagramData.GetComponentsOfType<Diagram::Block>().size();
     
     ImGui::Text("Camera: (%.1f, %.1f) Zoom: %.2f", camera.data.position.x, camera.data.position.y, camera.data.zoom);
     ImGui::Text("Blocks: %zu", blockCount);
