@@ -6,6 +6,8 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <typeinfo>
+#include <algorithm>
 
 namespace Diagram {
     struct Camera;
@@ -20,6 +22,8 @@ namespace Diagram {
         virtual void xml_serialize(pugi::xml_node& node) const = 0;
         virtual void xml_deserialize(const pugi::xml_node& node) = 0;
         virtual std::string GetDisplayName() const noexcept = 0;
+        
+        virtual std::string GetTypeName() const noexcept = 0;
         
         static Component* GetSelected() noexcept { return s_selected; }
         static void Select(Component* component) noexcept { s_selected = component; }

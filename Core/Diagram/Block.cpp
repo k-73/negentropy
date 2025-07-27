@@ -63,6 +63,10 @@ namespace Diagram {
         return data.label.empty() ? "Block" : data.label;
     }
 
+    std::string Block::GetTypeName() const noexcept {
+        return "block";
+    }
+
     void Block::RenderUI(const int id) noexcept {
         ImGui::PushID(id);
         

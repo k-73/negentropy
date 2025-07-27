@@ -1,6 +1,8 @@
 #include "DiagramData.hpp"
 #include <pugixml.hpp>
 #include <iostream>
+#include <unordered_map>
+#include <functional>
 #include "../Utils/Path.hpp"
 #include "../Utils/XMLSerialization.hpp"
 
@@ -28,10 +30,25 @@ void DiagramData::Load(const std::string& filePath) {
         m_grid.xml_deserialize(gridNode);
     }
 
-    for (pugi::xml_node blockNode : diagram.child("blocks").children("block")) {
-        auto blockComponent = std::make_unique<Diagram::Block>();
-        blockComponent->xml_deserialize(blockNode);
-        m_components.push_back(std::move(blockComponent));
+    static const std::unordered_map<std::string, std::function<std::unique_ptr<Diagram::Component>()>> componentFactory = {
+        {"block", []() { return std::make_unique<Diagram::Block>(); }}
+    };
+
+    auto loadComponents = [&](pugi::xml_node parent) {
+        for (pugi::xml_node componentNode : parent.children()) {
+            std::string type = componentNode.name();
+            if (auto it = componentFactory.find(type); it != componentFactory.end()) {
+                auto component = it->second();
+                component->xml_deserialize(componentNode);
+                m_components.push_back(std::move(component));
+            }
+        }
+    };
+
+    if (auto componentsNode = diagram.child("components")) {
+        loadComponents(componentsNode);
+    } else if (auto blocksNode = diagram.child("blocks")) {
+        loadComponents(blocksNode);
     }
 }
 
@@ -45,12 +62,11 @@ void DiagramData::Save(const std::string& filePath) const {
     auto gridNode = diagram.append_child("grid");
     m_grid.xml_serialize(gridNode);
 
-    auto blocksNode = diagram.append_child("blocks");
+    auto componentsNode = diagram.append_child("components");
     for (const auto& component : m_components) {
-        if (auto* block = dynamic_cast<const Diagram::Block*>(component.get())) {
-            auto blockNode = blocksNode.append_child("block");
-            block->xml_serialize(blockNode);
-        }
+        auto typeName = component->GetTypeName();
+        auto componentNode = componentsNode.append_child(typeName.c_str());
+        component->xml_serialize(componentNode);
     }
 
     doc.save_file(filePath.c_str());
