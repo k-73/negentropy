@@ -5,13 +5,13 @@
 namespace Diagram {
     Component* Component::s_selected = nullptr;
 
-    void Component::RenderComponentTree(const std::vector<Block>& blocks) noexcept {
+    void Component::RenderComponentTree(const std::vector<std::unique_ptr<Component>>& components) noexcept {
         if (!ImGui::Begin("Component Tree")) {
             ImGui::End();
             return;
         }
 
-        auto hierarchy = BuildHierarchy(blocks);
+        auto hierarchy = BuildHierarchy(components);
         if (hierarchy) {
             RenderTreeNode(*hierarchy);
         }
@@ -65,20 +65,20 @@ namespace Diagram {
         }
     }
 
-    std::unique_ptr<Component::TreeNode> Component::BuildHierarchy(const std::vector<Block>& blocks) noexcept {
+    std::unique_ptr<Component::TreeNode> Component::BuildHierarchy(const std::vector<std::unique_ptr<Component>>& components) noexcept {
         auto root = std::make_unique<TreeNode>("Scene");
-        auto blocksNode = std::make_unique<TreeNode>("Blocks");
+        auto componentsNode = std::make_unique<TreeNode>("Components");
         
-        for (size_t i = 0; i < blocks.size(); ++i) {
-            const auto& block = blocks[i];
-            auto blockNode = std::make_unique<TreeNode>(
-                block.data.label.empty() ? "Block " + std::to_string(i + 1) : block.data.label,
-                const_cast<Block*>(&block)
+        for (size_t i = 0; i < components.size(); ++i) {
+            const auto& component = components[i];
+            auto componentNode = std::make_unique<TreeNode>(
+                component->GetDisplayName(),
+                component.get()
             );
-            blocksNode->children.push_back(std::move(blockNode));
+            componentsNode->children.push_back(std::move(componentNode));
         }
         
-        root->children.push_back(std::move(blocksNode));
+        root->children.push_back(std::move(componentsNode));
         return root;
     }
 }

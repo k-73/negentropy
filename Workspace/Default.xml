@@ -11,7 +11,7 @@
 	</grid>
 	<blocks>
 		<block>
-			<position x="450.013947" y="201.59108" />
+			<position x="388.416504" y="161.418823" />
 			<size x="120" y="60" />
 			<label>Is it good?</label>
 			<type>Process</type>
@@ -67,7 +67,7 @@
 			<borderColor x="1" y="1" z="1" w="1" />
 		</block>
 		<block>
-			<position x="450.462921" y="100.61142" />
+			<position x="344.675995" y="126.053848" />
 			<size x="120" y="60" />
 			<label>Block 8</label>
 			<type>Process</type>

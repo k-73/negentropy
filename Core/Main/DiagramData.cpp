@@ -17,6 +17,7 @@ void DiagramData::Load(const std::string& filePath) {
     }
 
     m_blocks.clear();
+    m_components.clear();
     auto diagram = doc.child("diagram");
     if (!diagram) return;
 
@@ -32,6 +33,9 @@ void DiagramData::Load(const std::string& filePath) {
         Diagram::Block block;
         block.xml_deserialize(blockNode);
         m_blocks.push_back(block);
+        
+        auto blockComponent = std::make_unique<Diagram::Block>(block);
+        m_components.push_back(std::move(blockComponent));
     }
 }
 

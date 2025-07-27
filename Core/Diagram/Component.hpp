@@ -19,12 +19,13 @@ namespace Diagram {
         virtual void Render(SDL_Renderer* renderer, const Camera& camera, glm::vec2 screenSize) const noexcept = 0;
         virtual void xml_serialize(pugi::xml_node& node) const = 0;
         virtual void xml_deserialize(const pugi::xml_node& node) = 0;
+        virtual std::string GetDisplayName() const noexcept = 0;
         
         static Component* GetSelected() noexcept { return s_selected; }
         static void Select(Component* component) noexcept { s_selected = component; }
         static void ClearSelection() noexcept { s_selected = nullptr; }
         
-        static void RenderComponentTree(const std::vector<Block>& blocks) noexcept;
+        static void RenderComponentTree(const std::vector<std::unique_ptr<Component>>& components) noexcept;
         static void RenderComponentEditor() noexcept;
         
     private:
@@ -40,6 +41,6 @@ namespace Diagram {
         };
         
         static void RenderTreeNode(const TreeNode& node) noexcept;
-        static std::unique_ptr<TreeNode> BuildHierarchy(const std::vector<Block>& blocks) noexcept;
+        static std::unique_ptr<TreeNode> BuildHierarchy(const std::vector<std::unique_ptr<Component>>& components) noexcept;
     };
 }

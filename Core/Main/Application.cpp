@@ -158,7 +158,7 @@ void Application::RenderUI() noexcept {
     }
     
     if (m_showComponentTree) {
-        Diagram::Component::RenderComponentTree(m_diagramData.GetBlocks());
+        Diagram::Component::RenderComponentTree(m_diagramData.GetComponents());
     }
     
     if (m_showComponentEditor) {

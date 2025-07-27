@@ -59,6 +59,10 @@ namespace Diagram {
         XML::auto_deserialize(data, node);
     }
 
+    std::string Block::GetDisplayName() const noexcept {
+        return data.label.empty() ? "Block" : data.label;
+    }
+
     void Block::RenderUI(const int id) noexcept {
         ImGui::PushID(id);
         
