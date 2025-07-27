@@ -31,17 +31,10 @@ namespace Diagram {
 
         bool HandleEvent(const SDL_Event& event, const Camera& camera, glm::vec2 screenSize) noexcept override;
         void Render(SDL_Renderer* renderer, const Camera& camera, glm::vec2 screenSize) const noexcept override;
-        bool Contains(glm::vec2 point) const noexcept override;
         void xml_serialize(pugi::xml_node& node) const override;
         void xml_deserialize(const pugi::xml_node& node) override;
 
-        void OnMouseDown(glm::vec2 worldPos) noexcept;
-        void OnMouseUp() noexcept;
-        void OnMouseMove(glm::vec2 worldPos) noexcept;
         void RenderUI(int id) noexcept;
-
-        bool IsDragging() const noexcept { return m_dragging; }
-
     private:
         bool m_dragging = false;
         glm::vec2 m_dragOffset{0.0f};

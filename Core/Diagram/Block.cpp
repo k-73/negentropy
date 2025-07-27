@@ -8,20 +8,23 @@ namespace Diagram {
     bool Block::HandleEvent(const SDL_Event& event, const Camera& camera, glm::vec2 screenSize) noexcept {
         if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
             const glm::vec2 worldPos = camera.ScreenToWorld({static_cast<float>(event.button.x), static_cast<float>(event.button.y)}, screenSize);
-            if (Contains(worldPos)) {
-                OnMouseDown(worldPos);
+            const bool contains = (data.position.x <= worldPos.x && worldPos.x <= data.position.x + data.size.x &&
+                                   data.position.y <= worldPos.y && worldPos.y <= data.position.y + data.size.y);
+            if (contains) {
+                m_dragging = true;
+                m_dragOffset = worldPos - data.position;
                 return true;
             }
         }
         else if (event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_LEFT) {
             if (m_dragging) {
-                OnMouseUp();
+                m_dragging = false;
                 return true;
             }
         }
         else if (event.type == SDL_MOUSEMOTION && m_dragging) {
             const glm::vec2 worldPos = camera.ScreenToWorld({static_cast<float>(event.motion.x), static_cast<float>(event.motion.y)}, screenSize);
-            OnMouseMove(worldPos);
+            data.position = worldPos - m_dragOffset;
             return true;
         }
         return false;
@@ -30,15 +33,15 @@ namespace Diagram {
     void Block::Render(SDL_Renderer* renderer, const Camera& camera, glm::vec2 screenSize) const noexcept {
         const auto screenPos = camera.WorldToScreen(data.position, screenSize);
         const SDL_FRect rect = {screenPos.x, screenPos.y, data.size.x * camera.data.zoom, data.size.y * camera.data.zoom};
-        
+
         const auto bgR = static_cast<Uint8>(data.backgroundColor.r * 255.0f);
         const auto bgG = static_cast<Uint8>(data.backgroundColor.g * 255.0f);
         const auto bgB = static_cast<Uint8>(data.backgroundColor.b * 255.0f);
         const auto bgA = static_cast<Uint8>(data.backgroundColor.a * 255.0f);
-        
+
         SDL_SetRenderDrawColor(renderer, bgR, bgG, bgB, bgA);
         SDL_RenderFillRectF(renderer, &rect);
-        
+
         const auto borderR = static_cast<Uint8>(data.borderColor.r * 255.0f);
         const auto borderG = static_cast<Uint8>(data.borderColor.g * 255.0f);
         const auto borderB = static_cast<Uint8>(data.borderColor.b * 255.0f);
@@ -48,32 +51,12 @@ namespace Diagram {
         SDL_RenderDrawRectF(renderer, &rect);
     }
 
-    bool Block::Contains(glm::vec2 point) const noexcept {
-        return point.x >= data.position.x && point.y >= data.position.y &&
-               point.x < data.position.x + data.size.x && point.y < data.position.y + data.size.y;
-    }
-
     void Block::xml_serialize(pugi::xml_node& node) const {
         XML::auto_serialize(data, node);
     }
 
     void Block::xml_deserialize(const pugi::xml_node& node) {
         XML::auto_deserialize(data, node);
-    }
-
-    void Block::OnMouseDown(glm::vec2 worldPos) noexcept {
-        m_dragging = true;
-        m_dragOffset = worldPos - data.position;
-    }
-
-    void Block::OnMouseUp() noexcept {
-        m_dragging = false;
-    }
-
-    void Block::OnMouseMove(glm::vec2 worldPos) noexcept {
-        if (m_dragging) {
-            data.position = worldPos - m_dragOffset;
-        }
     }
 
     void Block::RenderUI(const int id) noexcept {

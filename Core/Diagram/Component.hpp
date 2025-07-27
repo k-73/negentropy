@@ -17,7 +17,6 @@ namespace Diagram {
         
         virtual bool HandleEvent(const SDL_Event& event, const Camera& camera, glm::vec2 screenSize) noexcept = 0;
         virtual void Render(SDL_Renderer* renderer, const Camera& camera, glm::vec2 screenSize) const noexcept = 0;
-        virtual bool Contains(glm::vec2 point) const noexcept = 0;
         virtual void xml_serialize(pugi::xml_node& node) const = 0;
         virtual void xml_deserialize(const pugi::xml_node& node) = 0;
         
@@ -36,7 +35,7 @@ namespace Diagram {
             Component* component = nullptr;
             std::vector<std::unique_ptr<TreeNode>> children;
             
-            TreeNode(std::string n, Component* c = nullptr) 
+            explicit TreeNode(std::string n, Component* c = nullptr)
                 : name(std::move(n)), component(c) {}
         };
         
