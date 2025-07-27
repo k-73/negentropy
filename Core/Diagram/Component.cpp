@@ -40,7 +40,7 @@ namespace Diagram {
         ImGui::End();
     }
 
-    void Component::RenderTreeNode(TreeNode& node) noexcept {
+    void Component::RenderTreeNode(const TreeNode& node) noexcept {
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
         
         if (node.children.empty()) {

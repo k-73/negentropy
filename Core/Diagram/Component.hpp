@@ -40,7 +40,7 @@ namespace Diagram {
                 : name(std::move(n)), component(c) {}
         };
         
-        static void RenderTreeNode(TreeNode& node) noexcept;
+        static void RenderTreeNode(const TreeNode& node) noexcept;
         static std::unique_ptr<TreeNode> BuildHierarchy(const std::vector<Block>& blocks) noexcept;
     };
 }
