@@ -25,7 +25,7 @@ public:
     void Clear() const noexcept;
     void DrawGrid(const Diagram::Camera& camera, const Diagram::Grid& grid) const noexcept;
     
-    void DrawComponents(const std::vector<std::unique_ptr<Diagram::Component>>& components, const Diagram::Camera& camera) const noexcept {
+    void DrawComponents(const std::vector<std::unique_ptr<Diagram::ComponentBase>>& components, const Diagram::Camera& camera) const noexcept {
         int w, h; SDL_GetRendererOutputSize(m_renderer, &w, &h);
         const glm::vec2 screenSize{static_cast<float>(w), static_cast<float>(h)};
 

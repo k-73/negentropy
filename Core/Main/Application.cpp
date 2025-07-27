@@ -159,11 +159,11 @@ void Application::RenderUI() noexcept {
     }
     
     if (m_showComponentTree) {
-        Diagram::Component::RenderComponentTree(m_diagramData.GetComponents());
+        Diagram::ComponentBase::RenderComponentTree(m_diagramData.GetComponents());
     }
     
     if (m_showComponentEditor) {
-        Diagram::Component::RenderComponentEditor();
+        Diagram::ComponentBase::RenderComponentEditor();
     }
     
     if (m_showDemo) {

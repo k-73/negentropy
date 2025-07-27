@@ -1,78 +1,78 @@
 <?xml version="1.0"?>
-<diagram>
-	<camera>
-		<position x="534.800049" y="170.504379" />
-		<zoom>0.746784151</zoom>
-	</camera>
-	<grid>
+<Diagram>
+	<Camera>
+		<position x="443.036621" y="144.113678" />
+		<zoom>1.0608927</zoom>
+	</Camera>
+	<Grid>
 		<smallStep>5</smallStep>
 		<largeStep>50</largeStep>
 		<visible>true</visible>
-	</grid>
-	<components>
-		<block>
+	</Grid>
+	<Components>
+		<Block>
 			<position x="247.449341" y="12.2005539" />
 			<size x="120" y="60" />
 			<label>End</label>
 			<type>Process</type>
 			<backgroundColor x="0.58431375" y="0.384313732" z="0.717647076" w="0.984313726" />
 			<borderColor x="1" y="0.125490203" z="0.600000024" w="1" />
-		</block>
-		<block>
+		</Block>
+		<Block>
 			<position x="410.62561" y="8.79857635" />
 			<size x="120" y="60" />
 			<label>Start</label>
 			<type>Process</type>
 			<backgroundColor x="0.149019614" y="0.0313725509" z="0.227450982" w="0.568627477" />
 			<borderColor x="1" y="0" z="1" w="1" />
-		</block>
-		<block>
+		</Block>
+		<Block>
 			<position x="404.112701" y="250.033325" />
 			<size x="120" y="60" />
 			<label>Block 6</label>
 			<type>Process</type>
 			<backgroundColor x="1" y="0.880434752" z="0" w="1" />
 			<borderColor x="0.989130497" y="1" z="0" w="1" />
-		</block>
-		<block>
+		</Block>
+		<Block>
 			<position x="102.649597" y="101.184662" />
 			<size x="120" y="60" />
 			<label>Some Action</label>
 			<type>Process</type>
 			<backgroundColor x="0.349019617" y="0" z="0.78039217" w="0.180392161" />
 			<borderColor x="1" y="0" z="0" w="1" />
-		</block>
-		<block>
+		</Block>
+		<Block>
 			<position x="552.699585" y="333.423401" />
 			<size x="120" y="60" />
 			<label>Block 5</label>
 			<type>Process</type>
 			<backgroundColor x="0" y="0.279070139" z="1" w="1" />
 			<borderColor x="1" y="1" z="1" w="1" />
-		</block>
-		<block>
+		</Block>
+		<Block>
 			<position x="249.603699" y="100.959541" />
 			<size x="120" y="60" />
 			<label>Block 7</label>
 			<type>Process</type>
 			<backgroundColor x="1" y="0.654639184" z="0.654639184" w="1" />
 			<borderColor x="1" y="0.49484539" z="0.49484539" w="1" />
-		</block>
-		<block>
-			<position x="331.285248" y="127.392929" />
-			<size x="120" y="60" />
-			<label>Block 8</label>
-			<type>Process</type>
-			<backgroundColor x="0.651443303" y="0.779999971" z="0.349999994" w="1" />
-			<borderColor x="0.886597991" y="1" z="0" w="1" />
-		</block>
-		<block>
+		</Block>
+		<Block>
 			<position x="400.46817" y="161.418823" />
 			<size x="120" y="60" />
 			<label>Is it good?</label>
 			<type>Process</type>
 			<backgroundColor x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
 			<borderColor x="1" y="1" z="1" w="1" />
-		</block>
-	</components>
-</diagram>
+		</Block>
+		<Block>
+			<position x="331.285248" y="127.392929" />
+			<size x="120" y="60" />
+			<label>Block 8</label>
+			<type>Process</type>
+			<backgroundColor x="0.651443303" y="0.779999971" z="0.349999994" w="1" />
+			<borderColor x="0.886597991" y="1" z="0" w="1" />
+		</Block>
+	</Components>
+</Diagram>

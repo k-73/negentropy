@@ -4,9 +4,9 @@
 #include <algorithm>
 
 namespace Diagram {
-    Component* Component::s_selected = nullptr;
+    ComponentBase* ComponentBase::s_selected = nullptr;
 
-    void Component::RenderComponentTree(std::vector<std::unique_ptr<Component>>& components) noexcept {
+    void ComponentBase::RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& components) noexcept {
         if (!ImGui::Begin("Component Tree")) {
             ImGui::End();
             return;
@@ -20,7 +20,7 @@ namespace Diagram {
         ImGui::End();
     }
 
-    void Component::RenderComponentEditor() noexcept {
+    void ComponentBase::RenderComponentEditor() noexcept {
         if (!ImGui::Begin("Component Editor", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             ImGui::End();
             return;
@@ -41,7 +41,7 @@ namespace Diagram {
         ImGui::End();
     }
 
-    void Component::RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<Component>>* components) noexcept {
+    void ComponentBase::RenderTreeNode(const ComponentBase::TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components) noexcept {
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_DefaultOpen;
         
         if (node.children.empty()) {
@@ -61,7 +61,7 @@ namespace Diagram {
         // Drag & drop tylko dla komponentów (nie dla root node)
         if (node.component) {
             if (ImGui::BeginDragDropSource()) {
-                ImGui::SetDragDropPayload("COMPONENT_DND", &node.component, sizeof(Component*));
+                ImGui::SetDragDropPayload("COMPONENT_DND", &node.component, sizeof(void*));
                 ImGui::Text("Moving: %s", node.name.c_str());
                 ImGui::EndDragDropSource();
             }
@@ -74,7 +74,7 @@ namespace Diagram {
                 // Drop target dla reorder
                 if (child->component && ImGui::BeginDragDropTarget()) {
                     if (const auto* payload = ImGui::AcceptDragDropPayload("COMPONENT_DND")) {
-                        auto* draggedComp = *static_cast<Component**>(payload->Data);
+                        auto* draggedComp = *static_cast<ComponentBase**>(payload->Data);
                         if (components && draggedComp != child->component) {
                             auto draggedIt = std::find_if(components->begin(), components->end(),
                                 [draggedComp](const auto& c) { return c.get() == draggedComp; });
@@ -93,7 +93,7 @@ namespace Diagram {
         }
     }
 
-    std::unique_ptr<Component::TreeNode> Component::BuildHierarchy(const std::vector<std::unique_ptr<Component>>& components) noexcept {
+    std::unique_ptr<ComponentBase::TreeNode> ComponentBase::BuildHierarchy(const std::vector<std::unique_ptr<ComponentBase>>& components) noexcept {
         auto root = std::make_unique<TreeNode>("Scene");
         
         for (const auto& component : components) {

@@ -1,8 +1,9 @@
 #include "Block.hpp"
 #include "Camera.hpp"
+#include <cstring>
+
 #include <imgui.h>
 #include <iostream>
-#include <cstring>
 
 namespace Diagram {
     bool Block::HandleEvent(const SDL_Event& event, const Camera& camera, glm::vec2 screenSize) noexcept {
@@ -63,9 +64,6 @@ namespace Diagram {
         return data.label.empty() ? "Block" : data.label;
     }
 
-    std::string Block::GetTypeName() const noexcept {
-        return "block";
-    }
 
     void Block::RenderUI(const int id) noexcept {
         ImGui::PushID(id);

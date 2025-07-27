@@ -11,7 +11,7 @@
 namespace Diagram {
     struct Camera;
     
-    class Block final : public Component {
+    class Block final : public Component<Block> {
     public:
         enum class Type {
             Start,
@@ -34,7 +34,6 @@ namespace Diagram {
         void xml_serialize(pugi::xml_node& node) const override;
         void xml_deserialize(const pugi::xml_node& node) override;
         std::string GetDisplayName() const noexcept override;
-        std::string GetTypeName() const noexcept override;
 
         void RenderUI(int id) noexcept;
     private:

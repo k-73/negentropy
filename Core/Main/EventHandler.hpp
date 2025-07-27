@@ -22,9 +22,9 @@ public:
                 camera.panStart = camera.data.position;
                 camera.mouseStart = {static_cast<float>(e.button.x), static_cast<float>(e.button.y)};
             } else if (e.button.button == SDL_BUTTON_LEFT) {
-                Diagram::Component::ClearSelection();
+                Diagram::ComponentBase::ClearSelection();
                 for (auto& item : std::ranges::reverse_view(components)) {
-                    if (item->HandleEvent(e, camera, screenSize)) { Diagram::Component::Select(item.get()); break; }
+                    if (item->HandleEvent(e, camera, screenSize)) { Diagram::ComponentBase::Select(item.get()); break; }
                 }
             }
         } else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_MIDDLE) {

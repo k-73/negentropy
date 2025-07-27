@@ -20,8 +20,8 @@ public:
     void Load(const std::string& filePath);
     void Save(const std::string& filePath) const;
 
-    const std::vector<std::unique_ptr<Diagram::Component>>& GetComponents() const noexcept { return m_components; }
-    std::vector<std::unique_ptr<Diagram::Component>>& GetComponents() noexcept { return m_components; }
+    const std::vector<std::unique_ptr<Diagram::ComponentBase>>& GetComponents() const noexcept { return m_components; }
+    std::vector<std::unique_ptr<Diagram::ComponentBase>>& GetComponents() noexcept { return m_components; }
     
     template<typename T>
     std::vector<T*> GetComponentsOfType() const noexcept {
@@ -40,9 +40,9 @@ public:
     Diagram::Grid& GetGrid() noexcept { return m_grid; }
 
 private:
-    std::unique_ptr<Diagram::Component> CreateComponent(const std::string& type) const;
+    std::unique_ptr<Diagram::ComponentBase> CreateComponent(const std::string& type) const;
     
-    std::vector<std::unique_ptr<Diagram::Component>> m_components;
+    std::vector<std::unique_ptr<Diagram::ComponentBase>> m_components;
     Diagram::Camera m_camera;
     Diagram::Grid m_grid;
 };
