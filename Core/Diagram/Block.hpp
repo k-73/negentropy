@@ -11,7 +11,7 @@
 namespace Diagram {
     struct Camera;
     
-    class Block : public Component {
+    class Block final : public Component {
     public:
         enum class Type {
             Start,
