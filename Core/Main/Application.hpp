@@ -1,7 +1,6 @@
 #pragma once
 
 #include <SDL.h>
-#include <memory>
 #include <vector>
 #include <string>
 #include "Renderer.hpp"
@@ -23,7 +22,6 @@ public:
 private:
     void InitializeImGui() const;
     void ProcessEvents() noexcept;
-    void Update() noexcept;
     void RenderFrame() noexcept;
     void RenderUI() noexcept;
     void RenderPropertiesPanel() noexcept;
@@ -37,8 +35,7 @@ private:
     bool m_running = true;
     SDL_Window* m_window = nullptr;
     Renderer m_renderer;
-    std::unique_ptr<EventHandler> m_eventHandler;
-    std::unique_ptr<DiagramData> m_diagramData;
+    DiagramData m_diagramData;
 
     std::vector<std::string> m_workspaceFiles;
     bool m_showProperties = true;

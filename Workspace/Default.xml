@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <diagram>
 	<camera>
-		<position x="646.438599" y="246.595291" />
+		<position x="604.90979" y="208.626099" />
 		<zoom>0.842788577</zoom>
 	</camera>
 	<grid>
@@ -27,7 +27,7 @@
 			<borderColor x="1" y="0" z="1" w="1" />
 		</block>
 		<block>
-			<position x="273.752106" y="65.5743713" />
+			<position x="653.44397" y="274.404907" />
 			<size x="120" y="60" />
 			<label>Block 6</label>
 			<type>Process</type>
@@ -35,7 +35,7 @@
 			<borderColor x="0.989130497" y="1" z="0" w="1" />
 		</block>
 		<block>
-			<position x="268.760712" y="146.239471" />
+			<position x="652.012207" y="196.074036" />
 			<size x="120" y="60" />
 			<label>Some Action</label>
 			<type>Process</type>
@@ -43,7 +43,7 @@
 			<borderColor x="1" y="0" z="0" w="1" />
 		</block>
 		<block>
-			<position x="262.257568" y="427.9758" />
+			<position x="263.444092" y="422.043121" />
 			<size x="120" y="60" />
 			<label>End</label>
 			<type>Process</type>
@@ -51,7 +51,7 @@
 			<borderColor x="1" y="0.125490203" z="0.600000024" w="1" />
 		</block>
 		<block>
-			<position x="274.031616" y="-17.5128174" />
+			<position x="264.539337" y="86.9024658" />
 			<size x="120" y="60" />
 			<label>Block 7</label>
 			<type>Process</type>
@@ -59,7 +59,7 @@
 			<borderColor x="1" y="0.49484539" z="0.49484539" w="1" />
 		</block>
 		<block>
-			<position x="268.554382" y="343.815216" />
+			<position x="262.621674" y="340.255585" />
 			<size x="120" y="60" />
 			<label>Block 5</label>
 			<type>Process</type>
@@ -67,12 +67,12 @@
 			<borderColor x="1" y="1" z="1" w="1" />
 		</block>
 		<block>
-			<position x="461.728088" y="71.4457245" />
+			<position x="473.593475" y="88.0572586" />
 			<size x="120" y="60" />
 			<label>Block 8</label>
 			<type>Process</type>
-			<backgroundColor x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
-			<borderColor x="1" y="1" z="1" w="1" />
+			<backgroundColor x="0.651443303" y="0.779999971" z="0.349999994" w="1" />
+			<borderColor x="0.886597991" y="1" z="0" w="1" />
 		</block>
 	</blocks>
 </diagram>

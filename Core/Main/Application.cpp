@@ -9,7 +9,7 @@
 
 namespace fs = std::filesystem;
 
-Application::Application() : m_eventHandler(std::make_unique<EventHandler>()), m_diagramData(std::make_unique<DiagramData>()) {
+Application::Application() {
     InitSDL();
     CreateWindow();
 
@@ -51,7 +51,6 @@ void Application::Run() {
         ImGui::NewFrame();
 
         ProcessEvents();
-        Update();
         RenderFrame();
     }
 }
@@ -92,20 +91,18 @@ void Application::ProcessEvents() noexcept {
             int w, h;
             SDL_GetWindowSize(m_window, &w, &h);
             const glm::vec2 screenSize{static_cast<float>(w), static_cast<float>(h)};
-            EventHandler::HandleEvent(event, m_diagramData->GetCamera(), m_diagramData->GetBlocks(), screenSize);
+            EventHandler::HandleEvent(event, m_diagramData.GetCamera(), m_diagramData.GetBlocks(), screenSize);
         }
     }
 }
 
-void Application::Update() noexcept {
-}
 
 void Application::RenderFrame() noexcept {
     RenderUI();
     
     m_renderer.Clear();
-    m_renderer.DrawGrid(m_diagramData->GetCamera(), m_diagramData->GetGrid());
-    m_renderer.DrawBlocks(m_diagramData->GetBlocks(), m_diagramData->GetCamera());
+    m_renderer.DrawGrid(m_diagramData.GetCamera(), m_diagramData.GetGrid());
+    m_renderer.DrawBlocks(m_diagramData.GetBlocks(), m_diagramData.GetCamera());
 
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), m_renderer.GetSDLRenderer());
@@ -122,13 +119,13 @@ void Application::RenderUI() noexcept {
             if (ImGui::BeginMenu("Load")) {
                 for (const auto& file : m_workspaceFiles) {
                     if (ImGui::MenuItem(file.c_str())) {
-                        m_diagramData->Load((Utils::GetWorkspacePath() / file).string());
+                        m_diagramData.Load((Utils::GetWorkspacePath() / file).string());
                     }
                 }
                 ImGui::EndMenu();
             }
             if (ImGui::MenuItem("Save")) {
-                m_diagramData->Save((Utils::GetWorkspacePath() / "Default.xml").string());
+                m_diagramData.Save((Utils::GetWorkspacePath() / "Default.xml").string());
             }
             ImGui::Separator();
             if (ImGui::MenuItem("Exit", "Alt+F4")) {
@@ -161,7 +158,7 @@ void Application::RenderUI() noexcept {
     }
     
     if (m_showComponentTree) {
-        Diagram::Component::RenderComponentTree(m_diagramData->GetBlocks());
+        Diagram::Component::RenderComponentTree(m_diagramData.GetBlocks());
     }
     
     if (m_showComponentEditor) {
@@ -176,8 +173,8 @@ void Application::RenderUI() noexcept {
 void Application::RenderPropertiesPanel() noexcept {
     ImGui::Begin("Properties", &m_showProperties);
     
-    auto& blocks = m_diagramData->GetBlocks();
-    auto& camera = m_diagramData->GetCamera();
+    auto& blocks = m_diagramData.GetBlocks();
+    auto& camera = m_diagramData.GetCamera();
     
     ImGui::Text("Camera: (%.1f, %.1f) Zoom: %.2f", camera.data.position.x, camera.data.position.y, camera.data.zoom);
     ImGui::Text("Blocks: %zu", blocks.size());
