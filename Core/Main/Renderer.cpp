@@ -4,13 +4,10 @@
 #include "../Diagram/Grid.hpp"
 
 bool Renderer::Initialize(SDL_Window* window) noexcept {
-    m_renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    m_renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (!m_renderer) {
-        m_renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-        if (!m_renderer) {
-            m_renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
-            if (!m_renderer) return false;
-        }
+        m_renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+        if (!m_renderer) return false;
     }
     SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
     return true;

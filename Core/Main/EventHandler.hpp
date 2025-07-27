@@ -2,6 +2,7 @@
 
 #include <SDL.h>
 #include <ranges>
+#include <algorithm>
 #include <glm/vec2.hpp>
 #include "../Diagram/Component.hpp"
 #include "../Diagram/Camera.hpp"
@@ -29,6 +30,15 @@ public:
             }
         } else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_MIDDLE) {
             camera.panning = false;
+        } else if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_DELETE) {
+            if (auto* selected = Diagram::ComponentBase::GetSelected()) {
+                auto it = std::find_if(components.begin(), components.end(),
+                    [selected](const auto& comp) { return comp.get() == selected; });
+                if (it != components.end()) {
+                    components.erase(it);
+                    Diagram::ComponentBase::ClearSelection();
+                }
+            }
         } else if (e.type == SDL_MOUSEBUTTONUP || e.type == SDL_MOUSEMOTION) {
             if (e.type == SDL_MOUSEMOTION && camera.panning) {
                 const glm::vec2 mousePos{static_cast<float>(e.motion.x), static_cast<float>(e.motion.y)};

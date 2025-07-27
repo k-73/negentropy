@@ -58,7 +58,7 @@ namespace Diagram {
             Select(node.component);
         }
 
-        // Drag & drop tylko dla komponentów (nie dla root node)
+        // Drag & drop only for components (not for root node)
         if (node.component) {
             if (ImGui::BeginDragDropSource()) {
                 ImGui::SetDragDropPayload("COMPONENT_DND", &node.component, sizeof(void*));
@@ -71,7 +71,7 @@ namespace Diagram {
             for (auto& child : node.children) {
                 RenderTreeNode(*child, components);
                 
-                // Drop target dla reorder
+                // Drop target for reorder
                 if (child->component && ImGui::BeginDragDropTarget()) {
                     if (const auto* payload = ImGui::AcceptDragDropPayload("COMPONENT_DND")) {
                         auto* draggedComp = *static_cast<ComponentBase**>(payload->Data);

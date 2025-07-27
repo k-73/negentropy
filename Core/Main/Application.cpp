@@ -25,7 +25,6 @@ Application::Application() {
     spdlog::info("Application initialized successfully");
 
     RefreshWorkspaceFiles();
-    SDL_Delay(16);
     SDL_ShowWindow(m_window);
 }
 

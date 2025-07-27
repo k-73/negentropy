@@ -3,7 +3,6 @@
 #include <cstring>
 
 #include <imgui.h>
-#include <iostream>
 
 namespace Diagram {
     bool Block::HandleEvent(const SDL_Event& event, const Camera& camera, glm::vec2 screenSize) noexcept {
