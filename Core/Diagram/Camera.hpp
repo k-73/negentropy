@@ -15,18 +15,20 @@ namespace Diagram {
         glm::vec2 panStart{0.0f};
         glm::vec2 mouseStart{0.0f};
 
-        [[nodiscard]] glm::vec2 ScreenToWorld(glm::vec2 screenPos) const {
-            return (screenPos / data.zoom) + data.position;
+        [[nodiscard]] glm::vec2 ScreenToWorld(glm::vec2 screenPos, glm::vec2 screenSize) const {
+            const glm::vec2 center = screenSize * 0.5f;
+            return ((screenPos - center) / data.zoom) + data.position;
         }
 
-        [[nodiscard]] glm::vec2 WorldToScreen(glm::vec2 worldPos) const {
-            return (worldPos - data.position) * data.zoom;
+        [[nodiscard]] glm::vec2 WorldToScreen(glm::vec2 worldPos, glm::vec2 screenSize) const {
+            const glm::vec2 center = screenSize * 0.5f;
+            return ((worldPos - data.position) * data.zoom) + center;
         }
 
-        void ZoomAt(glm::vec2 screenPos, float factor) {
-            glm::vec2 worldPosBefore = ScreenToWorld(screenPos);
+        void ZoomAt(glm::vec2 screenPos, glm::vec2 screenSize, float factor) {
+            glm::vec2 worldPosBefore = ScreenToWorld(screenPos, screenSize);
             data.zoom *= factor;
-            glm::vec2 worldPosAfter = ScreenToWorld(screenPos);
+            glm::vec2 worldPosAfter = ScreenToWorld(screenPos, screenSize);
             data.position += worldPosBefore - worldPosAfter;
         }
 

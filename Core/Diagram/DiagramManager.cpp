@@ -3,24 +3,24 @@
 #include <algorithm>
 
 namespace Diagram {
-    void DiagramManager::HandleEvent(const SDL_Event& event, Camera& camera) noexcept {
+    void DiagramManager::HandleEvent(const SDL_Event& event, Camera& camera, glm::vec2 screenSize) noexcept {
         if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
             for (int i = static_cast<int>(m_elements.size()) - 1; i >= 0; --i) {
-                if (m_elements[i]->HandleEvent(event, camera)) {
+                if (m_elements[i]->HandleEvent(event, camera, screenSize)) {
                     std::rotate(m_elements.begin() + i, m_elements.begin() + i + 1, m_elements.end());
                     break;
                 }
             }
         } else {
             for (auto& element : m_elements) {
-                element->HandleEvent(event, camera);
+                element->HandleEvent(event, camera, screenSize);
             }
         }
     }
 
-    void DiagramManager::Render(SDL_Renderer* renderer, const Camera& camera) const noexcept {
+    void DiagramManager::Render(SDL_Renderer* renderer, const Camera& camera, glm::vec2 screenSize) const noexcept {
         for (const auto& element : m_elements) {
-            element->Render(renderer, camera);
+            element->Render(renderer, camera, screenSize);
         }
     }
 

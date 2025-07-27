@@ -9,35 +9,35 @@
 
 class EventHandler {
 public:
-    static void HandleEvent(const SDL_Event& event, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks) noexcept {
-        HandleMouseEvents(event, camera, blocks);
-        HandleScrollEvents(event, camera);
+    static void HandleEvent(const SDL_Event& event, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks, glm::vec2 screenSize) noexcept {
+        HandleMouseEvents(event, camera, blocks, screenSize);
+        HandleScrollEvents(event, camera, screenSize);
     }
 
 private:
-    static void HandleScrollEvents(const SDL_Event& e, Diagram::Camera& camera) noexcept {
+    static void HandleScrollEvents(const SDL_Event& e, Diagram::Camera& camera, glm::vec2 screenSize) noexcept {
         if (e.type == SDL_MOUSEWHEEL) {
             int mouseX, mouseY;
             SDL_GetMouseState(&mouseX, &mouseY);
             
             const float zoomFactor = e.wheel.y > 0 ? 1.1f : 0.9f;
-            camera.ZoomAt({static_cast<float>(mouseX), static_cast<float>(mouseY)}, zoomFactor);
+            camera.ZoomAt({static_cast<float>(mouseX), static_cast<float>(mouseY)}, screenSize, zoomFactor);
         }
     }
 
-    static void HandleMouseEvents(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks) noexcept {
+    static void HandleMouseEvents(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks, glm::vec2 screenSize) noexcept {
         if (e.type == SDL_MOUSEBUTTONDOWN) {
-            HandleMouseButtonDown(e, camera, blocks);
+            HandleMouseButtonDown(e, camera, blocks, screenSize);
         }
         else if (e.type == SDL_MOUSEBUTTONUP) {
-            HandleMouseButtonUp(e, camera, blocks);
+            HandleMouseButtonUp(e, camera, blocks, screenSize);
         }
         else if (e.type == SDL_MOUSEMOTION) {
-            HandleMouseMotion(e, camera, blocks);
+            HandleMouseMotion(e, camera, blocks, screenSize);
         }
     }
 
-    static void HandleMouseButtonDown(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks) noexcept {
+    static void HandleMouseButtonDown(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks, glm::vec2 screenSize) noexcept {
         if (e.button.button == SDL_BUTTON_MIDDLE) {
             camera.panning = true;
             camera.panStart = camera.data.position;
@@ -46,7 +46,7 @@ private:
         if (e.button.button == SDL_BUTTON_LEFT) {
             for (int i = static_cast<int>(blocks.size()) - 1; i >= 0; --i) {
                 auto& block = blocks[i];
-                if (block.HandleEvent(e, camera)) {
+                if (block.HandleEvent(e, camera, screenSize)) {
                     std::rotate(blocks.begin() + i, blocks.begin() + i + 1, blocks.end());
                     break;
                 }
@@ -54,16 +54,16 @@ private:
         }
     }
 
-    static void HandleMouseButtonUp(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks) noexcept {
+    static void HandleMouseButtonUp(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks, glm::vec2 screenSize) noexcept {
         if (e.button.button == SDL_BUTTON_MIDDLE) camera.panning = false;
         if (e.button.button == SDL_BUTTON_LEFT) {
             for (auto& block : blocks) {
-                block.HandleEvent(e, camera);
+                block.HandleEvent(e, camera, screenSize);
             }
         }
     }
 
-    static void HandleMouseMotion(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks) noexcept {
+    static void HandleMouseMotion(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks, glm::vec2 screenSize) noexcept {
         const glm::vec2 currentMouse{static_cast<float>(e.motion.x), static_cast<float>(e.motion.y)};
         
         if (camera.panning) {
@@ -72,7 +72,7 @@ private:
         }
         
         for (auto& block : blocks) {
-            block.HandleEvent(e, camera);
+            block.HandleEvent(e, camera, screenSize);
         }
     }
 };

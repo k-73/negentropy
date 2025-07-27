@@ -94,7 +94,10 @@ void Application::ProcessEvents() noexcept {
         }
 
         if (shouldProcessEvent) {
-            EventHandler::HandleEvent(event, m_diagramData->GetCamera(), m_diagramData->GetBlocks());
+            int w, h;
+            SDL_GetWindowSize(m_window, &w, &h);
+            const glm::vec2 screenSize{static_cast<float>(w), static_cast<float>(h)};
+            EventHandler::HandleEvent(event, m_diagramData->GetCamera(), m_diagramData->GetBlocks(), screenSize);
         }
     }
 }

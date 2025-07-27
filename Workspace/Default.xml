@@ -5,7 +5,7 @@
 		<zoom>1.01501918</zoom>
 	</camera>
 	<grid>
-		<smallStep>10</smallStep>
+		<smallStep>5</smallStep>
 		<largeStep>50</largeStep>
 		<visible>true</visible>
 	</grid>

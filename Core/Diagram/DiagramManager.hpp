@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <SDL.h>
+#include <glm/vec2.hpp>
 #include "Component.hpp"
 #include "Camera.hpp"
 
@@ -11,8 +12,8 @@ namespace Diagram {
     public:
         using ElementPtr = std::unique_ptr<Component>;
         
-        void HandleEvent(const SDL_Event& event, Camera& camera) noexcept;
-        void Render(SDL_Renderer* renderer, const Camera& camera) const noexcept;
+        void HandleEvent(const SDL_Event& event, Camera& camera, glm::vec2 screenSize) noexcept;
+        void Render(SDL_Renderer* renderer, const Camera& camera, glm::vec2 screenSize) const noexcept;
         
         void AddElement(ElementPtr element);
         void RemoveElement(size_t index);

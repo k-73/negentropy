@@ -4,6 +4,7 @@
 #include "../Diagram/Grid.hpp"
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
+#include <cmath>
 
 bool Renderer::Initialize(SDL_Window* window) noexcept {
     m_renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -28,31 +29,84 @@ void Renderer::DrawGrid(const Diagram::Camera& camera, const Diagram::Grid& grid
     
     int w, h;
     SDL_GetRendererOutputSize(m_renderer, &w, &h);
+    const glm::vec2 screenSize{static_cast<float>(w), static_cast<float>(h)};
     
-    const auto params = grid.CalculateRenderParams(camera, w, h);
+    // Znajdź widoczny obszar world space
+    const glm::vec2 topLeft = camera.ScreenToWorld({0.0f, 0.0f}, screenSize);
+    const glm::vec2 bottomRight = camera.ScreenToWorld(screenSize, screenSize);
+    
+    // Znajdź zakres linii grid w world space
+    const float firstGridX = std::floor(topLeft.x / grid.settings.smallStep) * grid.settings.smallStep;
+    const float lastGridX = std::ceil(bottomRight.x / grid.settings.smallStep) * grid.settings.smallStep;
+    const float firstGridY = std::floor(topLeft.y / grid.settings.smallStep) * grid.settings.smallStep;
+    const float lastGridY = std::ceil(bottomRight.y / grid.settings.smallStep) * grid.settings.smallStep;
     
     SDL_SetRenderDrawColor(m_renderer, 40, 40, 40, 255);
-    for (float x = params.baseOffsetX; x < w; x += params.smallScaled)
-        SDL_RenderDrawLine(m_renderer, static_cast<int>(x), 0, static_cast<int>(x), h);
-    for (float y = params.baseOffsetY; y < h; y += params.smallScaled)
-        SDL_RenderDrawLine(m_renderer, 0, static_cast<int>(y), w, static_cast<int>(y));
     
+    // Rysuj pionowe linie - każda w world space, potem WorldToScreen jak bloki
+    for (float worldX = firstGridX; worldX <= lastGridX; worldX += grid.settings.smallStep) {
+        const glm::vec2 topPoint = camera.WorldToScreen({worldX, topLeft.y}, screenSize);
+        const glm::vec2 bottomPoint = camera.WorldToScreen({worldX, bottomRight.y}, screenSize);
+        SDL_RenderDrawLineF(m_renderer, topPoint.x, topPoint.y, bottomPoint.x, bottomPoint.y);
+    }
+    
+    // Rysuj poziome linie - każda w world space, potem WorldToScreen jak bloki  
+    for (float worldY = firstGridY; worldY <= lastGridY; worldY += grid.settings.smallStep) {
+        const glm::vec2 leftPoint = camera.WorldToScreen({topLeft.x, worldY}, screenSize);
+        const glm::vec2 rightPoint = camera.WorldToScreen({bottomRight.x, worldY}, screenSize);
+        SDL_RenderDrawLineF(m_renderer, leftPoint.x, leftPoint.y, rightPoint.x, rightPoint.y);
+    }
+    
+    // Rysuj grube linie dla large step
+    const int largeStepMultiplier = static_cast<int>(std::round(grid.settings.largeStep / grid.settings.smallStep));
     SDL_SetRenderDrawColor(m_renderer, 60, 60, 60, 255);
-    int lineIndex = 0;
-    for (float x = params.baseOffsetX; x < w; x += params.smallScaled, ++lineIndex) {
-        if (lineIndex % params.largeStepMultiplier == 0)
-            SDL_RenderDrawLine(m_renderer, static_cast<int>(x), 0, static_cast<int>(x), h);
+    
+    // Pionowe grube linie
+    for (float worldX = firstGridX; worldX <= lastGridX; worldX += grid.settings.smallStep) {
+        const int gridIndex = static_cast<int>(std::round(worldX / grid.settings.smallStep));
+        if (gridIndex % largeStepMultiplier == 0) {
+            const glm::vec2 topPoint = camera.WorldToScreen({worldX, topLeft.y}, screenSize);
+            const glm::vec2 bottomPoint = camera.WorldToScreen({worldX, bottomRight.y}, screenSize);
+            SDL_RenderDrawLineF(m_renderer, topPoint.x, topPoint.y, bottomPoint.x, bottomPoint.y);
+        }
     }
-    lineIndex = 0;
-    for (float y = params.baseOffsetY; y < h; y += params.smallScaled, ++lineIndex) {
-        if (lineIndex % params.largeStepMultiplier == 0)
-            SDL_RenderDrawLine(m_renderer, 0, static_cast<int>(y), w, static_cast<int>(y));
+    
+    // Poziome grube linie
+    for (float worldY = firstGridY; worldY <= lastGridY; worldY += grid.settings.smallStep) {
+        const int gridIndex = static_cast<int>(std::round(worldY / grid.settings.smallStep));
+        if (gridIndex % largeStepMultiplier == 0) {
+            const glm::vec2 leftPoint = camera.WorldToScreen({topLeft.x, worldY}, screenSize);
+            const glm::vec2 rightPoint = camera.WorldToScreen({bottomRight.x, worldY}, screenSize);
+            SDL_RenderDrawLineF(m_renderer, leftPoint.x, leftPoint.y, rightPoint.x, rightPoint.y);
+        }
     }
+    
+    // Draw white cross marker at grid center (world coordinates -5 to 5 in x,y)
+    
+    const glm::vec2 gridCenterWorld{0.0f, 0.0f}; // World center
+    const glm::vec2 crossMinWorld{-5.0f, -5.0f};
+    const glm::vec2 crossMaxWorld{5.0f, 5.0f};
+    
+    const glm::vec2 centerScreen = camera.WorldToScreen(gridCenterWorld, screenSize);
+    const glm::vec2 crossMinScreen = camera.WorldToScreen(crossMinWorld, screenSize);
+    const glm::vec2 crossMaxScreen = camera.WorldToScreen(crossMaxWorld, screenSize);
+    
+    SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255); // White color
+    
+    // Horizontal line from -5 to +5 in world x
+    SDL_RenderDrawLineF(m_renderer, crossMinScreen.x, centerScreen.y, crossMaxScreen.x, centerScreen.y);
+    
+    // Vertical line from -5 to +5 in world y  
+    SDL_RenderDrawLineF(m_renderer, centerScreen.x, crossMinScreen.y, centerScreen.x, crossMaxScreen.y);
 }
 
 void Renderer::DrawBlocks(const std::vector<Diagram::Block>& blocks, const Diagram::Camera& camera) const noexcept {
+    int w, h;
+    SDL_GetRendererOutputSize(m_renderer, &w, &h);
+    const glm::vec2 screenSize{static_cast<float>(w), static_cast<float>(h)};
+    
     for (const auto& block : blocks) {
-        const auto screenPos = camera.WorldToScreen(block.data.position);
+        const auto screenPos = camera.WorldToScreen(block.data.position, screenSize);
         const SDL_FRect rect = {screenPos.x, screenPos.y, block.data.size.x * camera.data.zoom, block.data.size.y * camera.data.zoom};
         
         const auto r = static_cast<Uint8>(block.data.backgroundColor.r * 255.0f);
