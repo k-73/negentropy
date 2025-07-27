@@ -29,10 +29,6 @@ namespace Diagram {
             glm::vec4 borderColor{1.0f, 1.0f, 1.0f, 1.0f};
         } data;
 
-        [[nodiscard]] constexpr glm::vec4 GetRect() const noexcept {
-            return {data.position.x, data.position.y, data.size.x, data.size.y};
-        }
-
         bool HandleEvent(const SDL_Event& event, const Camera& camera, glm::vec2 screenSize) noexcept override;
         void Render(SDL_Renderer* renderer, const Camera& camera, glm::vec2 screenSize) const noexcept override;
         bool Contains(glm::vec2 point) const noexcept override;
