@@ -161,12 +161,11 @@ void Application::RenderUI() noexcept {
     }
     
     if (m_showComponentTree) {
-        m_hierarchy.BuildFromBlocks(m_diagramData->GetBlocks());
-        m_componentTree.Render(m_hierarchy);
+        Diagram::Component::RenderComponentTree(m_diagramData->GetBlocks());
     }
     
     if (m_showComponentEditor) {
-        RenderComponentEditor();
+        Diagram::Component::RenderComponentEditor();
     }
     
     if (m_showDemo) {
@@ -180,8 +179,8 @@ void Application::RenderPropertiesPanel() noexcept {
     auto& blocks = m_diagramData->GetBlocks();
     auto& camera = m_diagramData->GetCamera();
     
-    ImGui::Text("Camera Position: (%.1f, %.1f)", camera.data.position.x, camera.data.position.y);
-    ImGui::Text("Blocks Count: %zu", blocks.size());
+    ImGui::Text("Camera: (%.1f, %.1f) Zoom: %.2f", camera.data.position.x, camera.data.position.y, camera.data.zoom);
+    ImGui::Text("Blocks: %zu", blocks.size());
     
     if (ImGui::Button("Add Block")) {
         blocks.emplace_back();
@@ -190,45 +189,9 @@ void Application::RenderPropertiesPanel() noexcept {
         newBlock.data.label = "Block " + std::to_string(blocks.size());
     }
     
-    ImGui::Separator();
-    
-    for (size_t i = 0; i < blocks.size(); ++i) {
-        auto& block = blocks[i];
-        
-        if (ImGui::CollapsingHeader(("Block " + std::to_string(i + 1)).c_str())) {
-            block.RenderUI(static_cast<int>(i));
-            
-            if (ImGui::Button("Delete")) {
-                blocks.erase(blocks.begin() + i);
-                break;
-            }
-        }
-    }
-    
     ImGui::End();
 }
 
-void Application::RenderComponentEditor() noexcept {
-    if (!ImGui::Begin("Component Editor", &m_showComponentEditor, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::End();
-        return;
-    }
-
-    auto* selected = ComponentSelection::Instance().GetSelected();
-    if (!selected) {
-        ImGui::TextDisabled("No component selected");
-        ImGui::End();
-        return;
-    }
-
-    if (auto* block = dynamic_cast<Diagram::Block*>(selected)) {
-        block->RenderUI(0);
-    } else {
-        ImGui::TextDisabled("Unknown component type");
-    }
-
-    ImGui::End();
-}
 
 void Application::RefreshWorkspaceFiles() {
     m_workspaceFiles.clear();

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <diagram>
 	<camera>
-		<position x="429.45224" y="283.329773" />
-		<zoom>0.970121205</zoom>
+		<position x="646.438599" y="246.595291" />
+		<zoom>0.842788577</zoom>
 	</camera>
 	<grid>
 		<smallStep>5</smallStep>
@@ -11,7 +11,7 @@
 	</grid>
 	<blocks>
 		<block>
-			<position x="99.425354" y="252.250946" />
+			<position x="468.451355" y="195.557022" />
 			<size x="120" y="60" />
 			<label>Is it good?</label>
 			<type>Process</type>
@@ -19,7 +19,7 @@
 			<borderColor x="1" y="1" z="1" w="1" />
 		</block>
 		<block>
-			<position x="130.280319" y="274.835632" />
+			<position x="468.382385" y="273.80484" />
 			<size x="120" y="60" />
 			<label>Start</label>
 			<type>Process</type>
@@ -27,7 +27,7 @@
 			<borderColor x="1" y="0" z="1" w="1" />
 		</block>
 		<block>
-			<position x="443.833954" y="259.364594" />
+			<position x="273.752106" y="65.5743713" />
 			<size x="120" y="60" />
 			<label>Block 6</label>
 			<type>Process</type>
@@ -35,7 +35,7 @@
 			<borderColor x="0.989130497" y="1" z="0" w="1" />
 		</block>
 		<block>
-			<position x="409.980225" y="153.455048" />
+			<position x="268.760712" y="146.239471" />
 			<size x="120" y="60" />
 			<label>Some Action</label>
 			<type>Process</type>
@@ -43,7 +43,7 @@
 			<borderColor x="1" y="0" z="0" w="1" />
 		</block>
 		<block>
-			<position x="276.688782" y="63.0729523" />
+			<position x="262.257568" y="427.9758" />
 			<size x="120" y="60" />
 			<label>End</label>
 			<type>Process</type>
@@ -51,7 +51,7 @@
 			<borderColor x="1" y="0.125490203" z="0.600000024" w="1" />
 		</block>
 		<block>
-			<position x="301.86322" y="220.601776" />
+			<position x="274.031616" y="-17.5128174" />
 			<size x="120" y="60" />
 			<label>Block 7</label>
 			<type>Process</type>
@@ -59,11 +59,19 @@
 			<borderColor x="1" y="0.49484539" z="0.49484539" w="1" />
 		</block>
 		<block>
-			<position x="303.601532" y="300.521637" />
+			<position x="268.554382" y="343.815216" />
 			<size x="120" y="60" />
 			<label>Block 5</label>
 			<type>Process</type>
 			<backgroundColor x="0" y="0.279070139" z="1" w="1" />
+			<borderColor x="1" y="1" z="1" w="1" />
+		</block>
+		<block>
+			<position x="461.728088" y="71.4457245" />
+			<size x="120" y="60" />
+			<label>Block 8</label>
+			<type>Process</type>
+			<backgroundColor x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
 			<borderColor x="1" y="1" z="1" w="1" />
 		</block>
 	</blocks>
