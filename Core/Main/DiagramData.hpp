@@ -23,8 +23,14 @@ public:
     const std::vector<std::unique_ptr<Diagram::Component>>& GetComponents() const noexcept { return m_components; }
     std::vector<std::unique_ptr<Diagram::Component>>& GetComponents() noexcept { return m_components; }
     
-    const std::vector<Diagram::Block>& GetBlocks() const noexcept { return m_blocks; }
-    std::vector<Diagram::Block>& GetBlocks() noexcept { return m_blocks; }
+    std::vector<Diagram::Block*> GetBlocks() const noexcept {
+        std::vector<Diagram::Block*> blocks;
+        for (const auto& comp : m_components) {
+            if (auto* block = dynamic_cast<Diagram::Block*>(comp.get())) 
+                blocks.push_back(block);
+        }
+        return blocks;
+    }
 
     const Diagram::Camera& GetCamera() const noexcept { return m_camera; }
     Diagram::Camera& GetCamera() noexcept { return m_camera; }
@@ -34,7 +40,6 @@ public:
 
 private:
     std::vector<std::unique_ptr<Diagram::Component>> m_components;
-    std::vector<Diagram::Block> m_blocks;
     Diagram::Camera m_camera;
     Diagram::Grid m_grid;
 };

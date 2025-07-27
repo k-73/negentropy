@@ -2,9 +2,6 @@
 #include "../Diagram/Block.hpp"
 #include "../Diagram/Camera.hpp"
 #include "../Diagram/Grid.hpp"
-#include <glm/vec2.hpp>
-#include <glm/vec4.hpp>
-#include <cmath>
 
 bool Renderer::Initialize(SDL_Window* window) noexcept {
     m_renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -26,16 +23,6 @@ void Renderer::Clear() const noexcept {
 
 void Renderer::DrawGrid(const Diagram::Camera& camera, const Diagram::Grid& grid) const noexcept {
     grid.Render(m_renderer, camera);
-}
-
-void Renderer::DrawBlocks(const std::vector<Diagram::Block>& blocks, const Diagram::Camera& camera) const noexcept {
-    int w, h;
-    SDL_GetRendererOutputSize(m_renderer, &w, &h);
-    const glm::vec2 screenSize{static_cast<float>(w), static_cast<float>(h)};
-    
-    for (const auto& block : blocks) {
-        block.Render(m_renderer, camera, screenSize);
-    }
 }
 
 void Renderer::Present() const noexcept {

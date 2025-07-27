@@ -16,7 +16,6 @@ void DiagramData::Load(const std::string& filePath) {
         return;
     }
 
-    m_blocks.clear();
     m_components.clear();
     auto diagram = doc.child("diagram");
     if (!diagram) return;
@@ -30,11 +29,8 @@ void DiagramData::Load(const std::string& filePath) {
     }
 
     for (pugi::xml_node blockNode : diagram.child("blocks").children("block")) {
-        Diagram::Block block;
-        block.xml_deserialize(blockNode);
-        m_blocks.push_back(block);
-        
-        auto blockComponent = std::make_unique<Diagram::Block>(block);
+        auto blockComponent = std::make_unique<Diagram::Block>();
+        blockComponent->xml_deserialize(blockNode);
         m_components.push_back(std::move(blockComponent));
     }
 }
@@ -50,9 +46,11 @@ void DiagramData::Save(const std::string& filePath) const {
     m_grid.xml_serialize(gridNode);
 
     auto blocksNode = diagram.append_child("blocks");
-    for (const auto& block : m_blocks) {
-        auto blockNode = blocksNode.append_child("block");
-        block.xml_serialize(blockNode);
+    for (const auto& component : m_components) {
+        if (auto* block = dynamic_cast<const Diagram::Block*>(component.get())) {
+            auto blockNode = blocksNode.append_child("block");
+            block->xml_serialize(blockNode);
+        }
     }
 
     doc.save_file(filePath.c_str());

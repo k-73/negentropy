@@ -2,13 +2,28 @@
 
 #include <SDL.h>
 #include <vector>
+#include <memory>
+#include <type_traits>
 #include <glm/vec2.hpp>
-#include "../Diagram/Block.hpp"
+#include "../Diagram/Component.hpp"
 #include "../Diagram/Camera.hpp"
 
 class EventHandler {
 public:
-    static void HandleEvent(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks, glm::vec2 screenSize) noexcept {
+    template<typename ComponentContainer>
+    static void HandleEvent(const SDL_Event& e, Diagram::Camera& camera, ComponentContainer& components, glm::vec2 screenSize) noexcept {
+        HandleEventImpl(e, camera, components, screenSize);
+    }
+
+private:
+    template<typename ComponentContainer>
+    static void HandleEventImpl(const SDL_Event& e, Diagram::Camera& camera, const ComponentContainer& components, glm::vec2 screenSize) noexcept {
+        auto getComponent = []<typename T0>(T0& item) -> Diagram::Component* {
+            if constexpr (std::is_pointer_v<std::decay_t<T0>>) return item;
+            else if constexpr (std::is_same_v<std::decay_t<T0>, std::unique_ptr<Diagram::Component>>) return item.get();
+            else return const_cast<Diagram::Component*>(&item);
+        };
+
         if (e.type == SDL_MOUSEWHEEL) {
             int mouseX, mouseY;
             SDL_GetMouseState(&mouseX, &mouseY);
@@ -23,9 +38,10 @@ public:
             }
             else if (e.button.button == SDL_BUTTON_LEFT) {
                 Diagram::Component::ClearSelection();
-                for (auto it = blocks.rbegin(); it != blocks.rend(); ++it) {
-                    if (it->HandleEvent(e, camera, screenSize)) {
-                        Diagram::Component::Select(&(*it));
+                for (auto it = components.rbegin(); it != components.rend(); ++it) {
+                    auto* component = getComponent(*it);
+                    if (component->HandleEvent(e, camera, screenSize)) {
+                        Diagram::Component::Select(component);
                         break;
                     }
                 }
@@ -36,7 +52,7 @@ public:
                 camera.panning = false;
             }
             else if (e.button.button == SDL_BUTTON_LEFT) {
-                for (auto& block : blocks) block.HandleEvent(e, camera, screenSize);
+                for (const auto& item : components) getComponent(item)->HandleEvent(e, camera, screenSize);
             }
         }
         else if (e.type == SDL_MOUSEMOTION) {
@@ -44,7 +60,7 @@ public:
                 const glm::vec2 mouse{static_cast<float>(e.motion.x), static_cast<float>(e.motion.y)};
                 camera.data.position = camera.panStart - (mouse - camera.mouseStart) / camera.data.zoom;
             }
-            for (auto& block : blocks) block.HandleEvent(e, camera, screenSize);
+            for (const auto& item : components) getComponent(item)->HandleEvent(e, camera, screenSize);
         }
     }
 };

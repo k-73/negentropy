@@ -25,7 +25,7 @@ namespace Diagram {
         static void Select(Component* component) noexcept { s_selected = component; }
         static void ClearSelection() noexcept { s_selected = nullptr; }
         
-        static void RenderComponentTree(const std::vector<std::unique_ptr<Component>>& components) noexcept;
+        static void RenderComponentTree(std::vector<std::unique_ptr<Component>>& components) noexcept;
         static void RenderComponentEditor() noexcept;
         
     private:
@@ -40,7 +40,7 @@ namespace Diagram {
                 : name(std::move(n)), component(c) {}
         };
         
-        static void RenderTreeNode(const TreeNode& node) noexcept;
+        static void RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<Component>>* components) noexcept;
         static std::unique_ptr<TreeNode> BuildHierarchy(const std::vector<std::unique_ptr<Component>>& components) noexcept;
     };
 }

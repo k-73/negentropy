@@ -1,5 +1,6 @@
 #include "Application.hpp"
 #include <stdexcept>
+#include <algorithm>
 #include <spdlog/spdlog.h>
 #include <imgui.h>
 #include <imgui_impl_sdl2.h>
@@ -91,7 +92,7 @@ void Application::ProcessEvents() noexcept {
             int w, h;
             SDL_GetWindowSize(m_window, &w, &h);
             const glm::vec2 screenSize{static_cast<float>(w), static_cast<float>(h)};
-            EventHandler::HandleEvent(event, m_diagramData.GetCamera(), m_diagramData.GetBlocks(), screenSize);
+            EventHandler::HandleEvent(event, m_diagramData.GetCamera(), m_diagramData.GetComponents(), screenSize);
         }
     }
 }
@@ -102,7 +103,7 @@ void Application::RenderFrame() noexcept {
     
     m_renderer.Clear();
     m_renderer.DrawGrid(m_diagramData.GetCamera(), m_diagramData.GetGrid());
-    m_renderer.DrawBlocks(m_diagramData.GetBlocks(), m_diagramData.GetCamera());
+    m_renderer.DrawComponents(m_diagramData.GetComponents(), m_diagramData.GetCamera());
 
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), m_renderer.GetSDLRenderer());
@@ -173,17 +174,20 @@ void Application::RenderUI() noexcept {
 void Application::RenderPropertiesPanel() noexcept {
     ImGui::Begin("Properties", &m_showProperties);
     
-    auto& blocks = m_diagramData.GetBlocks();
+    auto& components = m_diagramData.GetComponents();
     auto& camera = m_diagramData.GetCamera();
     
+    size_t blockCount = std::count_if(components.begin(), components.end(),
+        [](const auto& comp) { return dynamic_cast<Diagram::Block*>(comp.get()) != nullptr; });
+    
     ImGui::Text("Camera: (%.1f, %.1f) Zoom: %.2f", camera.data.position.x, camera.data.position.y, camera.data.zoom);
-    ImGui::Text("Blocks: %zu", blocks.size());
+    ImGui::Text("Blocks: %zu", blockCount);
     
     if (ImGui::Button("Add Block")) {
-        blocks.emplace_back();
-        auto& newBlock = blocks.back();
-        newBlock.data.position = {100.0f + static_cast<float>(blocks.size()) * 150.0f, 100.0f};
-        newBlock.data.label = "Block " + std::to_string(blocks.size());
+        auto newBlock = std::make_unique<Diagram::Block>();
+        newBlock->data.position = {100.0f + static_cast<float>(blockCount + 1) * 150.0f, 100.0f};
+        newBlock->data.label = "Block " + std::to_string(blockCount + 1);
+        components.push_back(std::move(newBlock));
     }
     
     ImGui::End();
