@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <diagram>
 	<camera>
-		<position x="271.414764" y="178.926041" />
-		<zoom>1.22817326</zoom>
+		<position x="564.03949" y="306.77948" />
+		<zoom>0.963652968</zoom>
 	</camera>
 	<grid>
 		<smallStep>5</smallStep>
@@ -35,22 +35,6 @@
 			<borderColor x="1" y="0" z="0" w="1" />
 		</block>
 		<block>
-			<position x="199.478256" y="149.660065" />
-			<size x="120" y="60" />
-			<label>End</label>
-			<type>Process</type>
-			<backgroundColor x="0.58431375" y="0.384313732" z="0.717647076" w="0.984313726" />
-			<borderColor x="1" y="0.125490203" z="0.600000024" w="1" />
-		</block>
-		<block>
-			<position x="99.425354" y="253.262756" />
-			<size x="120" y="60" />
-			<label>Is it good?</label>
-			<type>Process</type>
-			<backgroundColor x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
-			<borderColor x="1" y="1" z="1" w="1" />
-		</block>
-		<block>
 			<position x="250.106934" y="351.159485" />
 			<size x="120" y="60" />
 			<label>Block 5</label>
@@ -59,12 +43,28 @@
 			<borderColor x="1" y="1" z="1" w="1" />
 		</block>
 		<block>
-			<position x="0.932220459" y="352.692474" />
+			<position x="0.590393066" y="403.676453" />
 			<size x="120" y="60" />
 			<label>Block 6</label>
 			<type>Process</type>
 			<backgroundColor x="1" y="0.880434752" z="0" w="1" />
 			<borderColor x="0.989130497" y="1" z="0" w="1" />
+		</block>
+		<block>
+			<position x="201.440445" y="149.660065" />
+			<size x="120" y="60" />
+			<label>End</label>
+			<type>Process</type>
+			<backgroundColor x="0.58431375" y="0.384313732" z="0.717647076" w="0.984313726" />
+			<borderColor x="1" y="0.125490203" z="0.600000024" w="1" />
+		</block>
+		<block>
+			<position x="99.425354" y="252.250946" />
+			<size x="120" y="60" />
+			<label>Is it good?</label>
+			<type>Process</type>
+			<backgroundColor x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
+			<borderColor x="1" y="1" z="1" w="1" />
 		</block>
 	</blocks>
 </diagram>

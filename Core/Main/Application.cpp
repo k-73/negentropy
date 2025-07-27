@@ -1,15 +1,10 @@
 #include "Application.hpp"
-#include "Renderer.hpp"
-#include "EventHandler.hpp"
-#include "DiagramData.hpp"
 #include <stdexcept>
 #include <spdlog/spdlog.h>
 #include <imgui.h>
 #include <imgui_impl_sdl2.h>
 #include <imgui_impl_sdlrenderer2.h>
 #include <filesystem>
-#include <vector>
-#include <string>
 #include "../Utils/Path.hpp"
 
 namespace fs = std::filesystem;
