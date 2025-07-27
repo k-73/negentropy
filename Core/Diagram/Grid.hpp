@@ -49,7 +49,7 @@ namespace Diagram {
             const int firstGridY = static_cast<int>(std::floor(topLeft.y / settings.smallStep));
             const int lastGridY = static_cast<int>(std::ceil(bottomRight.y / settings.smallStep));
             
-            SDL_SetRenderDrawColor(renderer, 20, 20, 20, 255);
+            SDL_SetRenderDrawColor(renderer, 40, 40, 40, 255);
             
             for (int i = firstGridX; i <= lastGridX; ++i) {
                 const float worldX = static_cast<float>(i) * settings.smallStep;
@@ -73,7 +73,7 @@ namespace Diagram {
             const int lastGridY = static_cast<int>(std::ceil(bottomRight.y / settings.smallStep));
             
             const int largeStepMultiplier = static_cast<int>(std::round(settings.largeStep / settings.smallStep));
-            SDL_SetRenderDrawColor(renderer, 10, 10, 10, 255);
+            SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
             
             for (int i = firstGridX; i <= lastGridX; ++i) {
                 if (i % largeStepMultiplier == 0) {
