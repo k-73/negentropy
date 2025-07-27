@@ -3,6 +3,7 @@
 #include <iostream>
 #include "../Utils/Path.hpp"
 #include "../Diagram/Block.hpp"
+#include "../Utils/Notification.hpp"
 
 DiagramData::DiagramData() noexcept {
     Load((Utils::GetWorkspacePath() / "Default.xml").string());
@@ -44,6 +45,10 @@ void DiagramData::Load(const std::string& filePath) {
 
 void DiagramData::Save(const std::string& filePath) const {
     pugi::xml_document doc;
+    auto declarationNode = doc.append_child(pugi::node_declaration);
+    declarationNode.append_attribute("version") = "1.0";
+    declarationNode.append_attribute("encoding") = "UTF-8";
+
     auto diagram = doc.append_child("Diagram");
 
     auto cameraNode = diagram.append_child("Camera");
@@ -59,7 +64,11 @@ void DiagramData::Save(const std::string& filePath) const {
         component->xml_serialize(componentNode);
     }
 
-    doc.save_file(filePath.c_str());
+    if(doc.save_file(filePath.c_str())) {
+        Notify::Success("Diagram saved successfully!");
+    } else {
+        Notify::Error("Error saving diagram!");
+    }
 }
 
 std::unique_ptr<Diagram::ComponentBase> DiagramData::CreateComponent(const std::string& type) const {

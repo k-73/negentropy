@@ -7,6 +7,7 @@
 #include <imgui_impl_sdlrenderer2.h>
 #include <filesystem>
 #include "../Utils/Path.hpp"
+#include "../Utils/Notification.hpp"
 
 namespace fs = std::filesystem;
 
@@ -23,6 +24,9 @@ Application::Application() {
     InitializeImGui();
     
     spdlog::info("Application initialized successfully");
+
+    m_currentFilePath = (Utils::GetWorkspacePath() / "Default.xml").string();
+    m_diagramData.Load(m_currentFilePath);
 
     RefreshWorkspaceFiles();
     SDL_ShowWindow(m_window);
@@ -80,6 +84,11 @@ void Application::ProcessEvents() noexcept {
             return;
         }
         
+        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_s && (event.key.keysym.mod & KMOD_CTRL)) {
+            SaveDiagram();
+            return;
+        }
+        
         bool shouldProcessEvent = true;
         if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP || event.type == SDL_MOUSEMOTION || event.type == SDL_MOUSEWHEEL) {
             shouldProcessEvent = !ImGui::GetIO().WantCaptureMouse;
@@ -119,13 +128,14 @@ void Application::RenderUI() noexcept {
             if (ImGui::BeginMenu("Load")) {
                 for (const auto& file : m_workspaceFiles) {
                     if (ImGui::MenuItem(file.c_str())) {
-                        m_diagramData.Load((Utils::GetWorkspacePath() / file).string());
+                        m_currentFilePath = (Utils::GetWorkspacePath() / file).string();
+                        m_diagramData.Load(m_currentFilePath);
                     }
                 }
                 ImGui::EndMenu();
             }
-            if (ImGui::MenuItem("Save")) {
-                m_diagramData.Save((Utils::GetWorkspacePath() / "Default.xml").string());
+            if (ImGui::MenuItem("Save", "Ctrl+S")) {
+                SaveDiagram();
             }
             ImGui::Separator();
             if (ImGui::MenuItem("Exit", "Alt+F4")) {
@@ -168,6 +178,8 @@ void Application::RenderUI() noexcept {
     if (m_showDemo) {
         ImGui::ShowDemoWindow(&m_showDemo);
     }
+
+    Notify::Render();
 }
 
 void Application::RenderPropertiesPanel() noexcept {
@@ -191,6 +203,13 @@ void Application::RenderPropertiesPanel() noexcept {
     ImGui::End();
 }
 
+void Application::SaveDiagram() noexcept {
+    if (!m_currentFilePath.empty()) {
+        m_diagramData.Save(m_currentFilePath);
+    } else {
+        Notify::Error("No file is currently open to save.");
+    }
+}
 
 void Application::RefreshWorkspaceFiles() {
     m_workspaceFiles.clear();
@@ -285,9 +304,9 @@ void Application::DarkStyle() noexcept {
     style.GrabMinSize          = 8.0f;
 
     // Borders
-    style.WindowBorderSize     = 1.0f;
-    style.ChildBorderSize      = 1.0f;
-    style.PopupBorderSize      = 1.0f;
+    style.WindowBorderSize     = 0.0f;
+    style.ChildBorderSize      = 0.0f;
+    style.PopupBorderSize      = 0.0f;
     style.FrameBorderSize      = 0.0f;
     style.TabBorderSize        = 0.0f;
 

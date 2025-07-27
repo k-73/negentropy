@@ -6,6 +6,7 @@
 #include "Renderer.hpp"
 #include "EventHandler.hpp"
 #include "DiagramData.hpp"
+#include "Utils/Notification.hpp"
 
 class Application {
 public:
@@ -26,6 +27,7 @@ private:
     void RenderUI() noexcept;
     void RenderPropertiesPanel() noexcept;
     void RefreshWorkspaceFiles();
+    void SaveDiagram() noexcept;
     static void DarkStyle() noexcept;
     static void SetupFont() noexcept;
 
@@ -37,6 +39,7 @@ private:
     Renderer m_renderer;
     DiagramData m_diagramData;
 
+    std::string m_currentFilePath;
     std::vector<std::string> m_workspaceFiles;
     bool m_showProperties = true;
     bool m_showDemo = false;

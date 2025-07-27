@@ -30,13 +30,15 @@ public:
             }
         } else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_MIDDLE) {
             camera.panning = false;
-        } else if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_DELETE) {
-            if (auto* selected = Diagram::ComponentBase::GetSelected()) {
-                auto it = std::find_if(components.begin(), components.end(),
-                    [selected](const auto& comp) { return comp.get() == selected; });
-                if (it != components.end()) {
-                    components.erase(it);
-                    Diagram::ComponentBase::ClearSelection();
+        } else if (e.type == SDL_KEYDOWN) {
+            if (e.key.keysym.sym == SDLK_DELETE) {
+                if (auto* selected = Diagram::ComponentBase::GetSelected()) {
+                    auto it = std::find_if(components.begin(), components.end(),
+                        [selected](const auto& comp) { return comp.get() == selected; });
+                    if (it != components.end()) {
+                        components.erase(it);
+                        Diagram::ComponentBase::ClearSelection();
+                    }
                 }
             }
         } else if (e.type == SDL_MOUSEBUTTONUP || e.type == SDL_MOUSEMOTION) {
