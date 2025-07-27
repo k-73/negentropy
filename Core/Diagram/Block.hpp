@@ -22,11 +22,12 @@ namespace Diagram {
 
         struct Data {
             glm::vec2 position{0.0f};
-            glm::vec2 size{20.0f, 10.0f};
+            glm::vec2 size{10.0f, 5.0f};
             std::string label;
             Type type = Type::Process;
-            glm::vec4 backgroundColor{0.35f, 0.47f, 0.78f, 1.0f};
-            glm::vec4 borderColor{1.0f, 1.0f, 1.0f, 1.0f};
+
+            glm::vec4 backgroundColor{0.8f, 0.33f, 0.08f, 0.7f};
+            glm::vec4 borderColor{0.07f, 0.07f, 0.07f, 1.0f};
         } data;
 
         bool HandleEvent(const SDL_Event& event, const Camera& camera, glm::vec2 screenSize) noexcept override;
