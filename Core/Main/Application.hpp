@@ -7,6 +7,9 @@
 #include "Renderer.hpp"
 #include "EventHandler.hpp"
 #include "DiagramData.hpp"
+#include "ComponentHierarchy.hpp"
+#include "ComponentTree.hpp"
+#include "ComponentSelection.hpp"
 
 class Application {
 public:
@@ -27,6 +30,7 @@ private:
     void RenderFrame() noexcept;
     void RenderUI() noexcept;
     void RenderPropertiesPanel() noexcept;
+    void RenderComponentEditor() noexcept;
     void RefreshWorkspaceFiles();
     static void DarkStyle() noexcept;
     static void SetupFont() noexcept;
@@ -43,4 +47,9 @@ private:
     std::vector<std::string> m_workspaceFiles;
     bool m_showProperties = true;
     bool m_showDemo = false;
+    bool m_showComponentTree = true;
+    bool m_showComponentEditor = true;
+    
+    UI::ComponentHierarchy m_hierarchy;
+    UI::ComponentTree m_componentTree;
 };

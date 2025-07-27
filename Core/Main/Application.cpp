@@ -145,6 +145,8 @@ void Application::RenderUI() noexcept {
         
         if (ImGui::BeginMenu("View")) {
             ImGui::MenuItem("Properties", nullptr, &m_showProperties);
+            ImGui::MenuItem("Component Tree", nullptr, &m_showComponentTree);
+            ImGui::MenuItem("Component Editor", nullptr, &m_showComponentEditor);
             ImGui::MenuItem("Demo", nullptr, &m_showDemo);
             ImGui::EndMenu();
         }
@@ -156,6 +158,15 @@ void Application::RenderUI() noexcept {
     
     if (m_showProperties) {
         RenderPropertiesPanel();
+    }
+    
+    if (m_showComponentTree) {
+        m_hierarchy.BuildFromBlocks(m_diagramData->GetBlocks());
+        m_componentTree.Render(m_hierarchy);
+    }
+    
+    if (m_showComponentEditor) {
+        RenderComponentEditor();
     }
     
     if (m_showDemo) {
@@ -194,6 +205,28 @@ void Application::RenderPropertiesPanel() noexcept {
         }
     }
     
+    ImGui::End();
+}
+
+void Application::RenderComponentEditor() noexcept {
+    if (!ImGui::Begin("Component Editor", &m_showComponentEditor, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::End();
+        return;
+    }
+
+    auto* selected = ComponentSelection::Instance().GetSelected();
+    if (!selected) {
+        ImGui::TextDisabled("No component selected");
+        ImGui::End();
+        return;
+    }
+
+    if (auto* block = dynamic_cast<Diagram::Block*>(selected)) {
+        block->RenderUI(0);
+    } else {
+        ImGui::TextDisabled("Unknown component type");
+    }
+
     ImGui::End();
 }
 

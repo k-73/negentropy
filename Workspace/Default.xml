@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <diagram>
 	<camera>
-		<position x="357.366638" y="282.561615" />
-		<zoom>1.53978872</zoom>
+		<position x="429.45224" y="283.329773" />
+		<zoom>0.970121205</zoom>
 	</camera>
 	<grid>
 		<smallStep>5</smallStep>
@@ -10,38 +10,6 @@
 		<visible>true</visible>
 	</grid>
 	<blocks>
-		<block>
-			<position x="333.817993" y="554.580627" />
-			<size x="120" y="60" />
-			<label>Block 7</label>
-			<type>Process</type>
-			<backgroundColor x="1" y="0.654639184" z="0.654639184" w="1" />
-			<borderColor x="1" y="0.49484539" z="0.49484539" w="1" />
-		</block>
-		<block>
-			<position x="0.399612427" y="100.630569" />
-			<size x="120" y="60" />
-			<label>Start</label>
-			<type>Process</type>
-			<backgroundColor x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
-			<borderColor x="1" y="0" z="1" w="1" />
-		</block>
-		<block>
-			<position x="0.590393066" y="403.676453" />
-			<size x="120" y="60" />
-			<label>Block 6</label>
-			<type>Process</type>
-			<backgroundColor x="1" y="0.880434752" z="0" w="1" />
-			<borderColor x="0.989130497" y="1" z="0" w="1" />
-		</block>
-		<block>
-			<position x="201.440445" y="149.660065" />
-			<size x="120" y="60" />
-			<label>End</label>
-			<type>Process</type>
-			<backgroundColor x="0.58431375" y="0.384313732" z="0.717647076" w="0.984313726" />
-			<borderColor x="1" y="0.125490203" z="0.600000024" w="1" />
-		</block>
 		<block>
 			<position x="99.425354" y="252.250946" />
 			<size x="120" y="60" />
@@ -51,20 +19,52 @@
 			<borderColor x="1" y="1" z="1" w="1" />
 		</block>
 		<block>
-			<position x="250" y="350" />
+			<position x="130.280319" y="274.835632" />
 			<size x="120" y="60" />
-			<label>Block 5</label>
+			<label>Start</label>
 			<type>Process</type>
-			<backgroundColor x="0" y="0.279070139" z="1" w="1" />
-			<borderColor x="1" y="1" z="1" w="1" />
+			<backgroundColor x="0.349999994" y="0.469999999" z="0.779999971" w="1" />
+			<borderColor x="1" y="0" z="1" w="1" />
 		</block>
 		<block>
-			<position x="349.163086" y="151.393448" />
+			<position x="443.833954" y="259.364594" />
+			<size x="120" y="60" />
+			<label>Block 6</label>
+			<type>Process</type>
+			<backgroundColor x="1" y="0.880434752" z="0" w="1" />
+			<borderColor x="0.989130497" y="1" z="0" w="1" />
+		</block>
+		<block>
+			<position x="409.980225" y="153.455048" />
 			<size x="120" y="60" />
 			<label>Some Action</label>
 			<type>Process</type>
 			<backgroundColor x="0.349019617" y="0" z="0.78039217" w="0.180392161" />
 			<borderColor x="1" y="0" z="0" w="1" />
+		</block>
+		<block>
+			<position x="276.688782" y="63.0729523" />
+			<size x="120" y="60" />
+			<label>End</label>
+			<type>Process</type>
+			<backgroundColor x="0.58431375" y="0.384313732" z="0.717647076" w="0.984313726" />
+			<borderColor x="1" y="0.125490203" z="0.600000024" w="1" />
+		</block>
+		<block>
+			<position x="301.86322" y="220.601776" />
+			<size x="120" y="60" />
+			<label>Block 7</label>
+			<type>Process</type>
+			<backgroundColor x="1" y="0.654639184" z="0.654639184" w="1" />
+			<borderColor x="1" y="0.49484539" z="0.49484539" w="1" />
+		</block>
+		<block>
+			<position x="303.601532" y="300.521637" />
+			<size x="120" y="60" />
+			<label>Block 5</label>
+			<type>Process</type>
+			<backgroundColor x="0" y="0.279070139" z="1" w="1" />
+			<borderColor x="1" y="1" z="1" w="1" />
 		</block>
 	</blocks>
 </diagram>

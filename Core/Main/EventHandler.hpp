@@ -6,6 +6,7 @@
 #include <glm/vec2.hpp>
 #include "../Diagram/Block.hpp"
 #include "../Diagram/Camera.hpp"
+#include "ComponentSelection.hpp"
 
 class EventHandler {
 public:
@@ -44,12 +45,18 @@ private:
             camera.mouseStart = {static_cast<float>(e.button.x), static_cast<float>(e.button.y)};
         }
         if (e.button.button == SDL_BUTTON_LEFT) {
+            bool blockSelected = false;
             for (int i = static_cast<int>(blocks.size()) - 1; i >= 0; --i) {
                 auto& block = blocks[i];
                 if (block.HandleEvent(e, camera, screenSize)) {
+                    ComponentSelection::Instance().Select(&block);
                     std::rotate(blocks.begin() + i, blocks.begin() + i + 1, blocks.end());
+                    blockSelected = true;
                     break;
                 }
+            }
+            if (!blockSelected) {
+                ComponentSelection::Instance().Clear();
             }
         }
     }
