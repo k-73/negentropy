@@ -19,7 +19,7 @@
 			<borderColor x="1" y="1" z="1" w="1" />
 		</block>
 		<block>
-			<position x="105.316528" y="177.522034" />
+			<position x="410.62561" y="8.79857635" />
 			<size x="120" y="60" />
 			<label>Start</label>
 			<type>Process</type>
@@ -59,20 +59,20 @@
 			<borderColor x="1" y="0.49484539" z="0.49484539" w="1" />
 		</block>
 		<block>
-			<position x="331.285248" y="127.392929" />
-			<size x="120" y="60" />
-			<label>Block 8</label>
-			<type>Process</type>
-			<backgroundColor x="0.651443303" y="0.779999971" z="0.349999994" w="1" />
-			<borderColor x="0.886597991" y="1" z="0" w="1" />
-		</block>
-		<block>
 			<position x="247.449341" y="12.2005539" />
 			<size x="120" y="60" />
 			<label>End</label>
 			<type>Process</type>
 			<backgroundColor x="0.58431375" y="0.384313732" z="0.717647076" w="0.984313726" />
 			<borderColor x="1" y="0.125490203" z="0.600000024" w="1" />
+		</block>
+		<block>
+			<position x="331.285248" y="127.392929" />
+			<size x="120" y="60" />
+			<label>Block 8</label>
+			<type>Process</type>
+			<backgroundColor x="0.651443303" y="0.779999971" z="0.349999994" w="1" />
+			<borderColor x="0.886597991" y="1" z="0" w="1" />
 		</block>
 	</blocks>
 </diagram>

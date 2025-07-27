@@ -24,7 +24,7 @@ public:
             } else if (e.button.button == SDL_BUTTON_LEFT) {
                 Diagram::Component::ClearSelection();
                 for (auto& item : std::ranges::reverse_view(components)) {
-                    if (item.get()->HandleEvent(e, camera, screenSize)) { Diagram::Component::Select(item.get()); break; }
+                    if (item->HandleEvent(e, camera, screenSize)) { Diagram::Component::Select(item.get()); break; }
                 }
             }
         } else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_MIDDLE) {
@@ -35,7 +35,7 @@ public:
                 camera.data.position = camera.panStart - (mousePos - camera.mouseStart) / camera.data.zoom;
             }
             for (const auto &item: components) {
-                item.get()->HandleEvent(e, camera, screenSize);
+                item->HandleEvent(e, camera, screenSize);
             }
         }
     }
