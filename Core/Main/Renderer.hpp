@@ -28,8 +28,7 @@ public:
         int w, h; SDL_GetRendererOutputSize(m_renderer, &w, &h);
         const glm::vec2 screenSize{static_cast<float>(w), static_cast<float>(h)};
         for (const auto& item : components) {
-            if constexpr (requires { item.get(); }) item.get()->Render(m_renderer, camera, screenSize);
-            else item->Render(m_renderer, camera, screenSize);
+            item.get()->Render(m_renderer, camera, screenSize);
         }
     }
     
