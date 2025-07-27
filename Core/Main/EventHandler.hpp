@@ -18,12 +18,13 @@ public:
         if (e.type == SDL_MOUSEWHEEL) {
             int mouseX, mouseY;
             SDL_GetMouseState(&mouseX, &mouseY);
-            camera.ZoomAt({float(mouseX), float(mouseY)}, screenSize, e.wheel.y > 0 ? 1.1f : 0.9f);
+            const glm::vec2 mousePos{static_cast<float>(mouseX), static_cast<float>(mouseY)};
+            camera.ZoomAt(mousePos, screenSize, e.wheel.y > 0 ? 1.1f : 0.9f);
         } else if (e.type == SDL_MOUSEBUTTONDOWN) {
             if (e.button.button == SDL_BUTTON_MIDDLE) {
                 camera.panning = true;
                 camera.panStart = camera.data.position;
-                camera.mouseStart = {float(e.button.x), float(e.button.y)};
+                camera.mouseStart = {static_cast<float>(e.button.x), static_cast<float>(e.button.y)};
             } else if (e.button.button == SDL_BUTTON_LEFT) {
                 Diagram::Component::ClearSelection();
 
@@ -39,9 +40,8 @@ public:
             camera.panning = false;
         } else if (e.type == SDL_MOUSEBUTTONUP || e.type == SDL_MOUSEMOTION) {
             if (e.type == SDL_MOUSEMOTION && camera.panning) {
-                camera.data.position = camera.panStart - (
-                                           glm::vec2{float(e.motion.x), float(e.motion.y)} - camera.mouseStart) / camera
-                                       .data.zoom;
+                const glm::vec2 mousePos{static_cast<float>(e.motion.x), static_cast<float>(e.motion.y)};
+                camera.data.position = camera.panStart - (mousePos - camera.mouseStart) / camera.data.zoom;
             }
 
             for (const auto &item: components) {

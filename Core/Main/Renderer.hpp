@@ -26,9 +26,10 @@ public:
     template<typename C>
     void DrawComponents(const C& components, const Diagram::Camera& camera) const noexcept {
         int w, h; SDL_GetRendererOutputSize(m_renderer, &w, &h);
+        const glm::vec2 screenSize{static_cast<float>(w), static_cast<float>(h)};
         for (const auto& item : components) {
-            const auto* comp = [&] { if constexpr (requires { item.get(); }) return item.get(); else return &item; }();
-            comp->Render(m_renderer, camera, {float(w), float(h)});
+            if constexpr (requires { item.get(); }) item.get()->Render(m_renderer, camera, screenSize);
+            else item->Render(m_renderer, camera, screenSize);
         }
     }
     
