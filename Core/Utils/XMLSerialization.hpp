@@ -3,7 +3,6 @@
 #include <boost/pfr.hpp>
 #include <magic_enum/magic_enum.hpp>
 #include <type_traits>
-#include <string>
 #include <string_view>
 #include <glm/glm.hpp>
 

@@ -37,46 +37,64 @@ namespace Diagram {
             const glm::vec2 topLeft = camera.ScreenToWorld({0.0f, 0.0f}, screenSize);
             const glm::vec2 bottomRight = camera.ScreenToWorld(screenSize, screenSize);
             
-            const float firstGridX = std::floor(topLeft.x / settings.smallStep) * settings.smallStep;
-            const float lastGridX = std::ceil(bottomRight.x / settings.smallStep) * settings.smallStep;
-            const float firstGridY = std::floor(topLeft.y / settings.smallStep) * settings.smallStep;
-            const float lastGridY = std::ceil(bottomRight.y / settings.smallStep) * settings.smallStep;
+            RenderSmallGridLines(renderer, camera, screenSize, topLeft, bottomRight);
+            RenderLargeGridLines(renderer, camera, screenSize, topLeft, bottomRight);
+            RenderOriginCross(renderer, camera, screenSize);
+        }
+
+    private:
+        void RenderSmallGridLines(SDL_Renderer* renderer, const Camera& camera, glm::vec2 screenSize, glm::vec2 topLeft, glm::vec2 bottomRight) const noexcept {
+            const int firstGridX = static_cast<int>(std::floor(topLeft.x / settings.smallStep));
+            const int lastGridX = static_cast<int>(std::ceil(bottomRight.x / settings.smallStep));
+            const int firstGridY = static_cast<int>(std::floor(topLeft.y / settings.smallStep));
+            const int lastGridY = static_cast<int>(std::ceil(bottomRight.y / settings.smallStep));
             
             SDL_SetRenderDrawColor(renderer, 40, 40, 40, 255);
             
-            for (float worldX = firstGridX; worldX <= lastGridX; worldX += settings.smallStep) {
+            for (int i = firstGridX; i <= lastGridX; ++i) {
+                const float worldX = static_cast<float>(i) * settings.smallStep;
                 const glm::vec2 topPoint = camera.WorldToScreen({worldX, topLeft.y}, screenSize);
                 const glm::vec2 bottomPoint = camera.WorldToScreen({worldX, bottomRight.y}, screenSize);
                 SDL_RenderDrawLineF(renderer, topPoint.x, topPoint.y, bottomPoint.x, bottomPoint.y);
             }
             
-            for (float worldY = firstGridY; worldY <= lastGridY; worldY += settings.smallStep) {
+            for (int i = firstGridY; i <= lastGridY; ++i) {
+                const float worldY = static_cast<float>(i) * settings.smallStep;
                 const glm::vec2 leftPoint = camera.WorldToScreen({topLeft.x, worldY}, screenSize);
                 const glm::vec2 rightPoint = camera.WorldToScreen({bottomRight.x, worldY}, screenSize);
                 SDL_RenderDrawLineF(renderer, leftPoint.x, leftPoint.y, rightPoint.x, rightPoint.y);
             }
+        }
+
+        void RenderLargeGridLines(SDL_Renderer* renderer, const Camera& camera, glm::vec2 screenSize, glm::vec2 topLeft, glm::vec2 bottomRight) const noexcept {
+            const int firstGridX = static_cast<int>(std::floor(topLeft.x / settings.smallStep));
+            const int lastGridX = static_cast<int>(std::ceil(bottomRight.x / settings.smallStep));
+            const int firstGridY = static_cast<int>(std::floor(topLeft.y / settings.smallStep));
+            const int lastGridY = static_cast<int>(std::ceil(bottomRight.y / settings.smallStep));
             
             const int largeStepMultiplier = static_cast<int>(std::round(settings.largeStep / settings.smallStep));
             SDL_SetRenderDrawColor(renderer, 60, 60, 60, 255);
             
-            for (float worldX = firstGridX; worldX <= lastGridX; worldX += settings.smallStep) {
-                const int gridIndex = static_cast<int>(std::round(worldX / settings.smallStep));
-                if (gridIndex % largeStepMultiplier == 0) {
+            for (int i = firstGridX; i <= lastGridX; ++i) {
+                if (i % largeStepMultiplier == 0) {
+                    const float worldX = static_cast<float>(i) * settings.smallStep;
                     const glm::vec2 topPoint = camera.WorldToScreen({worldX, topLeft.y}, screenSize);
                     const glm::vec2 bottomPoint = camera.WorldToScreen({worldX, bottomRight.y}, screenSize);
                     SDL_RenderDrawLineF(renderer, topPoint.x, topPoint.y, bottomPoint.x, bottomPoint.y);
                 }
             }
             
-            for (float worldY = firstGridY; worldY <= lastGridY; worldY += settings.smallStep) {
-                const int gridIndex = static_cast<int>(std::round(worldY / settings.smallStep));
-                if (gridIndex % largeStepMultiplier == 0) {
+            for (int i = firstGridY; i <= lastGridY; ++i) {
+                if (i % largeStepMultiplier == 0) {
+                    const float worldY = static_cast<float>(i) * settings.smallStep;
                     const glm::vec2 leftPoint = camera.WorldToScreen({topLeft.x, worldY}, screenSize);
                     const glm::vec2 rightPoint = camera.WorldToScreen({bottomRight.x, worldY}, screenSize);
                     SDL_RenderDrawLineF(renderer, leftPoint.x, leftPoint.y, rightPoint.x, rightPoint.y);
                 }
             }
+        }
 
+        static void RenderOriginCross(SDL_Renderer* renderer, const Camera& camera, glm::vec2 screenSize) noexcept {
             constexpr glm::vec2 gridCenterWorld{0.0f, 0.0f};
             constexpr glm::vec2 crossMinWorld{-5.0f, -5.0f};
             constexpr glm::vec2 crossMaxWorld{5.0f, 5.0f};
@@ -90,6 +108,7 @@ namespace Diagram {
             SDL_RenderDrawLineF(renderer, centerScreen.x, crossMinScreen.y, centerScreen.x, crossMaxScreen.y);
         }
 
+    public:
         void xml_serialize(pugi::xml_node& node) const {
             settings.xml_serialize(node);
         }
