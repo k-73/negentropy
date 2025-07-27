@@ -16,6 +16,5 @@ namespace Diagram {
         virtual bool Contains(glm::vec2 point) const noexcept = 0;
         virtual void xml_serialize(pugi::xml_node& node) const = 0;
         virtual void xml_deserialize(const pugi::xml_node& node) = 0;
-        virtual const char* GetTypeName() const noexcept = 0;
     };
 }

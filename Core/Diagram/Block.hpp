@@ -34,8 +34,7 @@ namespace Diagram {
         bool Contains(glm::vec2 point) const noexcept override;
         void xml_serialize(pugi::xml_node& node) const override;
         void xml_deserialize(const pugi::xml_node& node) override;
-        const char* GetTypeName() const noexcept override { return "Block"; }
-        
+
         void OnMouseDown(glm::vec2 worldPos) noexcept;
         void OnMouseUp() noexcept;
         void OnMouseMove(glm::vec2 worldPos) noexcept;
