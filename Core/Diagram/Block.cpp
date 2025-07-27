@@ -1,5 +1,6 @@
 #include "Block.hpp"
 #include "Camera.hpp"
+#include "../Main/DiagramData.hpp"
 #include <cstring>
 
 #include <imgui.h>
@@ -24,7 +25,13 @@ namespace Diagram {
         }
         else if (event.type == SDL_MOUSEMOTION && m_dragging) {
             const glm::vec2 worldPos = camera.ScreenToWorld({static_cast<float>(event.motion.x), static_cast<float>(event.motion.y)}, screenSize);
-            data.position = worldPos - m_dragOffset;
+            glm::vec2 newPosition = worldPos - m_dragOffset;
+            
+            if (auto* diagramData = DiagramData::GetInstance()) {
+                newPosition = diagramData->GetGrid().SnapToGrid(newPosition);
+            }
+            
+            data.position = newPosition;
             return true;
         }
         return false;
@@ -64,7 +71,7 @@ namespace Diagram {
     }
 
 
-    void Block::RenderUI(int id) noexcept {
+    void Block::RenderUI(const int id) noexcept {
         ImGui::PushID(id);
         
         char labelBuffer[256];

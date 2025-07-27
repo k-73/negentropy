@@ -27,6 +27,8 @@ Application::Application() {
 
     m_currentFilePath = (Utils::GetWorkspacePath() / "Default.xml").string();
     m_diagramData.Load(m_currentFilePath);
+    
+    DiagramData::SetInstance(&m_diagramData);
 
     RefreshWorkspaceFiles();
     SDL_ShowWindow(m_window);

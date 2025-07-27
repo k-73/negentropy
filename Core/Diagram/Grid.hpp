@@ -104,6 +104,13 @@ namespace Diagram {
         }
 
     public:
+        glm::vec2 SnapToGrid(const glm::vec2& position) const noexcept {
+            return {
+                std::round(position.x / settings.smallStep) * settings.smallStep,
+                std::round(position.y / settings.smallStep) * settings.smallStep
+            };
+        }
+
         void xml_serialize(pugi::xml_node& node) const {
             settings.xml_serialize(node);
         }

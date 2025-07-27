@@ -12,6 +12,9 @@ class DiagramData {
 public:
     DiagramData() noexcept;
 
+    static DiagramData* GetInstance() noexcept { return s_instance; }
+    static void SetInstance(DiagramData* instance) noexcept { s_instance = instance; }
+
     DiagramData(const DiagramData&) = delete;
     DiagramData& operator=(const DiagramData&) = delete;
     DiagramData(DiagramData&&) = delete;
@@ -42,6 +45,8 @@ public:
     void AddBlock(bool useCursorPosition = false, SDL_Window* window = nullptr) noexcept;
 
 private:
+    inline static DiagramData* s_instance = nullptr;
+    
     std::unique_ptr<Diagram::ComponentBase> CreateComponent(const std::string& type) const;
     
     std::vector<std::unique_ptr<Diagram::ComponentBase>> m_components;
