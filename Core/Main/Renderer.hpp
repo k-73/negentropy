@@ -1,13 +1,11 @@
 #pragma once
 
 #include <SDL.h>
-#include <vector>
 #include <memory>
 #include <type_traits>
 #include <glm/vec2.hpp>
 
 namespace Diagram {
-    struct Block;
     struct Component;
     struct Camera;
     struct Grid;
@@ -27,23 +25,16 @@ public:
     void Clear() const noexcept;
     void DrawGrid(const Diagram::Camera& camera, const Diagram::Grid& grid) const noexcept;
     
-    template<typename ComponentContainer>
-    void DrawComponents(const ComponentContainer& components, const Diagram::Camera& camera) const noexcept {
-        int w, h;
-        SDL_GetRendererOutputSize(m_renderer, &w, &h);
-        const glm::vec2 screenSize{static_cast<float>(w), static_cast<float>(h)};
-        
-        auto getComponent = []<typename T0>(T0& item) -> const Diagram::Component* {
-            if constexpr (std::is_pointer_v<std::decay_t<T0>>) return item;
-            else if constexpr (std::is_same_v<std::decay_t<T0>, std::unique_ptr<Diagram::Component>>) return item.get();
-            else return &item;
+    template<typename C>
+    void DrawComponents(const C& components, const Diagram::Camera& camera) const noexcept {
+        int w, h; SDL_GetRendererOutputSize(m_renderer, &w, &h);
+        auto get = []<typename T>(T& x) -> const Diagram::Component* {
+            if constexpr (std::is_pointer_v<std::decay_t<T>>) return x;
+            else if constexpr (std::is_same_v<std::decay_t<T>, std::unique_ptr<Diagram::Component>>) return x.get();
+            else return &x;
         };
-        
-        for (const auto& item : components) {
-            if (auto* block = dynamic_cast<const Diagram::Block*>(getComponent(item))) {
-                block->Render(m_renderer, camera, screenSize);
-            }
-        }
+        for (const auto& item : components)
+            get(item)->Render(m_renderer, camera, {float(w), float(h)});
     }
     
     void Present() const noexcept;
