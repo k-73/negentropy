@@ -91,14 +91,14 @@ namespace Diagram {
 
         static void RenderOriginCross(SDL_Renderer* renderer, const Camera& camera, glm::vec2 screenSize) noexcept {
             constexpr glm::vec2 gridCenterWorld{0.0f, 0.0f};
-            constexpr glm::vec2 crossMinWorld{-5.0f, -5.0f};
-            constexpr glm::vec2 crossMaxWorld{5.0f, 5.0f};
+            constexpr glm::vec2 crossMinWorld{-1.0f, -1.0f};
+            constexpr glm::vec2 crossMaxWorld{1.0f, 1.0f};
             
             const glm::vec2 centerScreen = camera.WorldToScreen(gridCenterWorld, screenSize);
             const glm::vec2 crossMinScreen = camera.WorldToScreen(crossMinWorld, screenSize);
             const glm::vec2 crossMaxScreen = camera.WorldToScreen(crossMaxWorld, screenSize);
             
-            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+            SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
             SDL_RenderDrawLineF(renderer, crossMinScreen.x, centerScreen.y, crossMaxScreen.x, centerScreen.y);
             SDL_RenderDrawLineF(renderer, centerScreen.x, crossMinScreen.y, centerScreen.x, crossMaxScreen.y);
         }

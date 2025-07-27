@@ -75,3 +75,26 @@ std::unique_ptr<Diagram::ComponentBase> DiagramData::CreateComponent(const std::
     if (type == "Block") return std::make_unique<Diagram::Block>();
     return nullptr;
 }
+
+void DiagramData::AddBlock(bool useCursorPosition, SDL_Window* window) noexcept
+{
+    size_t blockCount = GetComponentsOfType<Diagram::Block>().size();
+
+    auto newBlock = std::make_unique<Diagram::Block>();
+
+    if (useCursorPosition && window) {
+        ImVec2 mousePos = ImGui::GetMousePos();
+
+        int w, h;
+        SDL_GetWindowSize(window, &w, &h);
+        glm::vec2 screenCenter(w / 2.0f, h / 2.0f);
+
+        newBlock->data.position.x = (mousePos.x - screenCenter.x) / m_camera.data.zoom + m_camera.data.position.x;
+        newBlock->data.position.y = (mousePos.y - screenCenter.y) / m_camera.data.zoom + m_camera.data.position.y;
+    } else {
+        newBlock->data.position = m_camera.data.position - newBlock->data.size / 2.0f;
+    }
+
+    newBlock->data.label = "Block " + std::to_string(blockCount + 1);
+    m_components.push_back(std::move(newBlock));
+}

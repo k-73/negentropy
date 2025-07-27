@@ -88,7 +88,12 @@ void Application::ProcessEvents() noexcept {
             SaveDiagram();
             return;
         }
-        
+
+        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F1) {
+            m_diagramData.AddBlock(true, m_window);
+            return;
+        }
+
         bool shouldProcessEvent = true;
         if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP || event.type == SDL_MOUSEMOTION || event.type == SDL_MOUSEWHEEL) {
             shouldProcessEvent = !ImGui::GetIO().WantCaptureMouse;
@@ -193,11 +198,8 @@ void Application::RenderPropertiesPanel() noexcept {
     ImGui::Text("Camera: (%.1f, %.1f) Zoom: %.2f", camera.data.position.x, camera.data.position.y, camera.data.zoom);
     ImGui::Text("Blocks: %zu", blockCount);
     
-    if (ImGui::Button("Add Block")) {
-        auto newBlock = std::make_unique<Diagram::Block>();
-        newBlock->data.position = {100.0f + static_cast<float>(blockCount + 1) * 150.0f, 100.0f};
-        newBlock->data.label = "Block " + std::to_string(blockCount + 1);
-        components.push_back(std::move(newBlock));
+    if (ImGui::Button("[F1] Add Block")) {
+        m_diagramData.AddBlock(false, m_window);
     }
     
     ImGui::End();

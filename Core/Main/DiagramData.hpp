@@ -39,6 +39,8 @@ public:
     const Diagram::Grid& GetGrid() const noexcept { return m_grid; }
     Diagram::Grid& GetGrid() noexcept { return m_grid; }
 
+    void AddBlock(bool useCursorPosition = false, SDL_Window* window = nullptr) noexcept;
+
 private:
     std::unique_ptr<Diagram::ComponentBase> CreateComponent(const std::string& type) const;
     

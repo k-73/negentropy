@@ -10,7 +10,7 @@
 
 namespace Diagram {
     struct Camera;
-    
+
     class Block final : public Component<Block> {
     public:
         enum class Type {
@@ -22,7 +22,7 @@ namespace Diagram {
 
         struct Data {
             glm::vec2 position{0.0f};
-            glm::vec2 size{120.0f, 60.0f};
+            glm::vec2 size{20.0f, 10.0f};
             std::string label;
             Type type = Type::Process;
             glm::vec4 backgroundColor{0.35f, 0.47f, 0.78f, 1.0f};
@@ -36,6 +36,7 @@ namespace Diagram {
         std::string GetDisplayName() const noexcept override;
 
         void RenderUI(int id) noexcept;
+
     private:
         bool m_dragging = false;
         glm::vec2 m_dragOffset{0.0f};

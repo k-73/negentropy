@@ -15,8 +15,8 @@
 			<size x="10" y="10" />
 			<label>Start</label>
 			<type>Process</type>
-			<backgroundColor x="0.58431375" y="0.384313732" z="0.717647076" w="0.984313726" />
-			<borderColor x="1" y="0.125490203" z="0.600000024" w="1" />
+			<backgroundColor x="1" y="0" z="0" w="0.247058824" />
+			<borderColor x="1" y="0" z="0" w="1" />
 		</Block>
 	</Components>
 </Diagram>
