@@ -9,13 +9,13 @@
 
 class EventHandler {
 public:
-    static void HandleEvent(const SDL_Event& event, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks, glm::vec2 screenSize) noexcept {
+    static void HandleEvent(const SDL_Event& event, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks, const glm::vec2 screenSize) noexcept {
         HandleMouseEvents(event, camera, blocks, screenSize);
         HandleScrollEvents(event, camera, screenSize);
     }
 
 private:
-    static void HandleScrollEvents(const SDL_Event& e, Diagram::Camera& camera, glm::vec2 screenSize) noexcept {
+    static void HandleScrollEvents(const SDL_Event& e, Diagram::Camera& camera, const glm::vec2 screenSize) noexcept {
         if (e.type == SDL_MOUSEWHEEL) {
             int mouseX, mouseY;
             SDL_GetMouseState(&mouseX, &mouseY);
@@ -37,7 +37,7 @@ private:
         }
     }
 
-    static void HandleMouseButtonDown(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks, glm::vec2 screenSize) noexcept {
+    static void HandleMouseButtonDown(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks, const glm::vec2 screenSize) noexcept {
         if (e.button.button == SDL_BUTTON_MIDDLE) {
             camera.panning = true;
             camera.panStart = camera.data.position;
@@ -54,7 +54,7 @@ private:
         }
     }
 
-    static void HandleMouseButtonUp(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks, glm::vec2 screenSize) noexcept {
+    static void HandleMouseButtonUp(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks, const glm::vec2 screenSize) noexcept {
         if (e.button.button == SDL_BUTTON_MIDDLE) camera.panning = false;
         if (e.button.button == SDL_BUTTON_LEFT) {
             for (auto& block : blocks) {
@@ -63,7 +63,7 @@ private:
         }
     }
 
-    static void HandleMouseMotion(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks, glm::vec2 screenSize) noexcept {
+    static void HandleMouseMotion(const SDL_Event& e, Diagram::Camera& camera, std::vector<Diagram::Block>& blocks, const glm::vec2 screenSize) noexcept {
         const glm::vec2 currentMouse{static_cast<float>(e.motion.x), static_cast<float>(e.motion.y)};
         
         if (camera.panning) {

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <diagram>
 	<camera>
-		<position x="329.830414" y="298.667725" />
-		<zoom>1.71087635</zoom>
+		<position x="357.366638" y="282.561615" />
+		<zoom>1.53978872</zoom>
 	</camera>
 	<grid>
 		<smallStep>5</smallStep>
@@ -51,20 +51,20 @@
 			<borderColor x="1" y="1" z="1" w="1" />
 		</block>
 		<block>
-			<position x="203.039139" y="86.4494781" />
-			<size x="120" y="60" />
-			<label>Some Action</label>
-			<type>Process</type>
-			<backgroundColor x="0.349019617" y="0" z="0.78039217" w="0.180392161" />
-			<borderColor x="1" y="0" z="0" w="1" />
-		</block>
-		<block>
 			<position x="250" y="350" />
 			<size x="120" y="60" />
 			<label>Block 5</label>
 			<type>Process</type>
 			<backgroundColor x="0" y="0.279070139" z="1" w="1" />
 			<borderColor x="1" y="1" z="1" w="1" />
+		</block>
+		<block>
+			<position x="349.163086" y="151.393448" />
+			<size x="120" y="60" />
+			<label>Some Action</label>
+			<type>Process</type>
+			<backgroundColor x="0.349019617" y="0" z="0.78039217" w="0.180392161" />
+			<borderColor x="1" y="0" z="0" w="1" />
 		</block>
 	</blocks>
 </diagram>

@@ -28,7 +28,7 @@ private:
     void RenderUI() noexcept;
     void RenderPropertiesPanel() noexcept;
     void RefreshWorkspaceFiles();
-    static void SetupVSCodeStyle() noexcept;
+    static void DarkStyle() noexcept;
     static void SetupFont() noexcept;
 
     static void InitSDL();

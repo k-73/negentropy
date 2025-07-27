@@ -62,13 +62,13 @@ void Application::InitializeImGui() const {
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
-    SetupVSCodeStyle();
+    DarkStyle();
     SetupFont();
     
     ImGui_ImplSDL2_InitForSDLRenderer(m_window, m_renderer.GetSDLRenderer());
     ImGui_ImplSDLRenderer2_Init(m_renderer.GetSDLRenderer());
 
-    spdlog::info("ImGui initialized with VS Code style");
+    spdlog::info("ImGui initialized");
 }
 
 void Application::ProcessEvents() noexcept {
@@ -218,7 +218,7 @@ void Application::InitSDL() {
     SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
 }
 
-void Application::SetupVSCodeStyle() noexcept {
+void Application::DarkStyle() noexcept {
     auto& style = ImGui::GetStyle();
     auto& colors = style.Colors;
     

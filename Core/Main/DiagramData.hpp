@@ -18,14 +18,14 @@ public:
     void Load(const std::string& filePath);
     void Save(const std::string& filePath) const;
 
-    [[nodiscard]] const std::vector<Diagram::Block>& GetBlocks() const noexcept { return m_blocks; }
-    [[nodiscard]] std::vector<Diagram::Block>& GetBlocks() noexcept { return m_blocks; }
+    const std::vector<Diagram::Block>& GetBlocks() const noexcept { return m_blocks; }
+    std::vector<Diagram::Block>& GetBlocks() noexcept { return m_blocks; }
 
-    [[nodiscard]] const Diagram::Camera& GetCamera() const noexcept { return m_camera; }
-    [[nodiscard]] Diagram::Camera& GetCamera() noexcept { return m_camera; }
+    const Diagram::Camera& GetCamera() const noexcept { return m_camera; }
+    Diagram::Camera& GetCamera() noexcept { return m_camera; }
 
-    [[nodiscard]] const Diagram::Grid& GetGrid() const noexcept { return m_grid; }
-    [[nodiscard]] Diagram::Grid& GetGrid() noexcept { return m_grid; }
+    const Diagram::Grid& GetGrid() const noexcept { return m_grid; }
+    Diagram::Grid& GetGrid() noexcept { return m_grid; }
 
 private:
     std::vector<Diagram::Block> m_blocks;

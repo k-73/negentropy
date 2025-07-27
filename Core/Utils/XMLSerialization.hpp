@@ -85,8 +85,9 @@ namespace XML {
         } else if constexpr (Indexable<T>) {
             constexpr std::size_t N = comp_count<T>();
             for (std::size_t i = 0; i < N; ++i) {
-                auto attr = node.attribute(component_policy<T>::name(i).c_str());
-                if (attr) field[i] = static_cast<std::remove_reference_t<decltype(field[i])>>(attr.as_double());
+                if (auto attr = node.attribute(component_policy<T>::name(i).c_str())) {
+                    field[i] = static_cast<std::remove_reference_t<decltype(field[i])>>(attr.as_double());
+                }
             }
         } else {
             auto_deserialize(field, node);

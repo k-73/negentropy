@@ -60,8 +60,13 @@
   <component name="ChangeListManager">
     <list default="true" id="122315c9-d864-4069-a5d2-bcec3a6e27d5" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Core/Diagram/Block.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Diagram/Block.hpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Core/Diagram/Camera.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Diagram/Camera.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Core/Main/Application.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Main/Application.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Core/Main/Application.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Main/Application.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Core/Main/DiagramData.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Main/DiagramData.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Core/Main/EventHandler.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Main/EventHandler.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Core/Main/Renderer.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Main/Renderer.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Core/Main/Renderer.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Main/Renderer.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Core/Utils/XMLSerialization.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Utils/XMLSerialization.hpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Workspace/Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Workspace/Default.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -75,6 +80,10 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="mock://diff.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://diff.h" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,

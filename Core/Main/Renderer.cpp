@@ -42,7 +42,6 @@ void Renderer::Present() const noexcept {
     SDL_RenderPresent(m_renderer);
 }
 
-
 SDL_Renderer* Renderer::GetSDLRenderer() const noexcept {
     return m_renderer;
 }
