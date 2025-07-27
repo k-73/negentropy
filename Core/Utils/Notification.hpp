@@ -77,10 +77,10 @@ namespace Notify {
                     ImVec4 color;
                     const char* icon;
                     switch (toast.type) {
-                        case Type::Info:    color = ImVec4(0.2f, 0.6f, 1.0f, 1.0f); icon = "ℹ"; break;
-                        case Type::Success: color = ImVec4(0.2f, 0.8f, 0.2f, 1.0f); icon = "✓"; break;
-                        case Type::Warning: color = ImVec4(1.0f, 0.8f, 0.2f, 1.0f); icon = "⚠"; break;
-                        case Type::Error:   color = ImVec4(1.0f, 0.3f, 0.3f, 1.0f); icon = "✗"; break;
+                        case Type::Info:    color = ImVec4(0.2f, 0.6f, 1.0f, 1.0f); icon = "[i]"; break;
+                        case Type::Success: color = ImVec4(0.2f, 0.8f, 0.2f, 1.0f); icon = "[+]"; break;
+                        case Type::Warning: color = ImVec4(1.0f, 0.8f, 0.2f, 1.0f); icon = "[!]"; break;
+                        case Type::Error:   color = ImVec4(1.0f, 0.3f, 0.3f, 1.0f); icon = "[x]"; break;
                     }
 
                     ImGui::PushStyleColor(ImGuiCol_Text, color);

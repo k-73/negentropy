@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Diagram>
 	<Camera>
-		<position x="40.8173561" y="26.9944077" />
-		<zoom>8.40895653</zoom>
+		<position x="28.7173843" y="6.67353439" />
+		<zoom>11.8224573</zoom>
 	</Camera>
 	<Grid>
 		<smallStep>1</smallStep>
@@ -11,7 +11,7 @@
 	</Grid>
 	<Components>
 		<Block>
-			<position x="1.15491104" y="1.82223892" />
+			<position x="2.70088196" y="11.692667" />
 			<size x="10" y="10" />
 			<label>Start</label>
 			<type>Process</type>
