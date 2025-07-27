@@ -1,8 +1,6 @@
 #pragma once
 
 #include <SDL.h>
-#include <memory>
-#include <type_traits>
 #include <glm/vec2.hpp>
 
 namespace Diagram {
@@ -28,13 +26,10 @@ public:
     template<typename C>
     void DrawComponents(const C& components, const Diagram::Camera& camera) const noexcept {
         int w, h; SDL_GetRendererOutputSize(m_renderer, &w, &h);
-        auto get = []<typename T>(T& x) -> const Diagram::Component* {
-            if constexpr (std::is_pointer_v<std::decay_t<T>>) return x;
-            else if constexpr (std::is_same_v<std::decay_t<T>, std::unique_ptr<Diagram::Component>>) return x.get();
-            else return &x;
-        };
-        for (const auto& item : components)
-            get(item)->Render(m_renderer, camera, {float(w), float(h)});
+        for (const auto& item : components) {
+            const auto* comp = [&] { if constexpr (requires { item.get(); }) return item.get(); else return &item; }();
+            comp->Render(m_renderer, camera, {float(w), float(h)});
+        }
     }
     
     void Present() const noexcept;
