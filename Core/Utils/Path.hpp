@@ -1,7 +1,6 @@
 #pragma once
 
 #include <filesystem>
-#include <string>
 
 #ifndef PROJECT_SOURCE_DIR
 #define PROJECT_SOURCE_DIR "."
@@ -12,4 +11,3 @@ namespace Utils {
         return std::filesystem::path(PROJECT_SOURCE_DIR) / "Workspace";
     }
 }
-

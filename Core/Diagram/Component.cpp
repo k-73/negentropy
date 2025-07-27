@@ -2,6 +2,7 @@
 #include "Block.hpp"
 #include "imgui.h"
 #include <algorithm>
+#include <set>
 #include "../Utils/IconsFontAwesome5.h"
 
 namespace Diagram {
@@ -13,11 +14,10 @@ namespace Diagram {
             return;
         }
 
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 2));
         auto hierarchy = BuildHierarchy(components);
-        if (hierarchy) {
-            RenderTreeNode(*hierarchy, &components);
-        }
-
+        if (hierarchy) RenderTreeNode(*hierarchy, &components);
+        ImGui::PopStyleVar();
         ImGui::End();
     }
 
@@ -29,11 +29,7 @@ namespace Diagram {
 
         if (!s_selected) {
             ImGui::TextDisabled("No component selected");
-            ImGui::End();
-            return;
-        }
-
-        if (auto* block = dynamic_cast<Block*>(s_selected)) {
+        } else if (auto* block = dynamic_cast<Block*>(s_selected)) {
             block->RenderUI(0);
         } else {
             ImGui::TextDisabled("Unknown component type");
@@ -42,78 +38,80 @@ namespace Diagram {
         ImGui::End();
     }
 
-    void ComponentBase::RenderTreeNode(const ComponentBase::TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components) noexcept {
-        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_DefaultOpen;
+    void ComponentBase::RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components) noexcept {
+        static int depth = 0;
+        static std::set<std::string> expanded;
         
-        if (node.children.empty()) {
-            flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+        const char* icon = node.component ? ICON_FA_CUBE : ICON_FA_SITEMAP;
+        std::string nodeKey = node.name + std::to_string(reinterpret_cast<uintptr_t>(node.component));
+        bool hasChildren = !node.children.empty();
+        bool isExpanded = expanded.contains(nodeKey) || (node.name == "Scene" && expanded.empty());
+        
+        ImGui::PushID(nodeKey.c_str());
+        if (depth > 0) ImGui::Indent(20.0f);
+        
+        if (hasChildren) {
+            if (ImGui::ArrowButton("##expand", isExpanded ? ImGuiDir_Down : ImGuiDir_Right)) {
+                if (isExpanded) expanded.erase(nodeKey);
+                else expanded.insert(nodeKey);
+            }
+            ImGui::SameLine();
+        } else {
+            ImGui::Dummy(ImVec2(16, 0)); 
+            ImGui::SameLine();
         }
         
-        if (s_selected == node.component) {
-            flags |= ImGuiTreeNodeFlags_Selected;
+        float width = ImGui::GetContentRegionAvail().x - (node.component ? 25 : 0);
+        if (ImGui::Selectable((std::string(icon) + "  " + node.name).c_str(), 
+                             s_selected == node.component, 0, ImVec2(width, 0))) {
+            if (node.component) Select(node.component);
         }
-
-        // Determine icon based on component type
-        const char* icon = ICON_FA_STOP_CIRCLE;
+        
         if (node.component) {
-            icon = ICON_FA_CUBE;
-        } else if (node.name == "Scene") {
-            icon = ICON_FA_SITEMAP;
-        }
-
-        std::string displayName = std::string(icon) + "  " + node.name;
-        bool nodeOpen = ImGui::TreeNodeEx(displayName.c_str(), flags);
-        
-        if (ImGui::IsItemClicked() && node.component) {
-            Select(node.component);
-        }
-
-        // Drag & drop only for components (not for root node)
-        if (node.component) {
+            ImGui::SameLine();
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.2f, 0.2f, 0.3f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.9f, 0.3f, 0.3f, 0.5f));
+            
+            if (ImGui::Button(ICON_FA_TRASH)) {
+                auto it = std::find_if(components->begin(), components->end(),
+                    [&](const auto& c) { return c.get() == node.component; });
+                if (it != components->end()) {
+                    if (s_selected == node.component) ClearSelection();
+                    components->erase(it);
+                    ImGui::PopStyleColor(3);
+                    if (depth > 0) ImGui::Unindent(20.0f);
+                    ImGui::PopID();
+                    return;
+                }
+            }
+            ImGui::PopStyleColor(3);
+            
             if (ImGui::BeginDragDropSource()) {
                 ImGui::SetDragDropPayload("COMPONENT_DND", &node.component, sizeof(void*));
                 ImGui::Text("Moving: %s", node.name.c_str());
                 ImGui::EndDragDropSource();
             }
         }
-
-        if (nodeOpen && !node.children.empty()) {
+        
+        if (depth > 0) ImGui::Unindent(20.0f);
+        
+        if (isExpanded && hasChildren) {
+            depth++;
             for (auto& child : node.children) {
                 RenderTreeNode(*child, components);
-                
-                // Drop target for reorder
-                if (child->component && ImGui::BeginDragDropTarget()) {
-                    if (const auto* payload = ImGui::AcceptDragDropPayload("COMPONENT_DND")) {
-                        auto* draggedComp = *static_cast<ComponentBase**>(payload->Data);
-                        if (components && draggedComp != child->component) {
-                            auto draggedIt = std::find_if(components->begin(), components->end(),
-                                [draggedComp](const auto& c) { return c.get() == draggedComp; });
-                            auto targetIt = std::find_if(components->begin(), components->end(),
-                                [&child](const auto& c) { return c.get() == child->component; });
-                            
-                            if (draggedIt != components->end() && targetIt != components->end()) {
-                                std::iter_swap(draggedIt, targetIt);
-                            }
-                        }
-                    }
-                    ImGui::EndDragDropTarget();
-                }
             }
-            ImGui::TreePop();
+            depth--;
         }
+        
+        ImGui::PopID();
     }
 
     std::unique_ptr<ComponentBase::TreeNode> ComponentBase::BuildHierarchy(const std::vector<std::unique_ptr<ComponentBase>>& components) noexcept {
         auto root = std::make_unique<TreeNode>("Scene");
-        
         for (const auto& component : components) {
-            auto componentNode = std::make_unique<TreeNode>(
-                component->GetDisplayName(),
-                component.get()
-            );
-            root->children.push_back(std::move(componentNode));
+            root->children.push_back(std::make_unique<TreeNode>(component->GetDisplayName(), component.get()));
         }
-        
         return root;
     }
 }
