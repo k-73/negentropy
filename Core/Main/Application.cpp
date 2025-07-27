@@ -8,6 +8,7 @@
 #include <filesystem>
 #include "../Utils/Path.hpp"
 #include "../Utils/Notification.hpp"
+#include "../Utils/IconsFontAwesome5.h"
 
 namespace fs = std::filesystem;
 
@@ -338,6 +339,9 @@ void Application::DarkStyle() noexcept {
 void Application::SetupFont() noexcept {
     ImGuiIO& io = ImGui::GetIO();
     
+    float baseFontSize = 13.0f;
+    float iconFontSize = baseFontSize * 2.0f / 3.0f;
+    
     const char* fontPaths[] = {
         "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
         "/usr/share/fonts/TTF/arial.ttf",
@@ -346,23 +350,39 @@ void Application::SetupFont() noexcept {
         "/Windows/Fonts/segoeui.ttf"
     };
     
+    bool fontLoaded = false;
     for (const char* fontPath : fontPaths) {
         if (std::filesystem::exists(fontPath)) {
             ImFontConfig config;
             config.OversampleH = 3;
             config.OversampleV = 2;
             config.PixelSnapH = true;
-            io.Fonts->AddFontFromFileTTF(fontPath, 12.0f, &config);
-            return;
+            io.Fonts->AddFontFromFileTTF(fontPath, baseFontSize, &config);
+            fontLoaded = true;
+            break;
         }
     }
     
-    ImFontConfig config;
-    config.SizePixels = 14.0f;
-    config.OversampleH = 3;
-    config.OversampleV = 2;
-    config.PixelSnapH = true;
-    io.Fonts->AddFontDefault(&config);
+    if (!fontLoaded) {
+        ImFontConfig config;
+        config.SizePixels = 14.0f;
+        config.OversampleH = 3;
+        config.OversampleV = 2;
+        config.PixelSnapH = true;
+        io.Fonts->AddFontDefault(&config);
+    }
+    
+    // Merge in icons from Font Awesome
+    static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_16_FA, 0 };
+    ImFontConfig icons_config;
+    icons_config.MergeMode = true;
+    icons_config.PixelSnapH = true;
+    icons_config.GlyphMinAdvanceX = iconFontSize;
+    
+    std::string fontPath = std::string(PROJECT_SOURCE_DIR) + "/assets/fonts/fa-solid-900.ttf";
+    if (std::filesystem::exists(fontPath)) {
+        io.Fonts->AddFontFromFileTTF(fontPath.c_str(), iconFontSize, &icons_config, icons_ranges);
+    }
 }
 
 void Application::CreateWindow() {
