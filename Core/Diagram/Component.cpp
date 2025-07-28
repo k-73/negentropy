@@ -16,9 +16,9 @@ namespace Diagram {
             return;
         }
 
-        if (ImGui::BeginTable("TreeTable", 2, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_RowBg)) {
+        if (ImGui::BeginTable("TreeTable", 2, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoPadInnerX)) {
             ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
-            ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 24.0f);
+            ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 28.0f);
             
             auto hierarchy = BuildHierarchy(components);
             if (hierarchy) RenderTreeNode(*hierarchy, &components);
@@ -51,6 +51,12 @@ namespace Diagram {
         static constexpr float TREE_INDENT = 4.0f;
         static int depth = 0;
         static std::set<std::string> expanded;
+        static std::string hoveredRowId;
+        
+        // Reset hover state when starting new tree render (depth 0)
+        if (depth == 0) {
+            hoveredRowId.clear();
+        }
         
         const char* icon = node.component ? ICON_FA_CUBE : ICON_FA_SITEMAP;
         std::string nodeKey = node.name + std::to_string(reinterpret_cast<uintptr_t>(node.component));
@@ -73,7 +79,9 @@ namespace Diagram {
             ImGui::SameLine(0, 2);
         }
         
-        bool selectableClicked = ImGui::Selectable((" "  + std::string(icon) + "  " + node.name).c_str(), s_selected == node.component);
+        // Add consistent spacing for Scene (root node)
+        std::string displayText = node.component ? (" " + std::string(icon) + "  " + node.name) : ("   " + std::string(icon) + "  " + node.name);
+        bool selectableClicked = ImGui::Selectable(displayText.c_str(), s_selected == node.component);
         bool nameHovered = ImGui::IsItemHovered();
         
         if (selectableClicked && node.component) {
@@ -121,9 +129,19 @@ namespace Diagram {
         ImVec2 colMax = ImVec2(colMin.x + ImGui::GetContentRegionAvail().x, colMin.y + ImGui::GetFrameHeight());
         bool actionsHovered = ImGui::IsMouseHoveringRect(colMin, colMax);
         
-        // Action buttons - only show on hover
+        // Update hovered row - only one row can be hovered at a time
+        if (nameHovered || actionsHovered) {
+            hoveredRowId = nodeKey;
+        }
+        
+        // Action buttons - only show on hover for the currently hovered row
         if (node.component) {
-            if (nameHovered || actionsHovered) {
+            if (hoveredRowId == nodeKey) {
+                // Center the button in the Actions column
+                float availWidth = ImGui::GetContentRegionAvail().x;
+                float buttonWidth = ImGui::CalcTextSize(ICON_FA_TRASH).x + ImGui::GetStyle().FramePadding.x * 2;
+                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (availWidth - buttonWidth) * 0.5f);
+                
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{});
                 ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.2f, 0.2f, 0.3f));
                 ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.9f, 0.3f, 0.3f, 0.5f));
@@ -140,7 +158,11 @@ namespace Diagram {
                 ImGui::PopStyleColor(3);
             }
         } else {
-            // Scene icon
+            // Scene icon - centered in Actions column
+            float availWidth = ImGui::GetContentRegionAvail().x;
+            float iconWidth = ImGui::CalcTextSize(ICON_FA_FOLDER).x;
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (availWidth - iconWidth) * 0.5f);
+            
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
             ImGui::Text(ICON_FA_FOLDER);
             ImGui::PopStyleColor();
