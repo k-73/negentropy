@@ -59,12 +59,18 @@ namespace Diagram {
 
         if (!data.label.empty()) {
             ImDrawList* drawList = ImGui::GetBackgroundDrawList();
-            const ImVec2 textSize = ImGui::CalcTextSize(data.label.c_str());
+            
+            const float baseFontSize = 1.0f;
+            const float scaledFontSize = baseFontSize * camera.data.zoom;
+            
+            ImFont* font = ImGui::GetFont();
+            const ImVec2 textSize = font->CalcTextSizeA(scaledFontSize, FLT_MAX, 0.0f, data.label.c_str());
+            
             const ImVec2 textPos(
                 screenPos.x + (rect.w - textSize.x) * 0.5f,
                 screenPos.y + (rect.h - textSize.y) * 0.5f
             );
-            drawList->AddText(textPos, IM_COL32(255, 255, 255, 255), data.label.c_str());
+            drawList->AddText(font, scaledFontSize, textPos, IM_COL32(255, 255, 255, 255), data.label.c_str());
         }
     }
 
