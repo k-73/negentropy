@@ -14,10 +14,15 @@ namespace Diagram {
             return;
         }
 
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 2));
-        auto hierarchy = BuildHierarchy(components);
-        if (hierarchy) RenderTreeNode(*hierarchy, &components);
-        ImGui::PopStyleVar();
+        if (ImGui::BeginTable("TreeTable", 2, ImGuiTableFlags_SizingStretchProp)) {
+            ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 20.0f);
+            
+            auto hierarchy = BuildHierarchy(components);
+            if (hierarchy) RenderTreeNode(*hierarchy, &components);
+            
+            ImGui::EndTable();
+        }
         ImGui::End();
     }
 
@@ -39,6 +44,7 @@ namespace Diagram {
     }
 
     void ComponentBase::RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components) noexcept {
+        static constexpr float TREE_INDENT = 4.0f;
         static int depth = 0;
         static std::set<std::string> expanded;
         
@@ -48,53 +54,82 @@ namespace Diagram {
         bool isExpanded = expanded.contains(nodeKey) || (node.name == "Scene" && expanded.empty());
         
         ImGui::PushID(nodeKey.c_str());
-        if (depth > 0) ImGui::Indent(20.0f);
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
         
-        if (hasChildren) {
+        ImGui::Indent(static_cast<float>(depth) * TREE_INDENT);
+        
+        if (hasChildren && node.component) {
             if (ImGui::ArrowButton("##expand", isExpanded ? ImGuiDir_Down : ImGuiDir_Right)) {
                 if (isExpanded) expanded.erase(nodeKey);
                 else expanded.insert(nodeKey);
             }
-            ImGui::SameLine();
-        } else {
-            ImGui::Dummy(ImVec2(16, 0)); 
-            ImGui::SameLine();
+            ImGui::SameLine(0, 2);
+        } else if (node.component) {
+            ImGui::Dummy(ImVec2(16, 0));
+            ImGui::SameLine(0, 2);
         }
         
-        float width = ImGui::GetContentRegionAvail().x - (node.component ? 25 : 0);
-        if (ImGui::Selectable((std::string(icon) + "  " + node.name).c_str(), 
-                             s_selected == node.component, 0, ImVec2(width, 0))) {
-            if (node.component) Select(node.component);
+        bool itemClicked = ImGui::Selectable((std::string(icon) + "  " + node.name).c_str(), s_selected == node.component);
+        if (itemClicked && node.component) Select(node.component);
+        
+        if (node.component && ImGui::BeginDragDropSource()) {
+            ImGui::SetDragDropPayload("COMPONENT_DND", &node.component, sizeof(void*));
+            ImGui::Text("Moving: %s", node.name.c_str());
+            ImGui::EndDragDropSource();
         }
+        
+        if (ImGui::BeginDragDropTarget()) {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT_DND")) {
+                ComponentBase* draggedComponent = static_cast<ComponentBase**>(payload->Data)[0];
+                if (draggedComponent && draggedComponent != node.component) {
+                    auto draggedIt = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == draggedComponent; });
+                    auto targetIt = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == node.component; });
+                    
+                    if (draggedIt != components->end()) {
+                        size_t draggedIndex = std::distance(components->begin(), draggedIt);
+                        size_t targetIndex = node.component && targetIt != components->end() ? 
+                                           std::distance(components->begin(), targetIt) : components->size();
+                        
+                        auto draggedPtr = std::move(*draggedIt);
+                        components->erase(draggedIt);
+                        
+                        if (node.component) {
+                            if (draggedIndex < targetIndex) {
+                                size_t insertPos = targetIndex;
+                                components->insert(components->begin() + insertPos, std::move(draggedPtr));
+                            } else if (draggedIndex > targetIndex) {
+                                components->insert(components->begin() + targetIndex, std::move(draggedPtr));
+                            }
+                        } else {
+                            components->insert(components->begin(), std::move(draggedPtr));
+                        }
+                    }
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
+        
+        ImGui::Unindent(static_cast<float>(depth) * TREE_INDENT);
+        ImGui::TableNextColumn();
         
         if (node.component) {
-            ImGui::SameLine();
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.2f, 0.2f, 0.3f));
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.9f, 0.3f, 0.3f, 0.5f));
             
-            if (ImGui::Button(ICON_FA_TRASH)) {
-                auto it = std::find_if(components->begin(), components->end(),
-                    [&](const auto& c) { return c.get() == node.component; });
+            if (ImGui::SmallButton(ICON_FA_TRASH "##trash")) {
+                auto it = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == node.component; });
                 if (it != components->end()) {
                     if (s_selected == node.component) ClearSelection();
                     components->erase(it);
                     ImGui::PopStyleColor(3);
-                    if (depth > 0) ImGui::Unindent(20.0f);
                     ImGui::PopID();
                     return;
                 }
             }
             ImGui::PopStyleColor(3);
-            
-            if (ImGui::BeginDragDropSource()) {
-                ImGui::SetDragDropPayload("COMPONENT_DND", &node.component, sizeof(void*));
-                ImGui::Text("Moving: %s", node.name.c_str());
-                ImGui::EndDragDropSource();
-            }
         }
-        
-        if (depth > 0) ImGui::Unindent(20.0f);
         
         if (isExpanded && hasChildren) {
             depth++;
