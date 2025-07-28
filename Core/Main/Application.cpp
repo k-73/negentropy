@@ -249,12 +249,12 @@ void Application::DarkStyle() noexcept {
     colors[ImGuiCol_TextDisabled]        = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
     colors[ImGuiCol_WindowBg]            = ImVec4(0.09f, 0.09f, 0.10f, 1.00f);
     colors[ImGuiCol_ChildBg]             = ImVec4(0.09f, 0.09f, 0.10f, 1.00f);
-    colors[ImGuiCol_PopupBg]             = ImVec4(0.12f, 0.12f, 0.14f, 0.98f);
-    colors[ImGuiCol_Border]              = ImVec4(0.25f, 0.25f, 0.26f, 1.00f);
+    colors[ImGuiCol_PopupBg]             = ImVec4(0.10f, 0.10f, 0.12f, 0.98f);
+    colors[ImGuiCol_Border]              = ImVec4(0.12f, 0.12f, 0.14f, 0.98f);
     colors[ImGuiCol_BorderShadow]        = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-    colors[ImGuiCol_FrameBg]             = ImVec4(0.15f, 0.15f, 0.17f, 1.00f);
-    colors[ImGuiCol_FrameBgHovered]      = ImVec4(0.19f, 0.19f, 0.21f, 1.00f);
-    colors[ImGuiCol_FrameBgActive]       = ImVec4(0.22f, 0.22f, 0.24f, 1.00f);
+    colors[ImGuiCol_FrameBg]             = ImVec4(0.12f, 0.12f, 0.14f, 1.00f);
+    colors[ImGuiCol_FrameBgHovered]      = ImVec4(0.16f, 0.16f, 0.18f, 1.00f);
+    colors[ImGuiCol_FrameBgActive]       = ImVec4(0.19f, 0.19f, 0.21f, 1.00f);
     colors[ImGuiCol_TitleBg]             = ImVec4(0.07f, 0.07f, 0.08f, 1.00f);
     colors[ImGuiCol_TitleBgActive]       = ImVec4(0.09f, 0.09f, 0.10f, 1.00f);
     colors[ImGuiCol_TitleBgCollapsed]    = ImVec4(0.07f, 0.07f, 0.08f, 1.00f);
@@ -314,7 +314,7 @@ void Application::DarkStyle() noexcept {
     // Borders
     style.WindowBorderSize     = 0.0f;
     style.ChildBorderSize      = 0.0f;
-    style.PopupBorderSize      = 0.0f;
+    style.PopupBorderSize      = 1.0f;
     style.FrameBorderSize      = 0.0f;
     style.TabBorderSize        = 0.0f;
 
@@ -322,7 +322,7 @@ void Application::DarkStyle() noexcept {
     style.WindowRounding       = 2.0f;
     style.ChildRounding        = 4.0f;
     style.FrameRounding        = 2.0f;
-    style.PopupRounding        = 4.0f;
+    style.PopupRounding        = 3.0f;
     style.ScrollbarRounding    = 9.0f;
     style.GrabRounding         = 2.0f;
     style.LogSliderDeadzone    = 4.0f;

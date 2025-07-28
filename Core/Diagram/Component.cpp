@@ -52,17 +52,34 @@ namespace Diagram {
     }
 
     void ComponentBase::RenderComponentEditor() noexcept {
-        if (!ImGui::Begin("Component Editor", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        if (!ImGui::Begin("Component Editor")) {
             ImGui::End();
             return;
         }
 
         if (!s_selected) {
             ImGui::TextDisabled("No component selected");
-        } else if (auto* block = dynamic_cast<Block*>(s_selected)) {
-            block->RenderUI(0);
         } else {
-            ImGui::TextDisabled("Unknown component type");
+            ImGui::Text("Component: %s", s_selected->GetDisplayName().c_str());
+            ImGui::Separator();
+            
+            static std::map<ComponentBase*, char[64]> idBuffers;
+            if (!idBuffers.contains(s_selected)) {
+                std::strncpy(idBuffers[s_selected], s_selected->id.c_str(), 63);
+                idBuffers[s_selected][63] = '\0';
+            }
+            
+            ImGui::SetNextItemWidth(-1);
+            if (ImGui::InputText("ID", idBuffers[s_selected], 64)) {
+                s_selected->id = idBuffers[s_selected];
+            }
+            
+            ImGui::Spacing();
+            if (auto* block = dynamic_cast<Block*>(s_selected)) {
+                block->RenderUI(0);
+            } else {
+                ImGui::TextDisabled("No properties available");
+            }
         }
 
         ImGui::End();
@@ -273,15 +290,7 @@ namespace Diagram {
         if (ImGui::BeginPopup(popup_id.c_str())) {
             ImGui::TextDisabled("%s", component->GetDisplayName().c_str());
             ImGui::Separator();
-            
-            static std::map<ComponentBase*, char[64]> idBuffers;
-            if (!idBuffers.contains(component)) {
-                std::strncpy(idBuffers[component], component->id.c_str(), 63);
-                idBuffers[component][63] = '\0';
-            }
-            ImGui::Text("Component ID:");
-            if (ImGui::InputText("##id_input", idBuffers[component], 64)) component->id = idBuffers[component];
-            
+            ImGui::TextDisabled("No actions implemented");
             ImGui::EndPopup();
         }
     }
