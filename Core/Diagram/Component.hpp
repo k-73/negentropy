@@ -9,6 +9,7 @@
 #include <typeinfo>
 #include <algorithm>
 #include <cxxabi.h>
+#include <map>
 
 namespace Diagram {
     struct Camera;
@@ -19,9 +20,12 @@ namespace Diagram {
         struct TreeNode {
             std::string name;
             ComponentBase* component = nullptr;
+            bool isGroup = false;
+            std::string groupId;
             std::vector<std::unique_ptr<TreeNode>> children;
 
-            explicit TreeNode(std::string n, ComponentBase* c = nullptr) : name(std::move(n)), component(c) {}
+            explicit TreeNode(std::string n, ComponentBase* c = nullptr, bool group = false, std::string gId = "") 
+                : name(std::move(n)), component(c), isGroup(group), groupId(std::move(gId)) {}
         };
 
         virtual ~ComponentBase() = default;
@@ -45,8 +49,13 @@ namespace Diagram {
         
         static void RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components, int depth, std::string& hoveredRowId) noexcept;
         static void RenderActionButtons(const std::string& nodeKey, const std::string& hoveredRowId, std::vector<std::unique_ptr<ComponentBase>>* components, ComponentBase* component) noexcept;
+        static void RenderGroupActions(const std::string& nodeKey, const std::string& hoveredRowId) noexcept;
         static void RenderCenteredIcon(const char* icon) noexcept;
         static std::unique_ptr<TreeNode> BuildHierarchy(const std::vector<std::unique_ptr<ComponentBase>>& components) noexcept;
+        static bool IsGroupDescendant(const std::string& groupId, const std::string& potentialAncestor) noexcept;
+        
+        static std::map<ComponentBase*, std::string> s_componentGroups;
+        static std::map<std::string, std::string> s_groupParents;
     };
     
     template<typename T>

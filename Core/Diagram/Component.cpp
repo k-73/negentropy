@@ -3,11 +3,16 @@
 #include "imgui.h"
 #include <algorithm>
 #include <set>
+#include <map>
+#include <functional>
 #include "../Utils/IconsFontAwesome5.h"
+#include "../Utils/Notification.hpp"
 #include <imgui_internal.h>
 
 namespace Diagram {
     ComponentBase* ComponentBase::s_selected = nullptr;
+    std::map<ComponentBase*, std::string> ComponentBase::s_componentGroups;
+    std::map<std::string, std::string> ComponentBase::s_groupParents;
 
     void ComponentBase::RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& components) noexcept {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 8.0f));
@@ -55,11 +60,13 @@ namespace Diagram {
         static constexpr float TREE_INDENT = 4.0f;
         static std::set<std::string> expanded;
 
-        const char* icon = node.component ? ICON_FA_CUBE : ICON_FA_SITEMAP;
-        std::string nodeKey = node.name + std::to_string(reinterpret_cast<uintptr_t>(node.component));
+        const char* icon = node.component ? ICON_FA_CUBE : (node.isGroup ? ICON_FA_FOLDER : ICON_FA_SITEMAP);
+
+        std::string nodeKey = node.name + std::to_string(reinterpret_cast<uintptr_t>(node.component)) + (node.isGroup ? "_group" : "");
         bool hasChildren = !node.children.empty();
         bool isExpanded = expanded.contains(nodeKey) || (node.name == "Scene" && expanded.empty());
         bool isSceneRoot = node.name == "Scene" && depth == 0;
+        bool canHaveChildren = hasChildren || node.isGroup;
         
         ImGui::PushID(nodeKey.c_str());
         ImGui::TableNextRow();
@@ -73,7 +80,7 @@ namespace Diagram {
                 else expanded.insert(nodeKey);
             }
             ImGui::SameLine(0, 2);
-        } else if (node.component) {
+        } else if (node.component || node.isGroup) {
             ImGui::Dummy(ImVec2(ImGui::GetFrameHeight(), 0));
             ImGui::SameLine(0, 2);
         }
@@ -84,11 +91,17 @@ namespace Diagram {
         
         if (selectableClicked && node.component) {
             Select(node.component);
+        } else if (selectableClicked && node.isGroup) {
+            ClearSelection();
         }
         
         if (node.component && ImGui::BeginDragDropSource()) {
             ImGui::SetDragDropPayload("COMPONENT_DND", &node.component, sizeof(void*));
             ImGui::Text("Moving: %s", node.name.c_str());
+            ImGui::EndDragDropSource();
+        } else if (node.isGroup && ImGui::BeginDragDropSource()) {
+            ImGui::SetDragDropPayload("GROUP_DND", node.groupId.c_str(), node.groupId.size() + 1);
+            ImGui::Text("Moving Group: %s", node.name.c_str());
             ImGui::EndDragDropSource();
         }
         
@@ -96,23 +109,30 @@ namespace Diagram {
             if (const auto* payload = ImGui::AcceptDragDropPayload("COMPONENT_DND")) {
                 auto* dragged = static_cast<ComponentBase**>(payload->Data)[0];
                 if (dragged && dragged != node.component) {
-                    auto draggedIt = std::ranges::find_if(*components, [dragged](const auto& c) { return c.get() == dragged; });
-                    if (draggedIt != components->end()) {
-                        auto targetIt = node.component ? std::ranges::find_if(*components, [&](const auto& c) { return c.get() == node.component; }) : components->end();
-                        
-                        ptrdiff_t draggedIdx = std::distance(components->begin(), draggedIt);
-                        ptrdiff_t targetIdx = targetIt != components->end() ? std::distance(components->begin(), targetIt) : static_cast<ptrdiff_t>(components->size());
-                        
-                        auto draggedPtr = std::move(*draggedIt);
-                        components->erase(draggedIt);
-                        
-                        if (!node.component) {
-                            components->insert(components->begin(), std::move(draggedPtr));
-                        } else if (draggedIdx < targetIdx) {
-                            components->insert(components->begin() + targetIdx, std::move(draggedPtr));
-                        } else {
-                            components->insert(components->begin() + targetIdx, std::move(draggedPtr));
-                        }
+                    if (node.isGroup) {
+                        s_componentGroups[dragged] = node.groupId;
+                        Notify::Success("Component moved to group: " + node.name);
+                    } else if (node.component) {
+                        std::string targetGroup = s_componentGroups.contains(node.component) ? s_componentGroups[node.component] : "";
+                        s_componentGroups[dragged] = targetGroup;
+                        Notify::Success("Component moved");
+                    } else if (node.name == "Scene") {
+                        s_componentGroups.erase(dragged);
+                        Notify::Success("Component moved to Scene");
+                    }
+                }
+            }
+            if (const auto* payload = ImGui::AcceptDragDropPayload("GROUP_DND")) {
+                std::string draggedGroupId(static_cast<const char*>(payload->Data));
+                if (draggedGroupId != node.groupId) {
+                    if (node.isGroup && !IsGroupDescendant(draggedGroupId, node.groupId)) {
+                        s_groupParents[draggedGroupId] = node.groupId;
+                        Notify::Success("Group moved to: " + node.name);
+                    } else if (node.component) {
+                        Notify::Warning("Cannot move group to a component!");
+                    } else if (node.name == "Scene") {
+                        s_groupParents[draggedGroupId] = "";
+                        Notify::Success("Group moved to Scene");
                     }
                 }
             }
@@ -129,6 +149,13 @@ namespace Diagram {
             }
             
             RenderActionButtons(nodeKey, hoveredRowId, components, node.component);
+        } else if (node.isGroup) {
+            if (nameHovered || ImGui::IsMouseHoveringRect(ImGui::GetCursorScreenPos(), 
+                ImVec2(ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x, ImGui::GetCursorScreenPos().y + ImGui::GetFrameHeight()))) {
+                hoveredRowId = nodeKey;
+            }
+            
+            RenderGroupActions(nodeKey, hoveredRowId);
         } else if (node.name == "Scene") {
             RenderCenteredIcon(ICON_FA_FOLDER);
         }
@@ -202,6 +229,63 @@ namespace Diagram {
         }
     }
 
+    void ComponentBase::RenderGroupActions(const std::string& nodeKey, const std::string& hoveredRowId) noexcept {
+        constexpr float spacing = 2.0f;
+        constexpr float padding = 4.0f;
+        
+        const ImVec2 add_size = ImGui::CalcTextSize(ICON_FA_PLUS);
+        const ImVec2 more_size = ImGui::CalcTextSize(ICON_FA_ELLIPSIS_H);
+        const float row_height = ImGui::GetFrameHeight();
+        const ImVec2 btn_size1(add_size.x + padding, row_height);
+        const ImVec2 btn_size2(more_size.x + padding, row_height);
+        
+        const float total_width = btn_size1.x + spacing + btn_size2.x;
+        const float start_x = ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - total_width) * 0.5f;
+        const float adjusted_y = ImGui::GetCursorPosY() + (ImGui::GetTextLineHeightWithSpacing() - row_height) * 0.5f - 1.0f;
+        
+        ImGui::SetCursorPos(ImVec2(start_x, adjusted_y));
+        
+        const std::string popup_id = "group_popup_" + nodeKey;
+        const bool visible = hoveredRowId == nodeKey || ImGui::IsPopupOpen(popup_id.c_str());
+        
+        if (ImGui::InvisibleButton("##add", btn_size1)) {
+            // TODO: Add new component to group
+        }
+        
+        if (visible) {
+            const ImVec4 color = ImGui::IsItemHovered() ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImGui::GetStyle().Colors[ImGuiCol_TextDisabled];
+            ImVec2 pos = ImGui::GetItemRectMin();
+            pos.x += (btn_size1.x - add_size.x) * 0.5f;
+            pos.y += (btn_size1.y - add_size.y) * 0.5f;
+            ImGui::GetWindowDrawList()->AddText(pos, ImGui::GetColorU32(color), ICON_FA_PLUS);
+        }
+        
+        ImGui::SameLine(0.0f, spacing);
+        
+        if (ImGui::InvisibleButton("##group_more", btn_size2)) {
+            ImGui::OpenPopup(popup_id.c_str());
+        }
+        
+        if (visible) {
+            const bool highlighted = ImGui::IsItemHovered() || ImGui::IsPopupOpen(popup_id.c_str());
+            const ImVec4 color = highlighted ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImGui::GetStyle().Colors[ImGuiCol_TextDisabled];
+            ImVec2 pos = ImGui::GetItemRectMin();
+            pos.x += (btn_size2.x - more_size.x) * 0.5f;
+            pos.y += (btn_size2.y - more_size.y) * 0.5f;
+            ImGui::GetWindowDrawList()->AddText(pos, ImGui::GetColorU32(color), ICON_FA_ELLIPSIS_H);
+        }
+        
+        if (ImGui::BeginPopup(popup_id.c_str())) {
+            ImGui::TextDisabled("Group Actions");
+            ImGui::Separator();
+            if (ImGui::MenuItem("Add Component")) { /* TODO */ }
+            if (ImGui::MenuItem("Rename Group")) { /* TODO */ }
+            ImGui::Separator();
+            if (ImGui::MenuItem("Delete Group")) { /* TODO */ }
+            ImGui::EndPopup();
+        }
+    }
+
     void ComponentBase::RenderCenteredIcon(const char* icon) noexcept {
         const float icon_width = ImGui::CalcTextSize(icon).x;
         const float start_x = ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - icon_width) * 0.5f;
@@ -213,9 +297,80 @@ namespace Diagram {
 
     std::unique_ptr<ComponentBase::TreeNode> ComponentBase::BuildHierarchy(const std::vector<std::unique_ptr<ComponentBase>>& components) noexcept {
         auto root = std::make_unique<TreeNode>("Scene");
-        for (const auto& component : components) {
-            root->children.push_back(std::make_unique<TreeNode>(component->GetDisplayName(), component.get()));
+        
+        if (s_componentGroups.empty() && s_groupParents.empty()) {
+            s_groupParents["group1"] = "";
+            s_groupParents["group2"] = "group1";
+            s_groupParents["group3"] = "";
+            
+            for (size_t i = 0; i < components.size() && i < 6; ++i) {
+                if (i < 2) {
+                    s_componentGroups[components[i].get()] = "group1";
+                } else if (i < 4) {
+                    s_componentGroups[components[i].get()] = "group2";
+                } else {
+                    s_componentGroups[components[i].get()] = "group3";
+                }
+            }
         }
+        
+        std::map<std::string, TreeNode*> groupNodes;
+        std::vector<std::unique_ptr<TreeNode>> allGroups;
+        
+        for (const auto& [groupId, parentId] : s_groupParents) {
+            std::string groupName = groupId;
+            if (groupId == "group1") groupName = "UI Components";
+            else if (groupId == "group2") groupName = "Nested Group";
+            else if (groupId == "group3") groupName = "Logic Components";
+            
+            auto groupNode = std::make_unique<TreeNode>(groupName, nullptr, true, groupId);
+            groupNodes[groupId] = groupNode.get();
+            allGroups.push_back(std::move(groupNode));
+        }
+        
+        for (const auto& component : components) {
+            auto node = std::make_unique<TreeNode>(component->GetDisplayName(), component.get());
+            
+            if (s_componentGroups.contains(component.get())) {
+                const std::string& groupId = s_componentGroups[component.get()];
+                if (groupNodes.contains(groupId)) {
+                    groupNodes[groupId]->children.push_back(std::move(node));
+                } else {
+                    root->children.push_back(std::move(node));
+                }
+            } else {
+                root->children.push_back(std::move(node));
+            }
+        }
+        
+        for (auto& groupNode : allGroups) {
+            if (!groupNode) continue;
+            
+            const std::string& groupId = groupNode->groupId;
+            const std::string& parentId = s_groupParents[groupId];
+            
+            if (parentId.empty()) {
+                root->children.push_back(std::move(groupNode));
+            } else if (groupNodes.contains(parentId)) {
+                groupNodes[parentId]->children.push_back(std::move(groupNode));
+            } else {
+                root->children.push_back(std::move(groupNode));
+            }
+        }
+        
         return root;
+    }
+
+    bool ComponentBase::IsGroupDescendant(const std::string& groupId, const std::string& potentialAncestor) noexcept {
+        if (groupId == potentialAncestor) return true;
+        if (!s_groupParents.contains(groupId)) return false;
+        
+        std::string parent = s_groupParents[groupId];
+        while (!parent.empty()) {
+            if (parent == potentialAncestor) return true;
+            if (!s_groupParents.contains(parent)) break;
+            parent = s_groupParents[parent];
+        }
+        return false;
     }
 }
