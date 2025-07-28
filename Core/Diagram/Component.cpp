@@ -52,7 +52,6 @@ namespace Diagram {
         std::string nodeKey = node.name + std::to_string(reinterpret_cast<uintptr_t>(node.component));
         bool hasChildren = !node.children.empty();
         bool isExpanded = expanded.contains(nodeKey) || (node.name == "Scene" && expanded.empty());
-        
         ImGui::PushID(nodeKey.c_str());
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
@@ -113,9 +112,9 @@ namespace Diagram {
         // Delete button
         if (node.component) {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{});
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.2f, 0.2f, 0.3f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.9f, 0.3f, 0.3f, 0.5f));
-            
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{});
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{});
+
             if (ImGui::SmallButton(ICON_FA_TRASH "##trash")) {
                 if (auto it = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == node.component; }); it != components->end()) {
                     if (s_selected == node.component) ClearSelection();
