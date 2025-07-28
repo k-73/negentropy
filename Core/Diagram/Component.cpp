@@ -106,18 +106,22 @@ namespace Diagram {
         ImGui::Indent(static_cast<float>(depth) * TREE_INDENT);
         
         if (hasChildren && !isSceneRoot) {
-            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-            if (ImGui::ArrowButton("##expand", isExpanded ? ImGuiDir_Down : ImGuiDir_Right)) {
-                if (node.isGroup) {
-                    s_groupExpanded[node.groupId] = !isExpanded;
-                    if (s_onExpandedChanged) s_onExpandedChanged(s_groupExpanded);
-                }
+            const char* arrow = isExpanded ? ICON_FA_CHEVRON_DOWN : ICON_FA_CHEVRON_RIGHT;
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
+            
+            ImGui::Text("%s", arrow);
+            bool arrowClicked = ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+            
+            if (arrowClicked && node.isGroup) {
+                s_groupExpanded[node.groupId] = !isExpanded;
+                if (s_onExpandedChanged) s_onExpandedChanged(s_groupExpanded);
             }
-            ImGui::PopStyleVar();
-            ImGui::SameLine(0, 2);
+            
+            ImGui::PopStyleColor();
+            ImGui::SameLine(0, 4);
         } else if (node.component || node.isGroup) {
             ImGui::Dummy(ImVec2(16, 0));
-            ImGui::SameLine(0, 2);
+            ImGui::SameLine(0, 4);
         }
         
         std::string displayText = " " + std::string(icon) + "  " + node.name;
