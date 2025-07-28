@@ -9,14 +9,16 @@ namespace Diagram {
     ComponentBase* ComponentBase::s_selected = nullptr;
 
     void ComponentBase::RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& components) noexcept {
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(-8.0f, 0.0f));
+
         if (!ImGui::Begin("Component Tree")) {
             ImGui::End();
             return;
         }
 
-        if (ImGui::BeginTable("TreeTable", 2, ImGuiTableFlags_SizingStretchProp)) {
+        if (ImGui::BeginTable("TreeTable", 2, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoPadInnerX)) {
             ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
-            ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 20.0f);
+            ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 24.0f);
             
             auto hierarchy = BuildHierarchy(components);
             if (hierarchy) RenderTreeNode(*hierarchy, &components);
@@ -41,6 +43,8 @@ namespace Diagram {
         }
 
         ImGui::End();
+
+        ImGui::PopStyleVar();
     }
 
     void ComponentBase::RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components) noexcept {
@@ -69,7 +73,7 @@ namespace Diagram {
             ImGui::SameLine(0, 2);
         }
         
-        if (ImGui::Selectable((std::string(icon) + "  " + node.name).c_str(), s_selected == node.component) && node.component) {
+        if (ImGui::Selectable((" "  + std::string(icon) + "  " + node.name).c_str(), s_selected == node.component) && node.component) {
             Select(node.component);
         }
         
@@ -109,11 +113,11 @@ namespace Diagram {
         ImGui::Unindent(static_cast<float>(depth) * TREE_INDENT);
         ImGui::TableNextColumn();
         
-        // Delete button
+        // Action buttons
         if (node.component) {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{});
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{});
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{});
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.2f, 0.2f, 0.3f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.9f, 0.3f, 0.3f, 0.5f));
 
             if (ImGui::SmallButton(ICON_FA_TRASH "##trash")) {
                 if (auto it = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == node.component; }); it != components->end()) {
@@ -125,6 +129,11 @@ namespace Diagram {
                 }
             }
             ImGui::PopStyleColor(3);
+        } else {
+            // Scene icon
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+            ImGui::Text(ICON_FA_FOLDER);
+            ImGui::PopStyleColor();
         }
         
         // Render children
