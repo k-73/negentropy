@@ -69,7 +69,7 @@ namespace Diagram {
     }
 
     void ComponentBase::RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components, int depth, std::string& hoveredRowId) noexcept {
-        static constexpr float TREE_INDENT = 4.0f;
+        static constexpr float TREE_INDENT = 16.0f;
 
         const char* icon = node.component ? ICON_FA_CUBE : (node.isGroup ? ICON_FA_FOLDER : ICON_FA_SITEMAP);
 
