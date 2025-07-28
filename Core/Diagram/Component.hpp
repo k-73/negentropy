@@ -44,6 +44,8 @@ namespace Diagram {
         static ComponentBase* s_selected;
         
         static void RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components, int depth, std::string& hoveredRowId) noexcept;
+        static void RenderActionButtons(const std::string& nodeKey, const std::string& hoveredRowId, std::vector<std::unique_ptr<ComponentBase>>* components) noexcept;
+        static void RenderCenteredIcon(const char* icon) noexcept;
         static std::unique_ptr<TreeNode> BuildHierarchy(const std::vector<std::unique_ptr<ComponentBase>>& components) noexcept;
     };
     

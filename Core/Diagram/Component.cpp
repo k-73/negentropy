@@ -121,93 +121,16 @@ namespace Diagram {
         ImGui::TableNextColumn();
         
         if (node.component) {
-            ImVec2 columnStart = ImGui::GetCursorScreenPos();
-            ImVec2 columnEnd = ImVec2(columnStart.x + ImGui::GetContentRegionAvail().x, columnStart.y + ImGui::GetFrameHeight());
-            bool actionsColumnHovered = ImGui::IsMouseHoveringRect(columnStart, columnEnd);
-            
-            if (nameHovered || actionsColumnHovered) {
+            if (nameHovered || ImGui::IsMouseHoveringRect(ImGui::GetCursorScreenPos(), 
+                ImVec2(ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x, ImGui::GetCursorScreenPos().y + ImGui::GetFrameHeight()))) {
                 hoveredRowId = nodeKey;
             }
             
-            const char* trash_icon = ICON_FA_TRASH;
-            const char* more_icon = ICON_FA_ELLIPSIS_H;
-            const float spacing = 2.0f;
-
-            const ImVec2 trash_label_size = ImGui::CalcTextSize(trash_icon);
-            const ImVec2 more_label_size = ImGui::CalcTextSize(more_icon);
-            const float row_height = ImGui::GetFrameHeight();
-            const float compact_padding = 4.0f;
-            const ImVec2 trash_button_size(trash_label_size.x + compact_padding, row_height);
-            const ImVec2 more_button_size(more_label_size.x + compact_padding, row_height);
-            const float total_width = trash_button_size.x + spacing + more_button_size.x;
-
-            const float available_width = ImGui::GetContentRegionAvail().x;
-            const float start_x = ImGui::GetCursorPosX() + (available_width - total_width) * 0.5f;
-            
-            const float current_y = ImGui::GetCursorPosY();
-            const float table_row_height = ImGui::GetTextLineHeightWithSpacing();
-            const float vertical_offset = (table_row_height - row_height) * 0.5f;
-            const float adjusted_y = current_y + vertical_offset - 1.0f;
-            
-            ImGui::SetCursorPos(ImVec2(start_x, adjusted_y));
-
-            std::string popup_id = "more_popup_" + nodeKey;
-            bool buttons_visible = hoveredRowId == nodeKey || ImGui::IsPopupOpen(popup_id.c_str());
-
-            if (ImGui::InvisibleButton("##trash", trash_button_size)) {
-                if (auto it = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == node.component; }); it != components->end()) {
-                    if (s_selected == node.component) ClearSelection();
-                    components->erase(it);
-                    ImGui::PopID();
-                    return;
-                }
-            }
-            
-            if (buttons_visible) {
-                bool trash_hovered = ImGui::IsItemHovered();
-                ImVec4 trash_textColor = trash_hovered ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImGui::GetStyle().Colors[ImGuiCol_TextDisabled];
-                ImVec2 trash_text_pos = ImGui::GetItemRectMin();
-                trash_text_pos.x += (trash_button_size.x - trash_label_size.x) * 0.5f;
-                trash_text_pos.y += (trash_button_size.y - trash_label_size.y) * 0.5f;
-                ImGui::GetWindowDrawList()->AddText(trash_text_pos, ImGui::GetColorU32(trash_textColor), trash_icon);
-            }
-
-            ImGui::SameLine(0.0f, spacing);
-
-            if (ImGui::InvisibleButton("##more", more_button_size)) {
-                ImGui::OpenPopup(popup_id.c_str());
-            }
-
-            if (buttons_visible) {
-                bool more_hovered = ImGui::IsItemHovered();
-                bool popup_open = ImGui::IsPopupOpen(popup_id.c_str());
-
-                ImVec4 more_textColor = (more_hovered || popup_open) ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImGui::GetStyle().Colors[ImGuiCol_TextDisabled];
-                ImVec2 more_text_pos = ImGui::GetItemRectMin();
-                more_text_pos.x += (more_button_size.x - more_label_size.x) * 0.5f;
-                more_text_pos.y += (more_button_size.y - more_label_size.y) * 0.5f;
-                ImGui::GetWindowDrawList()->AddText(more_text_pos, ImGui::GetColorU32(more_textColor), more_icon);
-            }
-
-            if (ImGui::BeginPopup(popup_id.c_str())) {
-                ImGui::TextDisabled("%s", node.name.c_str());
-                ImGui::Separator();
-                if (ImGui::MenuItem("Rename")) { /* Action */ }
-                if (ImGui::MenuItem("Duplicate")) { /* Action */ }
-                ImGui::Separator();
-                if (ImGui::MenuItem("Copy")) { /* Action */ }
-                if (ImGui::MenuItem("Paste")) { /* Action */ }
-                ImGui::EndPopup();
-            }
+            RenderActionButtons(nodeKey, hoveredRowId, components);
         } else if (node.name == "Scene") {
-            const float available_width = ImGui::GetContentRegionAvail().x;
-            const float icon_width = ImGui::CalcTextSize(ICON_FA_FOLDER).x;
-            const float start_x = ImGui::GetCursorPosX() + (available_width - icon_width) * 0.5f;
-            ImGui::SetCursorPosX(start_x);
-            
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-            ImGui::Text(ICON_FA_FOLDER);
-            ImGui::PopStyleColor();
+            RenderCenteredIcon(ICON_FA_FOLDER);
+        } else if (node.name == "Scene") {
+            RenderCenteredIcon(ICON_FA_FOLDER);
         }
         
         if (isExpanded && hasChildren) {
@@ -215,6 +138,78 @@ namespace Diagram {
         }
         
         ImGui::PopID();
+    }
+
+    void ComponentBase::RenderActionButtons(const std::string& nodeKey, const std::string& hoveredRowId, std::vector<std::unique_ptr<ComponentBase>>* components) noexcept {
+        constexpr float spacing = 2.0f;
+        constexpr float padding = 4.0f;
+        
+        const ImVec2 trash_size = ImGui::CalcTextSize(ICON_FA_TRASH);
+        const ImVec2 more_size = ImGui::CalcTextSize(ICON_FA_ELLIPSIS_H);
+        const float row_height = ImGui::GetFrameHeight();
+        const ImVec2 btn_size1(trash_size.x + padding, row_height);
+        const ImVec2 btn_size2(more_size.x + padding, row_height);
+        
+        const float total_width = btn_size1.x + spacing + btn_size2.x;
+        const float start_x = ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - total_width) * 0.5f;
+        const float adjusted_y = ImGui::GetCursorPosY() + (ImGui::GetTextLineHeightWithSpacing() - row_height) * 0.5f - 1.0f;
+        
+        ImGui::SetCursorPos(ImVec2(start_x, adjusted_y));
+        
+        const std::string popup_id = "more_popup_" + nodeKey;
+        const bool visible = hoveredRowId == nodeKey || ImGui::IsPopupOpen(popup_id.c_str());
+        
+        if (ImGui::InvisibleButton("##trash", btn_size1)) {
+            if (auto it = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == GetSelected(); }); it != components->end()) {
+                if (s_selected == it->get()) ClearSelection();
+                components->erase(it);
+                ImGui::PopID();
+                return;
+            }
+        }
+        
+        if (visible) {
+            const ImVec4 color = ImGui::IsItemHovered() ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImGui::GetStyle().Colors[ImGuiCol_TextDisabled];
+            ImVec2 pos = ImGui::GetItemRectMin();
+            pos.x += (btn_size1.x - trash_size.x) * 0.5f;
+            pos.y += (btn_size1.y - trash_size.y) * 0.5f;
+            ImGui::GetWindowDrawList()->AddText(pos, ImGui::GetColorU32(color), ICON_FA_TRASH);
+        }
+        
+        ImGui::SameLine(0.0f, spacing);
+        
+        if (ImGui::InvisibleButton("##more", btn_size2)) {
+            ImGui::OpenPopup(popup_id.c_str());
+        }
+        
+        if (visible) {
+            const bool highlighted = ImGui::IsItemHovered() || ImGui::IsPopupOpen(popup_id.c_str());
+            const ImVec4 color = highlighted ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImGui::GetStyle().Colors[ImGuiCol_TextDisabled];
+            ImVec2 pos = ImGui::GetItemRectMin();
+            pos.x += (btn_size2.x - more_size.x) * 0.5f;
+            pos.y += (btn_size2.y - more_size.y) * 0.5f;
+            ImGui::GetWindowDrawList()->AddText(pos, ImGui::GetColorU32(color), ICON_FA_ELLIPSIS_H);
+        }
+        
+        if (ImGui::BeginPopup(popup_id.c_str())) {
+            ImGui::TextDisabled("%s", GetSelected()->GetDisplayName().c_str());
+            ImGui::Separator();
+            if (ImGui::MenuItem("Rename")) { /* Action */ }
+            if (ImGui::MenuItem("Duplicate")) { /* Action */ }
+            ImGui::Separator();
+            if (ImGui::MenuItem("Copy")) { /* Action */ }
+            if (ImGui::MenuItem("Paste")) { /* Action */ }
+            ImGui::EndPopup();
+        }
+    }
+
+    void ComponentBase::RenderCenteredIcon(const char* icon) noexcept {
+        const float icon_width = ImGui::CalcTextSize(icon).x;
+        const float start_x = ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - icon_width) * 0.5f;
+        ImGui::SetCursorPosX(start_x);
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+        ImGui::Text("%s", icon);
+        ImGui::PopStyleColor();
     }
 
     std::unique_ptr<ComponentBase::TreeNode> ComponentBase::BuildHierarchy(const std::vector<std::unique_ptr<ComponentBase>>& components) noexcept {
