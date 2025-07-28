@@ -304,10 +304,17 @@ namespace Diagram {
         
         const std::string popup_id = "group_popup_" + nodeKey;
         const bool popupOpen = ImGui::IsPopupOpen(popup_id.c_str());
-        const bool visible = hoveredRowId == nodeKey || popupOpen;
+        static std::string activeGroupButton;
+        const bool visible = hoveredRowId == nodeKey || popupOpen || activeGroupButton == nodeKey;
         
         if (ImGui::InvisibleButton("##add", btn_size1)) {
             // TODO: Add new component to group
+        }
+        
+        if (ImGui::IsItemActive()) {
+            activeGroupButton = nodeKey;
+        } else if (activeGroupButton == nodeKey && !ImGui::IsItemHovered() && !popupOpen) {
+            activeGroupButton.clear();
         }
         
         if (visible) {
@@ -322,6 +329,12 @@ namespace Diagram {
         
         if (ImGui::InvisibleButton("##group_more", btn_size2)) {
             ImGui::OpenPopup(popup_id.c_str());
+        }
+        
+        if (ImGui::IsItemActive()) {
+            activeGroupButton = nodeKey;
+        } else if (activeGroupButton == nodeKey && !ImGui::IsItemHovered() && !popupOpen) {
+            activeGroupButton.clear();
         }
         
         if (visible) {
