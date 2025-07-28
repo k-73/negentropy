@@ -19,7 +19,7 @@ namespace Diagram {
 
         if (ImGui::BeginTable("TreeTable", 2, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoPadInnerX)) {
             ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
-            ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 28.0f);
+            ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 60.0f);
             
             auto hierarchy = BuildHierarchy(components);
             if (hierarchy) {
@@ -131,13 +131,11 @@ namespace Diagram {
             
             std::string popup_id = "more_popup_" + nodeKey;
             if (hoveredRowId == nodeKey || ImGui::IsPopupOpen(popup_id.c_str())) {
-                // --- Configuration ---
                 const char* trash_icon = ICON_FA_TRASH;
                 const char* more_icon = ICON_FA_ELLIPSIS_H;
                 const ImGuiStyle& style = ImGui::GetStyle();
-                const float spacing = style.ItemSpacing.x / 2.0f;
+                const float spacing = style.ItemSpacing.x * 0.5f;
 
-                // --- Size Calculations ---
                 const ImVec2 trash_label_size = ImGui::CalcTextSize(trash_icon);
                 const ImVec2 more_label_size = ImGui::CalcTextSize(more_icon);
                 const float button_height = ImGui::GetFrameHeight();
@@ -146,10 +144,10 @@ namespace Diagram {
                 const ImVec2 more_button_size(more_label_size.x + button_padding, button_height);
                 const float total_width = trash_button_size.x + spacing + more_button_size.x;
 
-                // --- Centered Positioning ---
-                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (ImGui::GetColumnWidth() - total_width) * 0.5f);
+                const float available_width = ImGui::GetContentRegionAvail().x;
+                const float start_x = ImGui::GetCursorPosX() + (available_width - total_width) * 0.5f;
+                ImGui::SetCursorPosX(start_x);
 
-                // --- Render Trash Button ---
                 if (ImGui::InvisibleButton("##trash", trash_button_size)) {
                     if (auto it = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == node.component; }); it != components->end()) {
                         if (s_selected == node.component) ClearSelection();
@@ -167,7 +165,6 @@ namespace Diagram {
 
                 ImGui::SameLine(0.0f, spacing);
 
-                // --- Render More Button ---
                 if (ImGui::InvisibleButton("##more", more_button_size)) {
                     ImGui::OpenPopup(popup_id.c_str());
                 }
@@ -193,9 +190,10 @@ namespace Diagram {
                 }
             }
         } else if (node.name == "Scene") {
-            float availWidth = ImGui::GetContentRegionAvail().x;
-            float iconWidth = ImGui::CalcTextSize(ICON_FA_FOLDER).x;
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (availWidth - iconWidth) * 0.5f);
+            const float available_width = ImGui::GetContentRegionAvail().x;
+            const float icon_width = ImGui::CalcTextSize(ICON_FA_FOLDER).x;
+            const float start_x = ImGui::GetCursorPosX() + (available_width - icon_width) * 0.5f;
+            ImGui::SetCursorPosX(start_x);
             
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
             ImGui::Text(ICON_FA_FOLDER);
