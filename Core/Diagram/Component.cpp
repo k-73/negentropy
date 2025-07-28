@@ -133,20 +133,25 @@ namespace Diagram {
             if (hoveredRowId == nodeKey || ImGui::IsPopupOpen(popup_id.c_str())) {
                 const char* trash_icon = ICON_FA_TRASH;
                 const char* more_icon = ICON_FA_ELLIPSIS_H;
-                const ImGuiStyle& style = ImGui::GetStyle();
                 const float spacing = 2.0f;
 
                 const ImVec2 trash_label_size = ImGui::CalcTextSize(trash_icon);
                 const ImVec2 more_label_size = ImGui::CalcTextSize(more_icon);
-                const float button_height = ImGui::GetFrameHeight();
+                const float row_height = ImGui::GetFrameHeight();
                 const float compact_padding = 4.0f;
-                const ImVec2 trash_button_size(trash_label_size.x + compact_padding, button_height);
-                const ImVec2 more_button_size(more_label_size.x + compact_padding, button_height);
+                const ImVec2 trash_button_size(trash_label_size.x + compact_padding, row_height);
+                const ImVec2 more_button_size(more_label_size.x + compact_padding, row_height);
                 const float total_width = trash_button_size.x + spacing + more_button_size.x;
 
                 const float available_width = ImGui::GetContentRegionAvail().x;
                 const float start_x = ImGui::GetCursorPosX() + (available_width - total_width) * 0.5f;
-                ImGui::SetCursorPosX(start_x);
+                
+                const float current_y = ImGui::GetCursorPosY();
+                const float table_row_height = ImGui::GetTextLineHeightWithSpacing();
+                const float vertical_offset = (table_row_height - row_height) * 0.5f;
+                const float adjusted_y = current_y + vertical_offset - 1.0f;
+                
+                ImGui::SetCursorPos(ImVec2(start_x, adjusted_y));
 
                 if (ImGui::InvisibleButton("##trash", trash_button_size)) {
                     if (auto it = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == node.component; }); it != components->end()) {
