@@ -19,7 +19,7 @@ namespace Diagram {
 
         if (ImGui::BeginTable("TreeTable", 2, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoPadInnerX)) {
             ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
-            ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 60.0f);
+            ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 48.0f);
             
             auto hierarchy = BuildHierarchy(components);
             if (hierarchy) {
@@ -134,14 +134,14 @@ namespace Diagram {
                 const char* trash_icon = ICON_FA_TRASH;
                 const char* more_icon = ICON_FA_ELLIPSIS_H;
                 const ImGuiStyle& style = ImGui::GetStyle();
-                const float spacing = style.ItemSpacing.x * 0.5f;
+                const float spacing = 2.0f;
 
                 const ImVec2 trash_label_size = ImGui::CalcTextSize(trash_icon);
                 const ImVec2 more_label_size = ImGui::CalcTextSize(more_icon);
                 const float button_height = ImGui::GetFrameHeight();
-                const float button_padding = style.FramePadding.x * 2.0f;
-                const ImVec2 trash_button_size(trash_label_size.x + button_padding, button_height);
-                const ImVec2 more_button_size(more_label_size.x + button_padding, button_height);
+                const float compact_padding = 4.0f;
+                const ImVec2 trash_button_size(trash_label_size.x + compact_padding, button_height);
+                const ImVec2 more_button_size(more_label_size.x + compact_padding, button_height);
                 const float total_width = trash_button_size.x + spacing + more_button_size.x;
 
                 const float available_width = ImGui::GetContentRegionAvail().x;
