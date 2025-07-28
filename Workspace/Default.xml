@@ -10,18 +10,19 @@
 		<visible>true</visible>
 	</Grid>
 	<Root>
-		<Group id="group1" name="UI Components" expanded="false">
-			<Component id="comp100455245031760" type="Block">
-				<position x="15" y="10" />
-				<size x="10" y="5" />
-				<label>Block 3</label>
-				<type>Process</type>
-				<backgroundColor x="0.800000012" y="0.330000013" z="0.0799999982" w="0.699999988" />
-				<borderColor x="0.0700000003" y="0.0700000003" z="0.0700000003" w="1" />
-			</Component>
-		</Group>
-		<Group id="group2" name="Nested Group" expanded="false">
-			<Group id="group3" name="Logic Components" expanded="true" />
+		<Group id="group1" name="UI Components" expanded="true">
+			<Group id="group2" name="Nested Group" expanded="true">
+				<Group id="group3" name="Logic Components" expanded="true">
+					<Component id="comp100455245031760" type="Block">
+						<position x="15" y="10" />
+						<size x="10" y="5" />
+						<label>Block 3</label>
+						<type>Process</type>
+						<backgroundColor x="0.800000012" y="0.330000013" z="0.0799999982" w="0.699999988" />
+						<borderColor x="0.0700000003" y="0.0700000003" z="0.0700000003" w="1" />
+					</Component>
+				</Group>
+			</Group>
 		</Group>
 		<Component id="StartID" type="Block">
 			<position x="30" y="10" />
