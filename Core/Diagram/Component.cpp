@@ -58,30 +58,27 @@ namespace Diagram {
         }
 
         if (!s_selected) {
-            ImGui::TextDisabled("No component selected");
-        } else {
-            ImGui::Text("Component: %s", s_selected->GetDisplayName().c_str());
-            ImGui::Separator();
-            
-            static std::map<ComponentBase*, char[64]> idBuffers;
-            if (!idBuffers.contains(s_selected)) {
-                std::strncpy(idBuffers[s_selected], s_selected->id.c_str(), 63);
-                idBuffers[s_selected][63] = '\0';
-            }
-            
-            ImGui::SetNextItemWidth(-1);
-            if (ImGui::InputText("ID", idBuffers[s_selected], 64)) {
-                s_selected->id = idBuffers[s_selected];
-            }
-            
-            ImGui::Spacing();
-            if (auto* block = dynamic_cast<Block*>(s_selected)) {
-                block->RenderUI(0);
-            } else {
-                ImGui::TextDisabled("No properties available");
-            }
+            ImGui::TextDisabled("Select a component to edit");
+            ImGui::End();
+            return;
         }
 
+        static std::map<ComponentBase*, char[64]> idBuffers;
+        if (!idBuffers.contains(s_selected)) {
+            std::strncpy(idBuffers[s_selected], s_selected->id.c_str(), 63);
+            idBuffers[s_selected][63] = '\0';
+        }
+
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 6));
+        
+        ImGui::Text(ICON_FA_CUBE " %s", s_selected->GetDisplayName().c_str());
+        ImGui::Separator();
+        
+        if (auto* block = dynamic_cast<Block*>(s_selected)) {
+            block->RenderUI(0);
+        }
+
+        ImGui::PopStyleVar();
         ImGui::End();
     }
 
