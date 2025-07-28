@@ -19,8 +19,6 @@ namespace Diagram {
         s_groupParents = groups;
         s_groupNames = groupNames;
         s_onGroupsChanged = onGroupsChanged;
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 8.0f));
-
         if (!ImGui::Begin("Component Tree")) {
             ImGui::End();
             return;
@@ -56,8 +54,6 @@ namespace Diagram {
         }
 
         ImGui::End();
-
-        ImGui::PopStyleVar();
     }
 
     void ComponentBase::RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components, int depth, std::string& hoveredRowId) noexcept {
@@ -70,7 +66,6 @@ namespace Diagram {
         bool hasChildren = !node.children.empty();
         bool isExpanded = expanded.contains(nodeKey) || (node.name == "Scene" && expanded.empty());
         bool isSceneRoot = node.name == "Scene" && depth == 0;
-        bool canHaveChildren = hasChildren || node.isGroup;
         
         ImGui::PushID(nodeKey.c_str());
         ImGui::TableNextRow();
@@ -170,18 +165,11 @@ namespace Diagram {
         ImGui::TableNextColumn();
         
         if (node.component) {
-            if (nameHovered || ImGui::IsMouseHoveringRect(ImGui::GetCursorScreenPos(), 
-                ImVec2(ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x, ImGui::GetCursorScreenPos().y + ImGui::GetFrameHeight()))) {
-                hoveredRowId = nodeKey;
-            }
+            if (nameHovered) hoveredRowId = nodeKey;
             
             RenderActionButtons(nodeKey, hoveredRowId, components, node.component);
         } else if (node.isGroup) {
-            if (nameHovered || ImGui::IsMouseHoveringRect(ImGui::GetCursorScreenPos(), 
-                ImVec2(ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x, ImGui::GetCursorScreenPos().y + ImGui::GetFrameHeight()))) {
-                hoveredRowId = nodeKey;
-            }
-            
+            if (nameHovered) hoveredRowId = nodeKey;
             RenderGroupActions(nodeKey, hoveredRowId);
         } else if (node.name == "Scene") {
             RenderCenteredIcon(ICON_FA_FOLDER);
@@ -324,8 +312,6 @@ namespace Diagram {
 
     std::unique_ptr<ComponentBase::TreeNode> ComponentBase::BuildHierarchy(const std::vector<std::unique_ptr<ComponentBase>>& components) noexcept {
         auto root = std::make_unique<TreeNode>("Scene");
-        
-        
         std::map<std::string, TreeNode*> groupNodes;
         std::vector<std::unique_ptr<TreeNode>> allGroups;
         
@@ -351,17 +337,11 @@ namespace Diagram {
         }
         
         for (auto& groupNode : allGroups) {
-            if (!groupNode) continue;
-            
-            const std::string& groupId = groupNode->groupId;
-            const std::string& parentId = s_groupParents[groupId];
-            
-            if (parentId.empty()) {
+            const std::string& parentId = s_groupParents[groupNode->groupId];
+            if (parentId.empty() || !groupNodes.contains(parentId)) {
                 root->children.push_back(std::move(groupNode));
-            } else if (groupNodes.contains(parentId)) {
-                groupNodes[parentId]->children.push_back(std::move(groupNode));
             } else {
-                root->children.push_back(std::move(groupNode));
+                groupNodes[parentId]->children.push_back(std::move(groupNode));
             }
         }
         
