@@ -79,7 +79,6 @@ namespace Diagram {
             ImGui::SameLine(0, 2);
         }
         
-        // Add consistent spacing for Scene (root node)
         std::string displayText = node.component ? (" " + std::string(icon) + "  " + node.name) : ("   " + std::string(icon) + "  " + node.name);
         bool selectableClicked = ImGui::Selectable(displayText.c_str(), s_selected == node.component);
         bool nameHovered = ImGui::IsItemHovered();
@@ -124,20 +123,16 @@ namespace Diagram {
         ImGui::Unindent(static_cast<float>(depth) * TREE_INDENT);
         ImGui::TableNextColumn();
         
-        // Check if Actions column is hovered
-        ImVec2 colMin = ImGui::GetCursorScreenPos();
-        ImVec2 colMax = ImVec2(colMin.x + ImGui::GetContentRegionAvail().x, colMin.y + ImGui::GetFrameHeight());
-        bool actionsHovered = ImGui::IsMouseHoveringRect(colMin, colMax);
-        
-        // Update hovered row - only one row can be hovered at a time
-        if (nameHovered || actionsHovered) {
-            hoveredRowId = nodeKey;
-        }
-        
-        // Action buttons - only show on hover for the currently hovered row
         if (node.component) {
+            ImVec2 columnStart = ImGui::GetCursorScreenPos();
+            ImVec2 columnEnd = ImVec2(columnStart.x + ImGui::GetContentRegionAvail().x, columnStart.y + ImGui::GetFrameHeight());
+            bool actionsColumnHovered = ImGui::IsMouseHoveringRect(columnStart, columnEnd);
+            
+            if (nameHovered || actionsColumnHovered) {
+                hoveredRowId = nodeKey;
+            }
+            
             if (hoveredRowId == nodeKey) {
-                // Center the button in the Actions column
                 float availWidth = ImGui::GetContentRegionAvail().x;
                 float buttonWidth = ImGui::CalcTextSize(ICON_FA_TRASH).x + ImGui::GetStyle().FramePadding.x * 2;
                 ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (availWidth - buttonWidth) * 0.5f);
@@ -155,10 +150,10 @@ namespace Diagram {
                         return;
                     }
                 }
+                
                 ImGui::PopStyleColor(3);
             }
-        } else {
-            // Scene icon - centered in Actions column
+        } else if (node.name == "Scene") {
             float availWidth = ImGui::GetContentRegionAvail().x;
             float iconWidth = ImGui::CalcTextSize(ICON_FA_FOLDER).x;
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (availWidth - iconWidth) * 0.5f);
@@ -168,7 +163,6 @@ namespace Diagram {
             ImGui::PopStyleColor();
         }
         
-        // Render children
         if (isExpanded && hasChildren) {
             ++depth;
             for (const auto& child : node.children) RenderTreeNode(*child, components);
