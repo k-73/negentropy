@@ -128,7 +128,7 @@ namespace Diagram {
                 hoveredRowId = nodeKey;
             }
             
-            RenderActionButtons(nodeKey, hoveredRowId, components);
+            RenderActionButtons(nodeKey, hoveredRowId, components, node.component);
         } else if (node.name == "Scene") {
             RenderCenteredIcon(ICON_FA_FOLDER);
         }
@@ -140,7 +140,7 @@ namespace Diagram {
         ImGui::PopID();
     }
 
-    void ComponentBase::RenderActionButtons(const std::string& nodeKey, const std::string& hoveredRowId, std::vector<std::unique_ptr<ComponentBase>>* components) noexcept {
+    void ComponentBase::RenderActionButtons(const std::string& nodeKey, const std::string& hoveredRowId, std::vector<std::unique_ptr<ComponentBase>>* components, ComponentBase* component) noexcept {
         constexpr float spacing = 2.0f;
         constexpr float padding = 4.0f;
         
@@ -160,8 +160,8 @@ namespace Diagram {
         const bool visible = hoveredRowId == nodeKey || ImGui::IsPopupOpen(popup_id.c_str());
         
         if (ImGui::InvisibleButton("##trash", btn_size1)) {
-            if (auto it = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == GetSelected(); }); it != components->end()) {
-                if (s_selected == it->get()) ClearSelection();
+            if (auto it = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == component; }); it != components->end()) {
+                if (s_selected == component) ClearSelection();
                 components->erase(it);
                 ImGui::PopID();
                 return;
@@ -192,7 +192,7 @@ namespace Diagram {
         }
         
         if (ImGui::BeginPopup(popup_id.c_str())) {
-            ImGui::TextDisabled("%s", GetSelected()->GetDisplayName().c_str());
+            ImGui::TextDisabled("%s", component->GetDisplayName().c_str());
             ImGui::Separator();
             if (ImGui::MenuItem("Rename")) { /* Action */ }
             if (ImGui::MenuItem("Duplicate")) { /* Action */ }
