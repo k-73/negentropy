@@ -304,7 +304,6 @@ void Application::DarkStyle() noexcept {
     style.ItemInnerSpacing     = ImVec2(3.0f, 2.0f);
     style.TouchExtraPadding    = ImVec2(0.0f, 0.0f);
 
-
     style.IndentSpacing        = 12.0f;
     style.ScrollbarSize        = 12.0f;
     style.GrabMinSize          = 8.0f;
