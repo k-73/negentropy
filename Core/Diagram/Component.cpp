@@ -59,13 +59,15 @@ namespace Diagram {
         std::string nodeKey = node.name + std::to_string(reinterpret_cast<uintptr_t>(node.component));
         bool hasChildren = !node.children.empty();
         bool isExpanded = expanded.contains(nodeKey) || (node.name == "Scene" && expanded.empty());
+        bool isSceneRoot = node.name == "Scene" && depth == 0;
+        
         ImGui::PushID(nodeKey.c_str());
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         
         ImGui::Indent(static_cast<float>(depth) * TREE_INDENT);
         
-        if (hasChildren) {
+        if (hasChildren && !isSceneRoot) {
             if (ImGui::ArrowButton("##expand", isExpanded ? ImGuiDir_Down : ImGuiDir_Right)) {
                 if (isExpanded) expanded.erase(nodeKey);
                 else expanded.insert(nodeKey);
@@ -129,11 +131,9 @@ namespace Diagram {
             RenderActionButtons(nodeKey, hoveredRowId, components);
         } else if (node.name == "Scene") {
             RenderCenteredIcon(ICON_FA_FOLDER);
-        } else if (node.name == "Scene") {
-            RenderCenteredIcon(ICON_FA_FOLDER);
         }
         
-        if (isExpanded && hasChildren) {
+        if ((isExpanded || isSceneRoot) && hasChildren) {
             for (const auto& child : node.children) RenderTreeNode(*child, components, depth + 1, hoveredRowId);
         }
         
