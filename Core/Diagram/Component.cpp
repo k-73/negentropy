@@ -70,8 +70,9 @@ namespace Diagram {
             ImGui::SameLine(0, 2);
         }
         
-        bool itemClicked = ImGui::Selectable((std::string(icon) + "  " + node.name).c_str(), s_selected == node.component);
-        if (itemClicked && node.component) Select(node.component);
+        if (ImGui::Selectable((std::string(icon) + "  " + node.name).c_str(), s_selected == node.component) && node.component) {
+            Select(node.component);
+        }
         
         if (node.component && ImGui::BeginDragDropSource()) {
             ImGui::SetDragDropPayload("COMPONENT_DND", &node.component, sizeof(void*));
@@ -80,29 +81,25 @@ namespace Diagram {
         }
         
         if (ImGui::BeginDragDropTarget()) {
-            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT_DND")) {
-                ComponentBase* draggedComponent = static_cast<ComponentBase**>(payload->Data)[0];
-                if (draggedComponent && draggedComponent != node.component) {
-                    auto draggedIt = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == draggedComponent; });
-                    auto targetIt = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == node.component; });
-                    
+            if (const auto* payload = ImGui::AcceptDragDropPayload("COMPONENT_DND")) {
+                auto* dragged = static_cast<ComponentBase**>(payload->Data)[0];
+                if (dragged && dragged != node.component) {
+                    auto draggedIt = std::ranges::find_if(*components, [dragged](const auto& c) { return c.get() == dragged; });
                     if (draggedIt != components->end()) {
-                        size_t draggedIndex = std::distance(components->begin(), draggedIt);
-                        size_t targetIndex = node.component && targetIt != components->end() ? 
-                                           std::distance(components->begin(), targetIt) : components->size();
+                        auto targetIt = node.component ? std::ranges::find_if(*components, [&](const auto& c) { return c.get() == node.component; }) : components->end();
+                        
+                        ptrdiff_t draggedIdx = std::distance(components->begin(), draggedIt);
+                        ptrdiff_t targetIdx = targetIt != components->end() ? std::distance(components->begin(), targetIt) : static_cast<ptrdiff_t>(components->size());
                         
                         auto draggedPtr = std::move(*draggedIt);
                         components->erase(draggedIt);
                         
-                        if (node.component) {
-                            if (draggedIndex < targetIndex) {
-                                size_t insertPos = targetIndex;
-                                components->insert(components->begin() + insertPos, std::move(draggedPtr));
-                            } else if (draggedIndex > targetIndex) {
-                                components->insert(components->begin() + targetIndex, std::move(draggedPtr));
-                            }
-                        } else {
+                        if (!node.component) {
                             components->insert(components->begin(), std::move(draggedPtr));
+                        } else if (draggedIdx < targetIdx) {
+                            components->insert(components->begin() + targetIdx, std::move(draggedPtr));
+                        } else {
+                            components->insert(components->begin() + targetIdx, std::move(draggedPtr));
                         }
                     }
                 }
@@ -113,14 +110,14 @@ namespace Diagram {
         ImGui::Unindent(static_cast<float>(depth) * TREE_INDENT);
         ImGui::TableNextColumn();
         
+        // Delete button
         if (node.component) {
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{});
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.2f, 0.2f, 0.3f));
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.9f, 0.3f, 0.3f, 0.5f));
             
             if (ImGui::SmallButton(ICON_FA_TRASH "##trash")) {
-                auto it = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == node.component; });
-                if (it != components->end()) {
+                if (auto it = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == node.component; }); it != components->end()) {
                     if (s_selected == node.component) ClearSelection();
                     components->erase(it);
                     ImGui::PopStyleColor(3);
@@ -131,12 +128,11 @@ namespace Diagram {
             ImGui::PopStyleColor(3);
         }
         
+        // Render children
         if (isExpanded && hasChildren) {
-            depth++;
-            for (auto& child : node.children) {
-                RenderTreeNode(*child, components);
-            }
-            depth--;
+            ++depth;
+            for (const auto& child : node.children) RenderTreeNode(*child, components);
+            --depth;
         }
         
         ImGui::PopID();
