@@ -45,7 +45,9 @@ public:
 
     const std::map<std::string, std::string>& GetGroups() const noexcept { return m_groups; }
     const std::map<std::string, std::string>& GetGroupNames() const noexcept { return m_groupNames; }
+    const std::map<std::string, bool>& GetGroupExpanded() const noexcept { return m_groupExpanded; }
     void UpdateGroups(const std::map<std::string, std::string>& groups) noexcept { m_groups = groups; }
+    void UpdateGroupExpanded(const std::map<std::string, bool>& expanded) noexcept { m_groupExpanded = expanded; }
 
     void AddBlock(bool useCursorPosition = false, SDL_Window* window = nullptr) noexcept;
 
@@ -61,4 +63,5 @@ private:
     Diagram::Grid m_grid;
     std::map<std::string, std::string> m_groups;
     std::map<std::string, std::string> m_groupNames;
+    std::map<std::string, bool> m_groupExpanded;
 };

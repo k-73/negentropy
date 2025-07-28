@@ -14,13 +14,23 @@ namespace Diagram {
     ComponentBase* ComponentBase::s_selected = nullptr;
     std::map<std::string, std::string> ComponentBase::s_groupParents;
     std::map<std::string, std::string> ComponentBase::s_groupNames;
+    std::map<std::string, bool> ComponentBase::s_groupExpanded;
     std::function<void(const std::map<std::string, std::string>&)> ComponentBase::s_onGroupsChanged;
+    std::function<void(const std::map<std::string, bool>&)> ComponentBase::s_onExpandedChanged;
 
-    void ComponentBase::RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& components, const std::map<std::string, std::string>& groups, const std::map<std::string, std::string>& groupNames, std::function<void(const std::map<std::string, std::string>&)> onGroupsChanged) noexcept {
+    void ComponentBase::RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& components, const std::map<std::string, std::string>& groups, const std::map<std::string, std::string>& groupNames, std::function<void(const std::map<std::string, std::string>&)> onGroupsChanged, const std::map<std::string, bool>& groupExpanded, std::function<void(const std::map<std::string, bool>&)> onExpandedChanged) noexcept {
         s_groupParents = groups;
         s_groupNames = groupNames;
+        s_groupExpanded = groupExpanded;
         s_onGroupsChanged = onGroupsChanged;
+        s_onExpandedChanged = onExpandedChanged;
+        
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.2f, 0.2f, 0.2f, 0.8f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.25f, 0.25f, 0.25f, 0.8f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.3f, 0.3f, 0.3f, 0.8f));
+        
         if (!ImGui::Begin("Component Tree")) {
+            ImGui::PopStyleColor(3);
             ImGui::End();
             return;
         }
@@ -37,6 +47,7 @@ namespace Diagram {
 
             ImGui::EndTable();
         }
+        ImGui::PopStyleColor(3);
         ImGui::End();
     }
 
@@ -59,13 +70,19 @@ namespace Diagram {
 
     void ComponentBase::RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components, int depth, std::string& hoveredRowId) noexcept {
         static constexpr float TREE_INDENT = 4.0f;
-        static std::set<std::string> expanded;
 
         const char* icon = node.component ? ICON_FA_CUBE : (node.isGroup ? ICON_FA_FOLDER : ICON_FA_SITEMAP);
 
         std::string nodeKey = node.name + std::to_string(reinterpret_cast<uintptr_t>(node.component)) + (node.isGroup ? "_group" : "");
         bool hasChildren = !node.children.empty();
-        bool isExpanded = expanded.contains(nodeKey) || (node.name == "Scene" && expanded.empty());
+        bool isExpanded = false;
+        
+        if (node.isGroup) {
+            isExpanded = s_groupExpanded.contains(node.groupId) ? s_groupExpanded[node.groupId] : true;
+        } else if (node.name == "Scene" && depth == 0) {
+            isExpanded = true;
+        }
+        
         bool isSceneRoot = node.name == "Scene" && depth == 0;
         
         ImGui::PushID(nodeKey.c_str());
@@ -77,8 +94,10 @@ namespace Diagram {
         if (hasChildren && !isSceneRoot) {
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
             if (ImGui::ArrowButton("##expand", isExpanded ? ImGuiDir_Down : ImGuiDir_Right)) {
-                if (isExpanded) expanded.erase(nodeKey);
-                else expanded.insert(nodeKey);
+                if (node.isGroup) {
+                    s_groupExpanded[node.groupId] = !isExpanded;
+                    if (s_onExpandedChanged) s_onExpandedChanged(s_groupExpanded);
+                }
             }
             ImGui::PopStyleVar();
             ImGui::SameLine(0, 2);
@@ -88,13 +107,21 @@ namespace Diagram {
         }
         
         std::string displayText = " " + std::string(icon) + "  " + node.name;
-        bool selectableClicked = ImGui::Selectable(displayText.c_str(), s_selected == node.component, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap);
+        bool isSelected = node.component && s_selected == node.component;
+        bool selectableClicked = ImGui::Selectable(displayText.c_str(), isSelected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap);
         bool nameHovered = ImGui::IsItemHovered();
         
         if (selectableClicked && node.component) {
             Select(node.component);
         } else if (selectableClicked && node.isGroup) {
             ClearSelection();
+        }
+        
+        if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && (node.isGroup || node.name == "Scene") && hasChildren) {
+            if (node.isGroup) {
+                s_groupExpanded[node.groupId] = !isExpanded;
+                if (s_onExpandedChanged) s_onExpandedChanged(s_groupExpanded);
+            }
         }
         
         if (node.component && ImGui::BeginDragDropSource()) {

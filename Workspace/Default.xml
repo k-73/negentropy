@@ -10,7 +10,7 @@
 		<visible>true</visible>
 	</Grid>
 	<Root>
-		<Group id="group1" name="UI Components">
+		<Group id="group1" name="UI Components" expanded="false">
 			<Component id="comp100455245031760" type="Block">
 				<position x="15" y="10" />
 				<size x="10" y="5" />
@@ -20,8 +20,8 @@
 				<borderColor x="0.0700000003" y="0.0700000003" z="0.0700000003" w="1" />
 			</Component>
 		</Group>
-		<Group id="group2" name="Nested Group">
-			<Group id="group3" name="Logic Components" />
+		<Group id="group2" name="Nested Group" expanded="false">
+			<Group id="group3" name="Logic Components" expanded="true" />
 		</Group>
 		<Component id="StartID" type="Block">
 			<position x="30" y="10" />

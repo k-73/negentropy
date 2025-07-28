@@ -70,6 +70,7 @@ void DiagramData::LoadHierarchy(pugi::xml_node node, const std::string& parentGr
             std::string id = child.attribute("id").as_string();
             m_groups[id] = parentGroupId;
             m_groupNames[id] = child.attribute("name").as_string();
+            m_groupExpanded[id] = child.attribute("expanded").as_bool(true);
             LoadHierarchy(child, id);
         } else if (strcmp(child.name(), "Component") == 0) {
             if (auto component = CreateComponent(child.attribute("type").as_string())) {
@@ -88,6 +89,7 @@ void DiagramData::SaveHierarchy(pugi::xml_node node, const std::string& groupId)
             auto groupNode = node.append_child("Group");
             groupNode.append_attribute("id").set_value(id.c_str());
             groupNode.append_attribute("name").set_value(m_groupNames.contains(id) ? m_groupNames.at(id).c_str() : id.c_str());
+            groupNode.append_attribute("expanded").set_value(m_groupExpanded.contains(id) ? m_groupExpanded.at(id) : true);
             SaveHierarchy(groupNode, id);
         }
     }

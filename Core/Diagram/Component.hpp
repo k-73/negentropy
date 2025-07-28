@@ -46,7 +46,7 @@ namespace Diagram {
         static void Select(ComponentBase* component) noexcept { s_selected = component; }
         static void ClearSelection() noexcept { s_selected = nullptr; }
         
-        static void RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& components, const std::map<std::string, std::string>& groups = {}, const std::map<std::string, std::string>& groupNames = {}, std::function<void(const std::map<std::string, std::string>&)> onGroupsChanged = nullptr) noexcept;
+        static void RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& components, const std::map<std::string, std::string>& groups = {}, const std::map<std::string, std::string>& groupNames = {}, std::function<void(const std::map<std::string, std::string>&)> onGroupsChanged = nullptr, const std::map<std::string, bool>& groupExpanded = {}, std::function<void(const std::map<std::string, bool>&)> onExpandedChanged = nullptr) noexcept;
         static void RenderComponentEditor() noexcept;
         
     private:
@@ -61,7 +61,9 @@ namespace Diagram {
         
         static std::map<std::string, std::string> s_groupParents;
         static std::map<std::string, std::string> s_groupNames;
+        static std::map<std::string, bool> s_groupExpanded;
         static std::function<void(const std::map<std::string, std::string>&)> s_onGroupsChanged;
+        static std::function<void(const std::map<std::string, bool>&)> s_onExpandedChanged;
     };
     
     template<typename T>
