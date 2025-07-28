@@ -9,14 +9,14 @@ namespace Diagram {
     ComponentBase* ComponentBase::s_selected = nullptr;
 
     void ComponentBase::RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& components) noexcept {
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(-8.0f, 0.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 8.0f));
 
         if (!ImGui::Begin("Component Tree")) {
             ImGui::End();
             return;
         }
 
-        if (ImGui::BeginTable("TreeTable", 2, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoPadInnerX)) {
+        if (ImGui::BeginTable("TreeTable", 2, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_RowBg)) {
             ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
             ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 24.0f);
             
@@ -73,7 +73,10 @@ namespace Diagram {
             ImGui::SameLine(0, 2);
         }
         
-        if (ImGui::Selectable((" "  + std::string(icon) + "  " + node.name).c_str(), s_selected == node.component) && node.component) {
+        bool selectableClicked = ImGui::Selectable((" "  + std::string(icon) + "  " + node.name).c_str(), s_selected == node.component);
+        bool nameHovered = ImGui::IsItemHovered();
+        
+        if (selectableClicked && node.component) {
             Select(node.component);
         }
         
@@ -113,22 +116,29 @@ namespace Diagram {
         ImGui::Unindent(static_cast<float>(depth) * TREE_INDENT);
         ImGui::TableNextColumn();
         
-        // Action buttons
+        // Check if Actions column is hovered
+        ImVec2 colMin = ImGui::GetCursorScreenPos();
+        ImVec2 colMax = ImVec2(colMin.x + ImGui::GetContentRegionAvail().x, colMin.y + ImGui::GetFrameHeight());
+        bool actionsHovered = ImGui::IsMouseHoveringRect(colMin, colMax);
+        
+        // Action buttons - only show on hover
         if (node.component) {
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{});
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.2f, 0.2f, 0.3f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.9f, 0.3f, 0.3f, 0.5f));
+            if (nameHovered || actionsHovered) {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{});
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.2f, 0.2f, 0.3f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.9f, 0.3f, 0.3f, 0.5f));
 
-            if (ImGui::SmallButton(ICON_FA_TRASH "##trash")) {
-                if (auto it = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == node.component; }); it != components->end()) {
-                    if (s_selected == node.component) ClearSelection();
-                    components->erase(it);
-                    ImGui::PopStyleColor(3);
-                    ImGui::PopID();
-                    return;
+                if (ImGui::SmallButton(ICON_FA_TRASH "##trash")) {
+                    if (auto it = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == node.component; }); it != components->end()) {
+                        if (s_selected == node.component) ClearSelection();
+                        components->erase(it);
+                        ImGui::PopStyleColor(3);
+                        ImGui::PopID();
+                        return;
+                    }
                 }
+                ImGui::PopStyleColor(3);
             }
-            ImGui::PopStyleColor(3);
         } else {
             // Scene icon
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
