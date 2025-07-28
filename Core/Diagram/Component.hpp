@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <cxxabi.h>
 #include <map>
+#include <functional>
 
 namespace Diagram {
     struct Camera;
@@ -51,7 +52,7 @@ namespace Diagram {
         static void Select(ComponentBase* component) noexcept { s_selected = component; }
         static void ClearSelection() noexcept { s_selected = nullptr; }
         
-        static void RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& components) noexcept;
+        static void RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& components, const std::map<std::string, std::string>& groups = {}, const std::map<std::string, std::string>& groupNames = {}, std::function<void(const std::map<std::string, std::string>&)> onGroupsChanged = nullptr) noexcept;
         static void RenderComponentEditor() noexcept;
         
     private:
@@ -64,8 +65,9 @@ namespace Diagram {
         static std::unique_ptr<TreeNode> BuildHierarchy(const std::vector<std::unique_ptr<ComponentBase>>& components) noexcept;
         static bool IsGroupDescendant(const std::string& groupId, const std::string& potentialAncestor) noexcept;
         
-        static std::map<ComponentBase*, std::string> s_componentGroups;
         static std::map<std::string, std::string> s_groupParents;
+        static std::map<std::string, std::string> s_groupNames;
+        static std::function<void(const std::map<std::string, std::string>&)> s_onGroupsChanged;
     };
     
     template<typename T>

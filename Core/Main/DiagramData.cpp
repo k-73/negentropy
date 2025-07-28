@@ -32,8 +32,10 @@ void DiagramData::Load(const std::string& filePath) {
     if (auto groupsNode = diagram.child("Groups")) {
         for (auto groupNode : groupsNode.children("Group")) {
             auto id = groupNode.attribute("id").as_string();
+            auto name = groupNode.attribute("name").as_string();
             auto parent = groupNode.attribute("parent").as_string();
             m_groups[id] = parent;
+            m_groupNames[id] = name;
         }
     }
 
@@ -67,15 +69,10 @@ void DiagramData::Save(const std::string& filePath) const {
 
     if (!m_groups.empty()) {
         auto groupsNode = diagram.append_child("Groups");
-        std::map<std::string, std::string> groupNames = {
-            {"group1", "UI Components"},
-            {"group2", "Nested Group"},
-            {"group3", "Logic Components"}
-        };
         for (const auto& [id, parent] : m_groups) {
             auto groupNode = groupsNode.append_child("Group");
             groupNode.append_attribute("id").set_value(id.c_str());
-            groupNode.append_attribute("name").set_value(groupNames.contains(id) ? groupNames[id].c_str() : id.c_str());
+            groupNode.append_attribute("name").set_value(m_groupNames.contains(id) ? m_groupNames.at(id).c_str() : id.c_str());
             groupNode.append_attribute("parent").set_value(parent.c_str());
         }
     }

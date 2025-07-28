@@ -43,6 +43,10 @@ public:
     const Diagram::Grid& GetGrid() const noexcept { return m_grid; }
     Diagram::Grid& GetGrid() noexcept { return m_grid; }
 
+    const std::map<std::string, std::string>& GetGroups() const noexcept { return m_groups; }
+    const std::map<std::string, std::string>& GetGroupNames() const noexcept { return m_groupNames; }
+    void UpdateGroups(const std::map<std::string, std::string>& groups) noexcept { m_groups = groups; }
+
     void AddBlock(bool useCursorPosition = false, SDL_Window* window = nullptr) noexcept;
 
 private:
@@ -54,4 +58,5 @@ private:
     Diagram::Camera m_camera;
     Diagram::Grid m_grid;
     std::map<std::string, std::string> m_groups;
+    std::map<std::string, std::string> m_groupNames;
 };

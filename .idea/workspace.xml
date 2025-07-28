@@ -32,8 +32,9 @@
   <component name="ChangeListManager">
     <list default="true" id="122315c9-d864-4069-a5d2-bcec3a6e27d5" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Core/Diagram/Block.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Diagram/Block.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Core/Diagram/Component.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Diagram/Component.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Core/Diagram/Component.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Diagram/Component.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Core/Main/Application.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Main/Application.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Core/Main/DiagramData.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Main/DiagramData.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Core/Main/DiagramData.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Main/DiagramData.hpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Workspace/Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Workspace/Default.xml" afterDir="false" />

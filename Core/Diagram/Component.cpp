@@ -11,10 +11,14 @@
 
 namespace Diagram {
     ComponentBase* ComponentBase::s_selected = nullptr;
-    std::map<ComponentBase*, std::string> ComponentBase::s_componentGroups;
     std::map<std::string, std::string> ComponentBase::s_groupParents;
+    std::map<std::string, std::string> ComponentBase::s_groupNames;
+    std::function<void(const std::map<std::string, std::string>&)> ComponentBase::s_onGroupsChanged;
 
-    void ComponentBase::RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& components) noexcept {
+    void ComponentBase::RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& components, const std::map<std::string, std::string>& groups, const std::map<std::string, std::string>& groupNames, std::function<void(const std::map<std::string, std::string>&)> onGroupsChanged) noexcept {
+        s_groupParents = groups;
+        s_groupNames = groupNames;
+        s_onGroupsChanged = onGroupsChanged;
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 8.0f));
 
         if (!ImGui::Begin("Component Tree")) {
@@ -126,11 +130,13 @@ namespace Diagram {
                 if (draggedGroupId != node.groupId && !draggedGroupId.empty()) {
                     if (node.isGroup && !IsGroupDescendant(node.groupId, draggedGroupId) && !IsGroupDescendant(draggedGroupId, node.groupId)) {
                         s_groupParents[draggedGroupId] = node.groupId;
+                        if (s_onGroupsChanged) s_onGroupsChanged(s_groupParents);
                         Notify::Success("Group moved to: " + node.name);
                     } else if (node.component) {
                         const std::string& targetGroup = node.component->groupId;
                         if (!IsGroupDescendant(targetGroup, draggedGroupId)) {
                             s_groupParents[draggedGroupId] = targetGroup;
+                            if (s_onGroupsChanged) s_onGroupsChanged(s_groupParents);
                             if (targetGroup.empty()) {
                                 Notify::Success("Group moved to Scene (via component)");
                             } else {
@@ -141,6 +147,7 @@ namespace Diagram {
                         }
                     } else if (node.name == "Scene") {
                         s_groupParents[draggedGroupId] = "";
+                        if (s_onGroupsChanged) s_onGroupsChanged(s_groupParents);
                         Notify::Success("Group moved to Scene");
                     }
                 }
@@ -307,31 +314,12 @@ namespace Diagram {
     std::unique_ptr<ComponentBase::TreeNode> ComponentBase::BuildHierarchy(const std::vector<std::unique_ptr<ComponentBase>>& components) noexcept {
         auto root = std::make_unique<TreeNode>("Scene");
         
-        if (s_componentGroups.empty() && s_groupParents.empty()) {
-            s_groupParents["group1"] = "";
-            s_groupParents["group2"] = "group1";
-            s_groupParents["group3"] = "";
-            
-            for (size_t i = 0; i < components.size() && i < 6; ++i) {
-                if (i < 2) {
-                    s_componentGroups[components[i].get()] = "group1";
-                } else if (i < 4) {
-                    s_componentGroups[components[i].get()] = "group2";
-                } else {
-                    s_componentGroups[components[i].get()] = "group3";
-                }
-            }
-        }
         
         std::map<std::string, TreeNode*> groupNodes;
         std::vector<std::unique_ptr<TreeNode>> allGroups;
         
         for (const auto& [groupId, parentId] : s_groupParents) {
-            std::string groupName = groupId;
-            if (groupId == "group1") groupName = "UI Components";
-            else if (groupId == "group2") groupName = "Nested Group";
-            else if (groupId == "group3") groupName = "Logic Components";
-            
+            std::string groupName = s_groupNames.contains(groupId) ? s_groupNames[groupId] : groupId;
             auto groupNode = std::make_unique<TreeNode>(groupName, nullptr, true, groupId);
             groupNodes[groupId] = groupNode.get();
             allGroups.push_back(std::move(groupNode));
