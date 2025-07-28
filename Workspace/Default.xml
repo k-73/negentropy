@@ -9,43 +9,44 @@
 		<largeStep>5</largeStep>
 		<visible>true</visible>
 	</Grid>
-	<Groups>
-		<Group id="group1" name="UI Components" parent="" />
-		<Group id="group2" name="Nested Group" parent="group1" />
-		<Group id="group3" name="Logic Components" parent="group2" />
-	</Groups>
-	<Components>
-		<Block>
-			<position x="30" y="-0" />
-			<size x="10" y="5" />
-			<label>Block 31</label>
-			<type>Process</type>
-			<backgroundColor x="0.800000012" y="0.330000013" z="0.0799999982" w="0.699999988" />
-			<borderColor x="0.0700000003" y="0.0700000003" z="0.0700000003" w="1" />
-		</Block>
-		<Block>
-			<position x="30" y="10" />
-			<size x="10" y="10" />
-			<label>Start</label>
-			<type>Process</type>
-			<backgroundColor x="1" y="0" z="0" w="0.247058824" />
-			<borderColor x="1" y="0" z="0" w="1" />
-		</Block>
-		<Block groupId="group3">
-			<position x="15" y="-0" />
-			<size x="10" y="5" />
-			<label>Block 4</label>
-			<type>Process</type>
-			<backgroundColor x="0.800000012" y="0.330000013" z="0.0799999982" w="0.699999988" />
-			<borderColor x="0.0700000003" y="0.0700000003" z="0.0700000003" w="1" />
-		</Block>
-		<Block groupId="group3">
+	<Root>
+		<Group id="group1" name="UI Components">
+			<Group id="group2" name="Nested Group">
+				<Group id="group3" name="Logic Components">
+					<Component id="comp108185569548320" type="Block">
+						<position x="30" y="-0" />
+						<size x="10" y="5" />
+						<label>Block 31</label>
+						<type>Process</type>
+						<backgroundColor x="0.800000012" y="0.330000013" z="0.0799999982" w="0.699999988" />
+						<borderColor x="0.0700000003" y="0.0700000003" z="0.0700000003" w="1" />
+					</Component>
+				</Group>
+			</Group>
+			<Component id="comp108185569548640" type="Block">
+				<position x="15" y="-0" />
+				<size x="10" y="5" />
+				<label>Block 4</label>
+				<type>Process</type>
+				<backgroundColor x="0.800000012" y="0.330000013" z="0.0799999982" w="0.699999988" />
+				<borderColor x="0.0700000003" y="0.0700000003" z="0.0700000003" w="1" />
+			</Component>
+		</Group>
+		<Component id="comp108185569548480" type="Block">
 			<position x="15" y="10" />
 			<size x="10" y="5" />
 			<label>Block 3</label>
 			<type>Process</type>
 			<backgroundColor x="0.800000012" y="0.330000013" z="0.0799999982" w="0.699999988" />
 			<borderColor x="0.0700000003" y="0.0700000003" z="0.0700000003" w="1" />
-		</Block>
-	</Components>
+		</Component>
+		<Component id="comp108185569548160" type="Block">
+			<position x="30" y="10" />
+			<size x="10" y="10" />
+			<label>Start</label>
+			<type>Process</type>
+			<backgroundColor x="1" y="0" z="0" w="0.247058824" />
+			<borderColor x="1" y="0" z="0" w="1" />
+		</Component>
+	</Root>
 </Diagram>

@@ -29,27 +29,17 @@ void DiagramData::Load(const std::string& filePath) {
         m_grid.xml_deserialize(gridNode);
     }
 
-    if (auto groupsNode = diagram.child("Groups")) {
-        for (auto groupNode : groupsNode.children("Group")) {
-            auto id = groupNode.attribute("id").as_string();
-            auto name = groupNode.attribute("name").as_string();
-            auto parent = groupNode.attribute("parent").as_string();
-            m_groups[id] = parent;
-            m_groupNames[id] = name;
-        }
+    if (auto rootNode = diagram.child("Root")) {
+        LoadHierarchy(rootNode, "");
     }
-
-    auto loadComponents = [&](pugi::xml_node parent) {
-        for (pugi::xml_node componentNode : parent.children()) {
+    
+    if (auto componentsNode = diagram.child("Components")) {
+        for (pugi::xml_node componentNode : componentsNode.children()) {
             if (auto component = CreateComponent(componentNode.name())) {
                 component->xml_deserialize(componentNode);
                 m_components.push_back(std::move(component));
             }
         }
-    };
-
-    if (auto componentsNode = diagram.child("Components")) {
-        loadComponents(componentsNode);
     }
 }
 
@@ -67,22 +57,9 @@ void DiagramData::Save(const std::string& filePath) const {
     auto gridNode = diagram.append_child("Grid");
     m_grid.xml_serialize(gridNode);
 
-    if (!m_groups.empty()) {
-        auto groupsNode = diagram.append_child("Groups");
-        for (const auto& [id, parent] : m_groups) {
-            auto groupNode = groupsNode.append_child("Group");
-            groupNode.append_attribute("id").set_value(id.c_str());
-            groupNode.append_attribute("name").set_value(m_groupNames.contains(id) ? m_groupNames.at(id).c_str() : id.c_str());
-            groupNode.append_attribute("parent").set_value(parent.c_str());
-        }
-    }
+    auto rootNode = diagram.append_child("Root");
+    SaveHierarchy(rootNode, "");
 
-    auto componentsNode = diagram.append_child("Components");
-    for (const auto& component : m_components) {
-        auto typeName = component->GetTypeName();
-        auto componentNode = componentsNode.append_child(typeName.c_str());
-        component->xml_serialize(componentNode);
-    }
 
     if(doc.save_file(filePath.c_str())) {
         Notify::Success("Diagram saved successfully!");
@@ -94,6 +71,62 @@ void DiagramData::Save(const std::string& filePath) const {
 std::unique_ptr<Diagram::ComponentBase> DiagramData::CreateComponent(const std::string& type) const {
     if (type == "Block") return std::make_unique<Diagram::Block>();
     return nullptr;
+}
+
+void DiagramData::LoadHierarchy(pugi::xml_node node, const std::string& parentGroupId) {
+    for (auto child : node.children()) {
+        if (strcmp(child.name(), "Group") == 0) {
+            auto id = child.attribute("id").as_string();
+            auto name = child.attribute("name").as_string();
+            m_groups[id] = parentGroupId;
+            m_groupNames[id] = name;
+            LoadHierarchy(child, id);
+        } else if (strcmp(child.name(), "Component") == 0) {
+            auto type = child.attribute("type").as_string();
+            if (auto component = CreateComponent(type)) {
+                component->groupId = parentGroupId;
+                component->xml_deserialize(child);
+                m_components.push_back(std::move(component));
+            }
+        }
+    }
+}
+
+void DiagramData::SaveHierarchy(pugi::xml_node node, const std::string& groupId) const {
+    std::vector<std::pair<std::string, std::string>> groupsInOrder;
+    std::vector<Diagram::ComponentBase*> componentsInOrder;
+    
+    for (const auto& [id, parent] : m_groups) {
+        if (parent == groupId) {
+            groupsInOrder.emplace_back(id, m_groupNames.contains(id) ? m_groupNames.at(id) : id);
+        }
+    }
+    
+    for (const auto& component : m_components) {
+        if (component->groupId == groupId) {
+            componentsInOrder.push_back(component.get());
+        }
+    }
+    
+    std::sort(groupsInOrder.begin(), groupsInOrder.end(), [&](const auto& a, const auto& b) {
+        auto itA = std::ranges::find_if(m_components, [&](const auto& c) { return c->groupId == a.first; });
+        auto itB = std::ranges::find_if(m_components, [&](const auto& c) { return c->groupId == b.first; });
+        return itA < itB;
+    });
+    
+    for (const auto& [id, name] : groupsInOrder) {
+        auto groupNode = node.append_child("Group");
+        groupNode.append_attribute("id").set_value(id.c_str());
+        groupNode.append_attribute("name").set_value(name.c_str());
+        SaveHierarchy(groupNode, id);
+    }
+    
+    for (const auto& component : componentsInOrder) {
+        auto componentNode = node.append_child("Component");
+        componentNode.append_attribute("id").set_value(("comp" + std::to_string(reinterpret_cast<uintptr_t>(component))).c_str());
+        componentNode.append_attribute("type").set_value(component->GetTypeName().c_str());
+        component->xml_serialize(componentNode);
+    }
 }
 
 void DiagramData::AddBlock(bool useCursorPosition, SDL_Window* window) noexcept

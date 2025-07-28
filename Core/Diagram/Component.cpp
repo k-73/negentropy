@@ -117,8 +117,19 @@ namespace Diagram {
                         dragged->groupId = node.groupId;
                         Notify::Success("Component moved to group: " + node.name);
                     } else if (node.component) {
-                        dragged->groupId = node.component->groupId;
-                        Notify::Success("Component moved");
+                        auto draggedIt = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == dragged; });
+                        auto targetIt = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == node.component; });
+                        
+                        if (draggedIt != components->end() && targetIt != components->end()) {
+                            std::string draggedGroupId = dragged->groupId;
+                            std::string targetGroupId = node.component->groupId;
+                            
+                            dragged->groupId = targetGroupId;
+                            node.component->groupId = draggedGroupId;
+                            
+                            std::swap(*draggedIt, *targetIt);
+                            Notify::Success("Components swapped positions and groups");
+                        }
                     } else if (node.name == "Scene") {
                         dragged->groupId.clear();
                         Notify::Success("Component moved to Scene");

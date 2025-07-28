@@ -53,6 +53,8 @@ private:
     inline static DiagramData* s_instance = nullptr;
     
     std::unique_ptr<Diagram::ComponentBase> CreateComponent(const std::string& type) const;
+    void LoadHierarchy(pugi::xml_node node, const std::string& parentGroupId);
+    void SaveHierarchy(pugi::xml_node node, const std::string& groupId) const;
     
     std::vector<std::unique_ptr<Diagram::ComponentBase>> m_components;
     Diagram::Camera m_camera;
