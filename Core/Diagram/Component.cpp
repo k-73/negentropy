@@ -124,12 +124,22 @@ namespace Diagram {
             }
             if (const auto* payload = ImGui::AcceptDragDropPayload("GROUP_DND")) {
                 std::string draggedGroupId(static_cast<const char*>(payload->Data));
-                if (draggedGroupId != node.groupId) {
-                    if (node.isGroup && !IsGroupDescendant(draggedGroupId, node.groupId)) {
+                if (draggedGroupId != node.groupId && !draggedGroupId.empty()) {
+                    if (node.isGroup && !IsGroupDescendant(node.groupId, draggedGroupId) && !IsGroupDescendant(draggedGroupId, node.groupId)) {
                         s_groupParents[draggedGroupId] = node.groupId;
                         Notify::Success("Group moved to: " + node.name);
                     } else if (node.component) {
-                        Notify::Warning("Cannot move group to a component!");
+                        std::string targetGroup = s_componentGroups.contains(node.component) ? s_componentGroups[node.component] : "";
+                        if (!IsGroupDescendant(node.component ? targetGroup : "", draggedGroupId)) {
+                            s_groupParents[draggedGroupId] = targetGroup;
+                            if (targetGroup.empty()) {
+                                Notify::Success("Group moved to Scene (via component)");
+                            } else {
+                                Notify::Success("Group moved to component's group");
+                            }
+                        } else {
+                            Notify::Warning("Cannot create circular group dependency!");
+                        }
                     } else if (node.name == "Scene") {
                         s_groupParents[draggedGroupId] = "";
                         Notify::Success("Group moved to Scene");
