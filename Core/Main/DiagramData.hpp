@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <map>
 #include "../Diagram/Component.hpp"
 #include "../Diagram/Block.hpp"
 #include "../Diagram/Camera.hpp"
@@ -52,4 +53,5 @@ private:
     std::vector<std::unique_ptr<Diagram::ComponentBase>> m_components;
     Diagram::Camera m_camera;
     Diagram::Grid m_grid;
+    std::map<std::string, std::string> m_groups;
 };

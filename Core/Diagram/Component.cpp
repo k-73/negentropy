@@ -110,14 +110,13 @@ namespace Diagram {
                 auto* dragged = static_cast<ComponentBase**>(payload->Data)[0];
                 if (dragged && dragged != node.component) {
                     if (node.isGroup) {
-                        s_componentGroups[dragged] = node.groupId;
+                        dragged->groupId = node.groupId;
                         Notify::Success("Component moved to group: " + node.name);
                     } else if (node.component) {
-                        std::string targetGroup = s_componentGroups.contains(node.component) ? s_componentGroups[node.component] : "";
-                        s_componentGroups[dragged] = targetGroup;
+                        dragged->groupId = node.component->groupId;
                         Notify::Success("Component moved");
                     } else if (node.name == "Scene") {
-                        s_componentGroups.erase(dragged);
+                        dragged->groupId.clear();
                         Notify::Success("Component moved to Scene");
                     }
                 }
@@ -129,8 +128,8 @@ namespace Diagram {
                         s_groupParents[draggedGroupId] = node.groupId;
                         Notify::Success("Group moved to: " + node.name);
                     } else if (node.component) {
-                        std::string targetGroup = s_componentGroups.contains(node.component) ? s_componentGroups[node.component] : "";
-                        if (!IsGroupDescendant(node.component ? targetGroup : "", draggedGroupId)) {
+                        const std::string& targetGroup = node.component->groupId;
+                        if (!IsGroupDescendant(targetGroup, draggedGroupId)) {
                             s_groupParents[draggedGroupId] = targetGroup;
                             if (targetGroup.empty()) {
                                 Notify::Success("Group moved to Scene (via component)");
@@ -341,10 +340,9 @@ namespace Diagram {
         for (const auto& component : components) {
             auto node = std::make_unique<TreeNode>(component->GetDisplayName(), component.get());
             
-            if (s_componentGroups.contains(component.get())) {
-                const std::string& groupId = s_componentGroups[component.get()];
-                if (groupNodes.contains(groupId)) {
-                    groupNodes[groupId]->children.push_back(std::move(node));
+            if (!component->groupId.empty()) {
+                if (groupNodes.contains(component->groupId)) {
+                    groupNodes[component->groupId]->children.push_back(std::move(node));
                 } else {
                     root->children.push_back(std::move(node));
                 }

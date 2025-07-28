@@ -17,6 +17,8 @@ namespace Diagram {
     
     class ComponentBase {
     public:
+        std::string groupId;
+        
         struct TreeNode {
             std::string name;
             ComponentBase* component = nullptr;
@@ -34,6 +36,14 @@ namespace Diagram {
         virtual void Render(SDL_Renderer* renderer, const Camera& camera, glm::vec2 screenSize) const noexcept = 0;
         virtual void xml_serialize(pugi::xml_node& node) const = 0;
         virtual void xml_deserialize(const pugi::xml_node& node) = 0;
+        
+        void serialize_base(pugi::xml_node& node) const {
+            if (!groupId.empty()) node.append_attribute("groupId").set_value(groupId.c_str());
+        }
+        
+        void deserialize_base(const pugi::xml_node& node) {
+            if (auto attr = node.attribute("groupId")) groupId = attr.as_string();
+        }
         virtual std::string GetDisplayName() const noexcept = 0;
         virtual std::string GetTypeName() const noexcept = 0;
         

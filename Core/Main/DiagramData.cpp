@@ -29,6 +29,14 @@ void DiagramData::Load(const std::string& filePath) {
         m_grid.xml_deserialize(gridNode);
     }
 
+    if (auto groupsNode = diagram.child("Groups")) {
+        for (auto groupNode : groupsNode.children("Group")) {
+            auto id = groupNode.attribute("id").as_string();
+            auto parent = groupNode.attribute("parent").as_string();
+            m_groups[id] = parent;
+        }
+    }
+
     auto loadComponents = [&](pugi::xml_node parent) {
         for (pugi::xml_node componentNode : parent.children()) {
             if (auto component = CreateComponent(componentNode.name())) {
@@ -56,6 +64,21 @@ void DiagramData::Save(const std::string& filePath) const {
 
     auto gridNode = diagram.append_child("Grid");
     m_grid.xml_serialize(gridNode);
+
+    if (!m_groups.empty()) {
+        auto groupsNode = diagram.append_child("Groups");
+        std::map<std::string, std::string> groupNames = {
+            {"group1", "UI Components"},
+            {"group2", "Nested Group"},
+            {"group3", "Logic Components"}
+        };
+        for (const auto& [id, parent] : m_groups) {
+            auto groupNode = groupsNode.append_child("Group");
+            groupNode.append_attribute("id").set_value(id.c_str());
+            groupNode.append_attribute("name").set_value(groupNames.contains(id) ? groupNames[id].c_str() : id.c_str());
+            groupNode.append_attribute("parent").set_value(parent.c_str());
+        }
+    }
 
     auto componentsNode = diagram.append_child("Components");
     for (const auto& component : m_components) {

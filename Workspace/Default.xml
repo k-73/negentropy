@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Diagram>
 	<Camera>
-		<position x="29.7457714" y="10.2594481" />
-		<zoom>13.2553806</zoom>
+		<position x="15.2809687" y="4.15910339" />
+		<zoom>10.8761711</zoom>
 	</Camera>
 	<Grid>
 		<smallStep>1</smallStep>
 		<largeStep>5</largeStep>
 		<visible>true</visible>
 	</Grid>
+	<Groups>
+		<Group id="group1" name="UI Components" parent="" />
+		<Group id="group2" name="Nested Group" parent="group1" />
+		<Group id="group3" name="Logic Components" parent="" />
+	</Groups>
 	<Components>
-		<Block>
+		<Block groupId="group1">
 			<position x="30" y="-0" />
 			<size x="10" y="5" />
 			<label>Block 31</label>
@@ -26,15 +31,15 @@
 			<backgroundColor x="1" y="0" z="0" w="0.247058824" />
 			<borderColor x="1" y="0" z="0" w="1" />
 		</Block>
-		<Block>
-			<position x="15" y="0" />
+		<Block groupId="group3">
+			<position x="15" y="-0" />
 			<size x="10" y="5" />
 			<label>Block 4</label>
 			<type>Process</type>
 			<backgroundColor x="0.800000012" y="0.330000013" z="0.0799999982" w="0.699999988" />
 			<borderColor x="0.0700000003" y="0.0700000003" z="0.0700000003" w="1" />
 		</Block>
-		<Block>
+		<Block groupId="group1">
 			<position x="15" y="10" />
 			<size x="10" y="5" />
 			<label>Block 3</label>
