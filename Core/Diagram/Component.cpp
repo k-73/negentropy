@@ -237,34 +237,16 @@ namespace Diagram {
             ImGui::TextDisabled("%s", component->GetDisplayName().c_str());
             ImGui::Separator();
             
-            static std::map<ComponentBase*, std::string> editingIds;
             static std::map<ComponentBase*, char[64]> idBuffers;
             
-            if (ImGui::MenuItem("Edit ID")) {
-                editingIds[component] = component->id;
+            if (!idBuffers.contains(component)) {
                 std::strncpy(idBuffers[component], component->id.c_str(), 63);
                 idBuffers[component][63] = '\0';
             }
             
-            if (editingIds.contains(component)) {
-                ImGui::Separator();
-                ImGui::Text("Component ID:");
-                if (ImGui::InputText("##id_input", idBuffers[component], 64, ImGuiInputTextFlags_EnterReturnsTrue)) {
-                    component->id = idBuffers[component];
-                    editingIds.erase(component);
-                    idBuffers.erase(component);
-                    ImGui::CloseCurrentPopup();
-                }
-                if (ImGui::Button("Cancel")) {
-                    editingIds.erase(component);
-                    idBuffers.erase(component);
-                }
-            } else {
-                if (ImGui::MenuItem("Rename")) { /* Action */ }
-                if (ImGui::MenuItem("Duplicate")) { /* Action */ }
-                ImGui::Separator();
-                if (ImGui::MenuItem("Copy")) { /* Action */ }
-                if (ImGui::MenuItem("Paste")) { /* Action */ }
+            ImGui::Text("Component ID:");
+            if (ImGui::InputText("##id_input", idBuffers[component], 64)) {
+                component->id = idBuffers[component];
             }
             
             ImGui::EndPopup();
@@ -320,10 +302,7 @@ namespace Diagram {
         if (ImGui::BeginPopup(popup_id.c_str())) {
             ImGui::TextDisabled("Group Actions");
             ImGui::Separator();
-            if (ImGui::MenuItem("Add Component")) { /* TODO */ }
-            if (ImGui::MenuItem("Rename Group")) { /* TODO */ }
-            ImGui::Separator();
-            if (ImGui::MenuItem("Delete Group")) { /* TODO */ }
+            ImGui::TextDisabled("No actions implemented");
             ImGui::EndPopup();
         }
     }
