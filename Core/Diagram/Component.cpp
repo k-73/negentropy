@@ -200,7 +200,9 @@ namespace Diagram {
         ImGui::SetCursorPos(ImVec2(start_x, adjusted_y));
         
         const std::string popup_id = "more_popup_" + nodeKey;
-        const bool visible = hoveredRowId == nodeKey || ImGui::IsPopupOpen(popup_id.c_str());
+        const bool popupOpen = ImGui::IsPopupOpen(popup_id.c_str());
+        static std::string activeButton;
+        const bool visible = hoveredRowId == nodeKey || popupOpen || activeButton == nodeKey;
         
         if (ImGui::InvisibleButton("##trash", btn_size1)) {
             if (auto it = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == component; }); it != components->end()) {
@@ -222,6 +224,12 @@ namespace Diagram {
         
         if (ImGui::InvisibleButton("##more", btn_size2)) {
             ImGui::OpenPopup(popup_id.c_str());
+        }
+        
+        if (ImGui::IsItemActive()) {
+            activeButton = nodeKey;
+        } else if (activeButton == nodeKey && !ImGui::IsItemHovered() && !popupOpen) {
+            activeButton.clear();
         }
         
         if (visible) {
@@ -270,7 +278,8 @@ namespace Diagram {
         ImGui::SetCursorPos(ImVec2(start_x, adjusted_y));
         
         const std::string popup_id = "group_popup_" + nodeKey;
-        const bool visible = hoveredRowId == nodeKey || ImGui::IsPopupOpen(popup_id.c_str());
+        const bool popupOpen = ImGui::IsPopupOpen(popup_id.c_str());
+        const bool visible = hoveredRowId == nodeKey || popupOpen;
         
         if (ImGui::InvisibleButton("##add", btn_size1)) {
             // TODO: Add new component to group

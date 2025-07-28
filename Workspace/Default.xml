@@ -23,7 +23,7 @@
 		<Group id="group2" name="Nested Group">
 			<Group id="group3" name="Logic Components" />
 		</Group>
-		<Component id="comp100455245031600" type="Block">
+		<Component id="StartID" type="Block">
 			<position x="30" y="10" />
 			<size x="10" y="10" />
 			<label>Start</label>

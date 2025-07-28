@@ -1,6 +1,8 @@
 #include "DiagramData.hpp"
 #include <pugixml.hpp>
 #include <iostream>
+#include <chrono>
+#include <algorithm>
 #include "../Utils/Path.hpp"
 #include "../Diagram/Block.hpp"
 #include "../Utils/Notification.hpp"
@@ -126,5 +128,22 @@ void DiagramData::AddBlock(bool useCursorPosition, SDL_Window* window) noexcept
     }
 
     newBlock->data.label = "Block " + std::to_string(blockCount + 1);
+    newBlock->id = GenerateSmartId("Block", blockCount + 1);
     m_components.push_back(std::move(newBlock));
+}
+
+std::string DiagramData::GenerateSmartId(const std::string& prefix, size_t index) const {
+    auto hasId = [&](const std::string& id) {
+        return std::ranges::any_of(m_components, [&](const auto& comp) { return comp->id == id; });
+    };
+    
+    std::string baseId = prefix + std::to_string(index);
+    if (!hasId(baseId)) return baseId;
+    
+    for (size_t suffix = 1; suffix < 1000; ++suffix) {
+        std::string candidateId = baseId + "_" + std::to_string(suffix);
+        if (!hasId(candidateId)) return candidateId;
+    }
+    
+    return baseId + "_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count() % 10000);
 }
