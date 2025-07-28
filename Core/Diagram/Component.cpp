@@ -129,35 +129,67 @@ namespace Diagram {
                 hoveredRowId = nodeKey;
             }
             
-            if (hoveredRowId == nodeKey) {
-                float columnWidth = ImGui::GetColumnWidth();
-                float buttonWidth = ImGui::CalcTextSize(ICON_FA_TRASH).x + ImGui::GetStyle().FramePadding.x * 2.0f;
-                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (columnWidth - buttonWidth) * 0.5f);
+            std::string popup_id = "more_popup_" + nodeKey;
+            if (hoveredRowId == nodeKey || ImGui::IsPopupOpen(popup_id.c_str())) {
+                // --- Configuration ---
+                const char* trash_icon = ICON_FA_TRASH;
+                const char* more_icon = ICON_FA_ELLIPSIS_H;
+                const ImGuiStyle& style = ImGui::GetStyle();
+                const float spacing = style.ItemSpacing.x / 2.0f;
 
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0, 0, 0, 0});
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0, 0, 0, 0});
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0, 0, 0, 0});
+                // --- Size Calculations ---
+                const ImVec2 trash_label_size = ImGui::CalcTextSize(trash_icon);
+                const ImVec2 more_label_size = ImGui::CalcTextSize(more_icon);
+                const float button_height = ImGui::GetFrameHeight();
+                const float button_padding = style.FramePadding.x * 2.0f;
+                const ImVec2 trash_button_size(trash_label_size.x + button_padding, button_height);
+                const ImVec2 more_button_size(more_label_size.x + button_padding, button_height);
+                const float total_width = trash_button_size.x + spacing + more_button_size.x;
 
-                bool isButtonHovered = ImGui::IsWindowHovered() && ImGui::IsMouseHoveringRect(
-                    ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), false
-                );
+                // --- Centered Positioning ---
+                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (ImGui::GetColumnWidth() - total_width) * 0.5f);
 
-                ImVec4 textColor = isButtonHovered ? ImVec4(0.9f, 0.2f, 0.2f, 1.0f) : ImGui::GetStyle().Colors[ImGuiCol_TextDisabled];
-                ImGui::PushStyleColor(ImGuiCol_Text, textColor);
-
-                bool deleted = false;
-                if (ImGui::SmallButton(ICON_FA_TRASH "##trash")) {
+                // --- Render Trash Button ---
+                if (ImGui::InvisibleButton("##trash", trash_button_size)) {
                     if (auto it = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == node.component; }); it != components->end()) {
                         if (s_selected == node.component) ClearSelection();
                         components->erase(it);
-                        deleted = true;
+                        ImGui::PopID();
+                        return;
                     }
                 }
-                ImGui::PopStyleColor(4);
+                bool trash_hovered = ImGui::IsItemHovered();
+                ImVec4 trash_textColor = trash_hovered ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImGui::GetStyle().Colors[ImGuiCol_TextDisabled];
+                ImVec2 trash_text_pos = ImGui::GetItemRectMin();
+                trash_text_pos.x += (trash_button_size.x - trash_label_size.x) * 0.5f;
+                trash_text_pos.y += (trash_button_size.y - trash_label_size.y) * 0.5f;
+                ImGui::GetWindowDrawList()->AddText(trash_text_pos, ImGui::GetColorU32(trash_textColor), trash_icon);
 
-                if (deleted) {
-                    ImGui::PopID();
-                    return;
+                ImGui::SameLine(0.0f, spacing);
+
+                // --- Render More Button ---
+                if (ImGui::InvisibleButton("##more", more_button_size)) {
+                    ImGui::OpenPopup(popup_id.c_str());
+                }
+
+                bool more_hovered = ImGui::IsItemHovered();
+                bool popup_open = ImGui::IsPopupOpen(popup_id.c_str());
+
+                ImVec4 more_textColor = (more_hovered || popup_open) ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImGui::GetStyle().Colors[ImGuiCol_TextDisabled];
+                ImVec2 more_text_pos = ImGui::GetItemRectMin();
+                more_text_pos.x += (more_button_size.x - more_label_size.x) * 0.5f;
+                more_text_pos.y += (more_button_size.y - more_label_size.y) * 0.5f;
+                ImGui::GetWindowDrawList()->AddText(more_text_pos, ImGui::GetColorU32(more_textColor), more_icon);
+
+                if (ImGui::BeginPopup(popup_id.c_str())) {
+                    ImGui::TextDisabled("%s", node.name.c_str());
+                    ImGui::Separator();
+                    if (ImGui::MenuItem("Rename")) { /* Action */ }
+                    if (ImGui::MenuItem("Duplicate")) { /* Action */ }
+                    ImGui::Separator();
+                    if (ImGui::MenuItem("Copy")) { /* Action */ }
+                    if (ImGui::MenuItem("Paste")) { /* Action */ }
+                    ImGui::EndPopup();
                 }
             }
         } else if (node.name == "Scene") {
@@ -165,7 +197,7 @@ namespace Diagram {
             float iconWidth = ImGui::CalcTextSize(ICON_FA_FOLDER).x;
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (availWidth - iconWidth) * 0.5f);
             
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
             ImGui::Text(ICON_FA_FOLDER);
             ImGui::PopStyleColor();
         }
