@@ -22,8 +22,11 @@ namespace Diagram {
             ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 28.0f);
             
             auto hierarchy = BuildHierarchy(components);
-            if (hierarchy) RenderTreeNode(*hierarchy, &components);
-            
+            if (hierarchy) {
+                std::string hoveredRowId;
+                RenderTreeNode(*hierarchy, &components, 0, hoveredRowId);
+            }
+
             ImGui::EndTable();
         }
         ImGui::End();
@@ -48,17 +51,10 @@ namespace Diagram {
         ImGui::PopStyleVar();
     }
 
-    void ComponentBase::RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components) noexcept {
+    void ComponentBase::RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components, int depth, std::string& hoveredRowId) noexcept {
         static constexpr float TREE_INDENT = 4.0f;
-        static int depth = 0;
         static std::set<std::string> expanded;
-        static std::string hoveredRowId;
-        
-        // Reset hover state when starting new tree render (depth 0)
-        if (depth == 0) {
-            hoveredRowId.clear();
-        }
-        
+
         const char* icon = node.component ? ICON_FA_CUBE : ICON_FA_SITEMAP;
         std::string nodeKey = node.name + std::to_string(reinterpret_cast<uintptr_t>(node.component));
         bool hasChildren = !node.children.empty();
@@ -135,29 +131,34 @@ namespace Diagram {
             
             if (hoveredRowId == nodeKey) {
                 float columnWidth = ImGui::GetColumnWidth();
-                ImVec2 padding = ImGui::GetStyle().FramePadding;
-                float buttonWidth = ImGui::CalcTextSize(ICON_FA_TRASH).x + padding.x * 2.0f;
-                float buttonPosX = ImGui::GetCursorPosX() + (columnWidth - buttonWidth) * 0.5f;
+                float buttonWidth = ImGui::CalcTextSize(ICON_FA_TRASH).x + ImGui::GetStyle().FramePadding.x * 2.0f;
+                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (columnWidth - buttonWidth) * 0.5f);
 
-                ImGui::SetCursorPosX(buttonPosX);
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0, 0, 0, 0});
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0, 0, 0, 0});
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0, 0, 0, 0});
 
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{});
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{});
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{});
-                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f)); // Adjust horizontal padding
+                bool isButtonHovered = ImGui::IsWindowHovered() && ImGui::IsMouseHoveringRect(
+                    ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), false
+                );
 
-                if (ImGui::Button(" " ICON_FA_TRASH "##trash")) {
+                ImVec4 textColor = isButtonHovered ? ImVec4(0.9f, 0.2f, 0.2f, 1.0f) : ImGui::GetStyle().Colors[ImGuiCol_TextDisabled];
+                ImGui::PushStyleColor(ImGuiCol_Text, textColor);
+
+                bool deleted = false;
+                if (ImGui::SmallButton(ICON_FA_TRASH "##trash")) {
                     if (auto it = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == node.component; }); it != components->end()) {
                         if (s_selected == node.component) ClearSelection();
                         components->erase(it);
-                        ImGui::PopStyleVar();
-                        ImGui::PopStyleColor(3);
-                        ImGui::PopID();
-                        return;
+                        deleted = true;
                     }
                 }
-                ImGui::PopStyleVar();
-                ImGui::PopStyleColor(3);
+                ImGui::PopStyleColor(4);
+
+                if (deleted) {
+                    ImGui::PopID();
+                    return;
+                }
             }
         } else if (node.name == "Scene") {
             float availWidth = ImGui::GetContentRegionAvail().x;
@@ -170,9 +171,7 @@ namespace Diagram {
         }
         
         if (isExpanded && hasChildren) {
-            ++depth;
-            for (const auto& child : node.children) RenderTreeNode(*child, components);
-            --depth;
+            for (const auto& child : node.children) RenderTreeNode(*child, components, depth + 1, hoveredRowId);
         }
         
         ImGui::PopID();

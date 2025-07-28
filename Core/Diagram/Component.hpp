@@ -16,6 +16,14 @@ namespace Diagram {
     
     class ComponentBase {
     public:
+        struct TreeNode {
+            std::string name;
+            ComponentBase* component = nullptr;
+            std::vector<std::unique_ptr<TreeNode>> children;
+
+            explicit TreeNode(std::string n, ComponentBase* c = nullptr) : name(std::move(n)), component(c) {}
+        };
+
         virtual ~ComponentBase() = default;
         
         virtual bool HandleEvent(const SDL_Event& event, const Camera& camera, glm::vec2 screenSize) noexcept = 0;
@@ -35,16 +43,7 @@ namespace Diagram {
     private:
         static ComponentBase* s_selected;
         
-        struct TreeNode {
-            std::string name;
-            ComponentBase* component = nullptr;
-            std::vector<std::unique_ptr<TreeNode>> children;
-            
-            explicit TreeNode(std::string n, ComponentBase* c = nullptr)
-                : name(std::move(n)), component(c) {}
-        };
-        
-        static void RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components) noexcept;
+        static void RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components, int depth, std::string& hoveredRowId) noexcept;
         static std::unique_ptr<TreeNode> BuildHierarchy(const std::vector<std::unique_ptr<ComponentBase>>& components) noexcept;
     };
     
