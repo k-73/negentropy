@@ -79,7 +79,7 @@ namespace Diagram {
         }
         
         std::string displayText = " " + std::string(icon) + "  " + node.name;
-        bool selectableClicked = ImGui::Selectable(displayText.c_str(), s_selected == node.component);
+        bool selectableClicked = ImGui::Selectable(displayText.c_str(), s_selected == node.component, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap);
         bool nameHovered = ImGui::IsItemHovered();
         
         if (selectableClicked && node.component) {
@@ -163,7 +163,6 @@ namespace Diagram {
             if (auto it = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == component; }); it != components->end()) {
                 if (s_selected == component) ClearSelection();
                 components->erase(it);
-                ImGui::PopID();
                 return;
             }
         }
