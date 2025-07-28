@@ -38,11 +38,6 @@ namespace Diagram {
         virtual void xml_serialize(pugi::xml_node& node) const = 0;
         virtual void xml_deserialize(const pugi::xml_node& node) = 0;
         
-        void serialize_base(pugi::xml_node& node) const {
-        }
-        
-        void deserialize_base(const pugi::xml_node& node) {
-        }
         virtual std::string GetDisplayName() const noexcept = 0;
         virtual std::string GetTypeName() const noexcept = 0;
         

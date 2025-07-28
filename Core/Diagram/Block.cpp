@@ -59,12 +59,10 @@ namespace Diagram {
     }
 
     void Block::xml_serialize(pugi::xml_node& node) const {
-        serialize_base(node);
         XML::auto_serialize(data, node);
     }
 
     void Block::xml_deserialize(const pugi::xml_node& node) {
-        deserialize_base(node);
         XML::auto_deserialize(data, node);
     }
 

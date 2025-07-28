@@ -32,15 +32,6 @@ void DiagramData::Load(const std::string& filePath) {
     if (auto rootNode = diagram.child("Root")) {
         LoadHierarchy(rootNode, "");
     }
-    
-    if (auto componentsNode = diagram.child("Components")) {
-        for (pugi::xml_node componentNode : componentsNode.children()) {
-            if (auto component = CreateComponent(componentNode.name())) {
-                component->xml_deserialize(componentNode);
-                m_components.push_back(std::move(component));
-            }
-        }
-    }
 }
 
 void DiagramData::Save(const std::string& filePath) const {
@@ -93,39 +84,22 @@ void DiagramData::LoadHierarchy(pugi::xml_node node, const std::string& parentGr
 }
 
 void DiagramData::SaveHierarchy(pugi::xml_node node, const std::string& groupId) const {
-    std::vector<std::pair<std::string, std::string>> groupsInOrder;
-    std::vector<Diagram::ComponentBase*> componentsInOrder;
-    
     for (const auto& [id, parent] : m_groups) {
         if (parent == groupId) {
-            groupsInOrder.emplace_back(id, m_groupNames.contains(id) ? m_groupNames.at(id) : id);
+            auto groupNode = node.append_child("Group");
+            groupNode.append_attribute("id").set_value(id.c_str());
+            groupNode.append_attribute("name").set_value(m_groupNames.contains(id) ? m_groupNames.at(id).c_str() : id.c_str());
+            SaveHierarchy(groupNode, id);
         }
     }
     
     for (const auto& component : m_components) {
         if (component->groupId == groupId) {
-            componentsInOrder.push_back(component.get());
+            auto componentNode = node.append_child("Component");
+            componentNode.append_attribute("id").set_value(("comp" + std::to_string(reinterpret_cast<uintptr_t>(component.get()))).c_str());
+            componentNode.append_attribute("type").set_value(component->GetTypeName().c_str());
+            component->xml_serialize(componentNode);
         }
-    }
-    
-    std::sort(groupsInOrder.begin(), groupsInOrder.end(), [&](const auto& a, const auto& b) {
-        auto itA = std::ranges::find_if(m_components, [&](const auto& c) { return c->groupId == a.first; });
-        auto itB = std::ranges::find_if(m_components, [&](const auto& c) { return c->groupId == b.first; });
-        return itA < itB;
-    });
-    
-    for (const auto& [id, name] : groupsInOrder) {
-        auto groupNode = node.append_child("Group");
-        groupNode.append_attribute("id").set_value(id.c_str());
-        groupNode.append_attribute("name").set_value(name.c_str());
-        SaveHierarchy(groupNode, id);
-    }
-    
-    for (const auto& component : componentsInOrder) {
-        auto componentNode = node.append_child("Component");
-        componentNode.append_attribute("id").set_value(("comp" + std::to_string(reinterpret_cast<uintptr_t>(component))).c_str());
-        componentNode.append_attribute("type").set_value(component->GetTypeName().c_str());
-        component->xml_serialize(componentNode);
     }
 }
 
