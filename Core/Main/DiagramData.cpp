@@ -1,8 +1,6 @@
 #include "DiagramData.hpp"
 #include <pugixml.hpp>
 #include <iostream>
-#include <chrono>
-#include <algorithm>
 #include "../Utils/Path.hpp"
 #include "../Diagram/Block.hpp"
 #include "../Utils/Notification.hpp"
@@ -69,14 +67,12 @@ std::unique_ptr<Diagram::ComponentBase> DiagramData::CreateComponent(const std::
 void DiagramData::LoadHierarchy(pugi::xml_node node, const std::string& parentGroupId) {
     for (auto child : node.children()) {
         if (strcmp(child.name(), "Group") == 0) {
-            auto id = child.attribute("id").as_string();
-            auto name = child.attribute("name").as_string();
+            std::string id = child.attribute("id").as_string();
             m_groups[id] = parentGroupId;
-            m_groupNames[id] = name;
+            m_groupNames[id] = child.attribute("name").as_string();
             LoadHierarchy(child, id);
         } else if (strcmp(child.name(), "Component") == 0) {
-            auto type = child.attribute("type").as_string();
-            if (auto component = CreateComponent(type)) {
+            if (auto component = CreateComponent(child.attribute("type").as_string())) {
                 component->groupId = parentGroupId;
                 component->id = child.attribute("id").as_string();
                 component->xml_deserialize(child);
@@ -108,42 +104,25 @@ void DiagramData::SaveHierarchy(pugi::xml_node node, const std::string& groupId)
     }
 }
 
-void DiagramData::AddBlock(bool useCursorPosition, SDL_Window* window) noexcept
-{
+void DiagramData::AddBlock(bool useCursorPosition, SDL_Window* window) noexcept {
     size_t blockCount = GetComponentsOfType<Diagram::Block>().size();
-
     auto newBlock = std::make_unique<Diagram::Block>();
-
+    
     if (useCursorPosition && window) {
         ImVec2 mousePos = ImGui::GetMousePos();
-
         int w, h;
         SDL_GetWindowSize(window, &w, &h);
-        glm::vec2 screenCenter(w / 2.0f, h / 2.0f);
-
-        newBlock->data.position.x = (mousePos.x - screenCenter.x) / m_camera.data.zoom + m_camera.data.position.x;
-        newBlock->data.position.y = (mousePos.y - screenCenter.y) / m_camera.data.zoom + m_camera.data.position.y;
+        glm::vec2 screenCenter(static_cast<float>(w) / 2.0f, static_cast<float>(h) / 2.0f);
+        newBlock->data.position = {(mousePos.x - screenCenter.x) / m_camera.data.zoom + m_camera.data.position.x, 
+                                  (mousePos.y - screenCenter.y) / m_camera.data.zoom + m_camera.data.position.y};
     } else {
         newBlock->data.position = m_camera.data.position - newBlock->data.size / 2.0f;
     }
-
+    
     newBlock->data.label = "Block " + std::to_string(blockCount + 1);
-    newBlock->id = GenerateSmartId("Block", blockCount + 1);
+    auto ptr = reinterpret_cast<uintptr_t>(newBlock.get()) & 0xFFFFFF;
+    std::string id; for(; ptr; ptr/=36) id = static_cast<char>(ptr%36 < 10 ? '0'+ptr%36 : 'a'+ptr%36-10) + id;
+    newBlock->id = id.empty() ? "0" : id;
     m_components.push_back(std::move(newBlock));
 }
 
-std::string DiagramData::GenerateSmartId(const std::string& prefix, size_t index) const {
-    auto hasId = [&](const std::string& id) {
-        return std::ranges::any_of(m_components, [&](const auto& comp) { return comp->id == id; });
-    };
-    
-    std::string baseId = prefix + std::to_string(index);
-    if (!hasId(baseId)) return baseId;
-    
-    for (size_t suffix = 1; suffix < 1000; ++suffix) {
-        std::string candidateId = baseId + "_" + std::to_string(suffix);
-        if (!hasId(candidateId)) return candidateId;
-    }
-    
-    return baseId + "_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count() % 10000);
-}

@@ -246,16 +246,12 @@ namespace Diagram {
             ImGui::Separator();
             
             static std::map<ComponentBase*, char[64]> idBuffers;
-            
             if (!idBuffers.contains(component)) {
                 std::strncpy(idBuffers[component], component->id.c_str(), 63);
                 idBuffers[component][63] = '\0';
             }
-            
             ImGui::Text("Component ID:");
-            if (ImGui::InputText("##id_input", idBuffers[component], 64)) {
-                component->id = idBuffers[component];
-            }
+            if (ImGui::InputText("##id_input", idBuffers[component], 64)) component->id = idBuffers[component];
             
             ImGui::EndPopup();
         }
