@@ -35,7 +35,7 @@
 		<Component id="xxx" type="Block">
 			<position x="30" y="-0" />
 			<size x="10" y="5" />
-			<label>Block 31</label>
+			<label>STM32</label>
 			<type>Process</type>
 			<backgroundColor x="0.635294139" y="0.800000012" z="0.0784313753" w="0.380392164" />
 			<borderColor x="0.53725493" y="1" z="0" w="0.36470589" />
