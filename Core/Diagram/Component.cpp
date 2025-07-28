@@ -75,13 +75,15 @@ namespace Diagram {
         ImGui::Indent(static_cast<float>(depth) * TREE_INDENT);
         
         if (hasChildren && !isSceneRoot) {
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
             if (ImGui::ArrowButton("##expand", isExpanded ? ImGuiDir_Down : ImGuiDir_Right)) {
                 if (isExpanded) expanded.erase(nodeKey);
                 else expanded.insert(nodeKey);
             }
+            ImGui::PopStyleVar();
             ImGui::SameLine(0, 2);
         } else if (node.component || node.isGroup) {
-            ImGui::Dummy(ImVec2(ImGui::GetFrameHeight(), 0));
+            ImGui::Dummy(ImVec2(16, 0));
             ImGui::SameLine(0, 2);
         }
         

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Diagram>
 	<Camera>
-		<position x="15.2809687" y="4.15910339" />
-		<zoom>10.8761711</zoom>
+		<position x="24.1842232" y="9.12292194" />
+		<zoom>12.6416044</zoom>
 	</Camera>
 	<Grid>
 		<smallStep>1</smallStep>
@@ -36,8 +36,8 @@
 			<size x="10" y="5" />
 			<label>Block 31</label>
 			<type>Process</type>
-			<backgroundColor x="0.800000012" y="0.330000013" z="0.0799999982" w="0.699999988" />
-			<borderColor x="0.0700000003" y="0.0700000003" z="0.0700000003" w="1" />
+			<backgroundColor x="0.635294139" y="0.800000012" z="0.0784313753" w="0.380392164" />
+			<borderColor x="0.53725493" y="1" z="0" w="0.36470589" />
 		</Component>
 		<Component id="comp100455245030832" type="Block">
 			<position x="15" y="-0" />
