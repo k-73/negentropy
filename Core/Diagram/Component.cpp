@@ -129,51 +129,56 @@ namespace Diagram {
                 hoveredRowId = nodeKey;
             }
             
+            const char* trash_icon = ICON_FA_TRASH;
+            const char* more_icon = ICON_FA_ELLIPSIS_H;
+            const float spacing = 2.0f;
+
+            const ImVec2 trash_label_size = ImGui::CalcTextSize(trash_icon);
+            const ImVec2 more_label_size = ImGui::CalcTextSize(more_icon);
+            const float row_height = ImGui::GetFrameHeight();
+            const float compact_padding = 4.0f;
+            const ImVec2 trash_button_size(trash_label_size.x + compact_padding, row_height);
+            const ImVec2 more_button_size(more_label_size.x + compact_padding, row_height);
+            const float total_width = trash_button_size.x + spacing + more_button_size.x;
+
+            const float available_width = ImGui::GetContentRegionAvail().x;
+            const float start_x = ImGui::GetCursorPosX() + (available_width - total_width) * 0.5f;
+            
+            const float current_y = ImGui::GetCursorPosY();
+            const float table_row_height = ImGui::GetTextLineHeightWithSpacing();
+            const float vertical_offset = (table_row_height - row_height) * 0.5f;
+            const float adjusted_y = current_y + vertical_offset - 1.0f;
+            
+            ImGui::SetCursorPos(ImVec2(start_x, adjusted_y));
+
             std::string popup_id = "more_popup_" + nodeKey;
-            if (hoveredRowId == nodeKey || ImGui::IsPopupOpen(popup_id.c_str())) {
-                const char* trash_icon = ICON_FA_TRASH;
-                const char* more_icon = ICON_FA_ELLIPSIS_H;
-                const float spacing = 2.0f;
+            bool buttons_visible = hoveredRowId == nodeKey || ImGui::IsPopupOpen(popup_id.c_str());
 
-                const ImVec2 trash_label_size = ImGui::CalcTextSize(trash_icon);
-                const ImVec2 more_label_size = ImGui::CalcTextSize(more_icon);
-                const float row_height = ImGui::GetFrameHeight();
-                const float compact_padding = 4.0f;
-                const ImVec2 trash_button_size(trash_label_size.x + compact_padding, row_height);
-                const ImVec2 more_button_size(more_label_size.x + compact_padding, row_height);
-                const float total_width = trash_button_size.x + spacing + more_button_size.x;
-
-                const float available_width = ImGui::GetContentRegionAvail().x;
-                const float start_x = ImGui::GetCursorPosX() + (available_width - total_width) * 0.5f;
-                
-                const float current_y = ImGui::GetCursorPosY();
-                const float table_row_height = ImGui::GetTextLineHeightWithSpacing();
-                const float vertical_offset = (table_row_height - row_height) * 0.5f;
-                const float adjusted_y = current_y + vertical_offset - 1.0f;
-                
-                ImGui::SetCursorPos(ImVec2(start_x, adjusted_y));
-
-                if (ImGui::InvisibleButton("##trash", trash_button_size)) {
-                    if (auto it = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == node.component; }); it != components->end()) {
-                        if (s_selected == node.component) ClearSelection();
-                        components->erase(it);
-                        ImGui::PopID();
-                        return;
-                    }
+            if (ImGui::InvisibleButton("##trash", trash_button_size)) {
+                if (auto it = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == node.component; }); it != components->end()) {
+                    if (s_selected == node.component) ClearSelection();
+                    components->erase(it);
+                    ImGui::PopID();
+                    return;
                 }
+            }
+            
+            if (buttons_visible) {
                 bool trash_hovered = ImGui::IsItemHovered();
                 ImVec4 trash_textColor = trash_hovered ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImGui::GetStyle().Colors[ImGuiCol_TextDisabled];
                 ImVec2 trash_text_pos = ImGui::GetItemRectMin();
                 trash_text_pos.x += (trash_button_size.x - trash_label_size.x) * 0.5f;
                 trash_text_pos.y += (trash_button_size.y - trash_label_size.y) * 0.5f;
                 ImGui::GetWindowDrawList()->AddText(trash_text_pos, ImGui::GetColorU32(trash_textColor), trash_icon);
+            }
 
-                ImGui::SameLine(0.0f, spacing);
+            ImGui::SameLine(0.0f, spacing);
 
-                if (ImGui::InvisibleButton("##more", more_button_size)) {
-                    ImGui::OpenPopup(popup_id.c_str());
-                }
+            if (ImGui::InvisibleButton("##more", more_button_size)) {
+                ImGui::OpenPopup(popup_id.c_str());
+            }
 
+            if (buttons_visible) {
                 bool more_hovered = ImGui::IsItemHovered();
                 bool popup_open = ImGui::IsPopupOpen(popup_id.c_str());
 
@@ -182,17 +187,17 @@ namespace Diagram {
                 more_text_pos.x += (more_button_size.x - more_label_size.x) * 0.5f;
                 more_text_pos.y += (more_button_size.y - more_label_size.y) * 0.5f;
                 ImGui::GetWindowDrawList()->AddText(more_text_pos, ImGui::GetColorU32(more_textColor), more_icon);
+            }
 
-                if (ImGui::BeginPopup(popup_id.c_str())) {
-                    ImGui::TextDisabled("%s", node.name.c_str());
-                    ImGui::Separator();
-                    if (ImGui::MenuItem("Rename")) { /* Action */ }
-                    if (ImGui::MenuItem("Duplicate")) { /* Action */ }
-                    ImGui::Separator();
-                    if (ImGui::MenuItem("Copy")) { /* Action */ }
-                    if (ImGui::MenuItem("Paste")) { /* Action */ }
-                    ImGui::EndPopup();
-                }
+            if (ImGui::BeginPopup(popup_id.c_str())) {
+                ImGui::TextDisabled("%s", node.name.c_str());
+                ImGui::Separator();
+                if (ImGui::MenuItem("Rename")) { /* Action */ }
+                if (ImGui::MenuItem("Duplicate")) { /* Action */ }
+                ImGui::Separator();
+                if (ImGui::MenuItem("Copy")) { /* Action */ }
+                if (ImGui::MenuItem("Paste")) { /* Action */ }
+                ImGui::EndPopup();
             }
         } else if (node.name == "Scene") {
             const float available_width = ImGui::GetContentRegionAvail().x;
