@@ -76,6 +76,7 @@ void DiagramData::LoadHierarchy(pugi::xml_node node, const std::string& parentGr
             auto type = child.attribute("type").as_string();
             if (auto component = CreateComponent(type)) {
                 component->groupId = parentGroupId;
+                component->id = child.attribute("id").as_string();
                 component->xml_deserialize(child);
                 m_components.push_back(std::move(component));
             }
@@ -96,7 +97,9 @@ void DiagramData::SaveHierarchy(pugi::xml_node node, const std::string& groupId)
     for (const auto& component : m_components) {
         if (component->groupId == groupId) {
             auto componentNode = node.append_child("Component");
-            componentNode.append_attribute("id").set_value(("comp" + std::to_string(reinterpret_cast<uintptr_t>(component.get()))).c_str());
+            componentNode.append_attribute("id").set_value(component->id.empty() ? 
+                ("comp" + std::to_string(reinterpret_cast<uintptr_t>(component.get()))).c_str() : 
+                component->id.c_str());
             componentNode.append_attribute("type").set_value(component->GetTypeName().c_str());
             component->xml_serialize(componentNode);
         }

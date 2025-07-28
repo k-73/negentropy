@@ -5,6 +5,7 @@
 #include <set>
 #include <map>
 #include <functional>
+#include <cstring>
 #include "../Utils/IconsFontAwesome5.h"
 #include "../Utils/Notification.hpp"
 #include <imgui_internal.h>
@@ -235,11 +236,37 @@ namespace Diagram {
         if (ImGui::BeginPopup(popup_id.c_str())) {
             ImGui::TextDisabled("%s", component->GetDisplayName().c_str());
             ImGui::Separator();
-            if (ImGui::MenuItem("Rename")) { /* Action */ }
-            if (ImGui::MenuItem("Duplicate")) { /* Action */ }
-            ImGui::Separator();
-            if (ImGui::MenuItem("Copy")) { /* Action */ }
-            if (ImGui::MenuItem("Paste")) { /* Action */ }
+            
+            static std::map<ComponentBase*, std::string> editingIds;
+            static std::map<ComponentBase*, char[64]> idBuffers;
+            
+            if (ImGui::MenuItem("Edit ID")) {
+                editingIds[component] = component->id;
+                std::strncpy(idBuffers[component], component->id.c_str(), 63);
+                idBuffers[component][63] = '\0';
+            }
+            
+            if (editingIds.contains(component)) {
+                ImGui::Separator();
+                ImGui::Text("Component ID:");
+                if (ImGui::InputText("##id_input", idBuffers[component], 64, ImGuiInputTextFlags_EnterReturnsTrue)) {
+                    component->id = idBuffers[component];
+                    editingIds.erase(component);
+                    idBuffers.erase(component);
+                    ImGui::CloseCurrentPopup();
+                }
+                if (ImGui::Button("Cancel")) {
+                    editingIds.erase(component);
+                    idBuffers.erase(component);
+                }
+            } else {
+                if (ImGui::MenuItem("Rename")) { /* Action */ }
+                if (ImGui::MenuItem("Duplicate")) { /* Action */ }
+                ImGui::Separator();
+                if (ImGui::MenuItem("Copy")) { /* Action */ }
+                if (ImGui::MenuItem("Paste")) { /* Action */ }
+            }
+            
             ImGui::EndPopup();
         }
     }

@@ -19,6 +19,7 @@ namespace Diagram {
     class ComponentBase {
     public:
         std::string groupId;
+        std::string id;
         
         struct TreeNode {
             std::string name;
