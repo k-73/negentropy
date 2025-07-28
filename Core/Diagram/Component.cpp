@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <set>
 #include "../Utils/IconsFontAwesome5.h"
+#include <imgui_internal.h>
 
 namespace Diagram {
     ComponentBase* ComponentBase::s_selected = nullptr;
@@ -68,18 +69,18 @@ namespace Diagram {
         
         ImGui::Indent(static_cast<float>(depth) * TREE_INDENT);
         
-        if (hasChildren && node.component) {
+        if (hasChildren) {
             if (ImGui::ArrowButton("##expand", isExpanded ? ImGuiDir_Down : ImGuiDir_Right)) {
                 if (isExpanded) expanded.erase(nodeKey);
                 else expanded.insert(nodeKey);
             }
             ImGui::SameLine(0, 2);
         } else if (node.component) {
-            ImGui::Dummy(ImVec2(16, 0));
+            ImGui::Dummy(ImVec2(ImGui::GetFrameHeight(), 0));
             ImGui::SameLine(0, 2);
         }
         
-        std::string displayText = node.component ? (" " + std::string(icon) + "  " + node.name) : ("   " + std::string(icon) + "  " + node.name);
+        std::string displayText = " " + std::string(icon) + "  " + node.name;
         bool selectableClicked = ImGui::Selectable(displayText.c_str(), s_selected == node.component);
         bool nameHovered = ImGui::IsItemHovered();
         
@@ -133,24 +134,29 @@ namespace Diagram {
             }
             
             if (hoveredRowId == nodeKey) {
-                float availWidth = ImGui::GetContentRegionAvail().x;
-                float buttonWidth = ImGui::CalcTextSize(ICON_FA_TRASH).x + ImGui::GetStyle().FramePadding.x * 2;
-                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (availWidth - buttonWidth) * 0.5f);
-                
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{});
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.2f, 0.2f, 0.3f));
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.9f, 0.3f, 0.3f, 0.5f));
+                float columnWidth = ImGui::GetColumnWidth();
+                ImVec2 padding = ImGui::GetStyle().FramePadding;
+                float buttonWidth = ImGui::CalcTextSize(ICON_FA_TRASH).x + padding.x * 2.0f;
+                float buttonPosX = ImGui::GetCursorPosX() + (columnWidth - buttonWidth) * 0.5f;
 
-                if (ImGui::SmallButton(ICON_FA_TRASH "##trash")) {
+                ImGui::SetCursorPosX(buttonPosX);
+
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{});
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{});
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{});
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f)); // Adjust horizontal padding
+
+                if (ImGui::Button(" " ICON_FA_TRASH "##trash")) {
                     if (auto it = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == node.component; }); it != components->end()) {
                         if (s_selected == node.component) ClearSelection();
                         components->erase(it);
+                        ImGui::PopStyleVar();
                         ImGui::PopStyleColor(3);
                         ImGui::PopID();
                         return;
                     }
                 }
-                
+                ImGui::PopStyleVar();
                 ImGui::PopStyleColor(3);
             }
         } else if (node.name == "Scene") {

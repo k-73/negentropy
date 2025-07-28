@@ -31,6 +31,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="122315c9-d864-4069-a5d2-bcec3a6e27d5" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Core/Diagram/Component.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Diagram/Component.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
