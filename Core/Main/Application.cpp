@@ -177,10 +177,13 @@ void Application::RenderUI() noexcept {
     }
     
     if (m_showComponentTree) {
-        Diagram::ComponentBase::RenderComponentTree(m_diagramData.GetComponents(), m_diagramData.GetGroups(), m_diagramData.GetGroupNames(), 
-            [this](const std::map<std::string, std::string>& groups) { m_diagramData.UpdateGroups(groups); },
+        Diagram::ComponentBase::RenderComponentTree(m_diagramData.GetComponents(), {
+            m_diagramData.GetGroups(), 
+            m_diagramData.GetGroupNames(),
             m_diagramData.GetGroupExpanded(),
-            [this](const std::map<std::string, bool>& expanded) { m_diagramData.UpdateGroupExpanded(expanded); });
+            [this](const std::map<std::string, std::string>& groups) { m_diagramData.UpdateGroups(groups); },
+            [this](const std::map<std::string, bool>& expanded) { m_diagramData.UpdateGroupExpanded(expanded); }
+        });
     }
     
     if (m_showComponentEditor) {

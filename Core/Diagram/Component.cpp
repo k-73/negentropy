@@ -14,8 +14,8 @@ namespace Diagram {
     ComponentBase* ComponentBase::s_selected = nullptr;
     ComponentBase::GroupState ComponentBase::s_groups;
 
-    void ComponentBase::RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& components, const std::map<std::string, std::string>& groups, const std::map<std::string, std::string>& groupNames, std::function<void(const std::map<std::string, std::string>&)> onGroupsChanged, const std::map<std::string, bool>& groupExpanded, std::function<void(const std::map<std::string, bool>&)> onExpandedChanged) noexcept {
-        s_groups = {groups, groupNames, groupExpanded, onGroupsChanged, onExpandedChanged};
+    void ComponentBase::RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& components, const GroupState& config) noexcept {
+        s_groups = config;
         
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.2f, 0.2f, 0.2f, 0.3f));
         ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.25f, 0.25f, 0.25f, 0.3f));
@@ -167,7 +167,7 @@ namespace Diagram {
         ImGui::PopID();
     }
 
-    void ComponentBase::RenderIconButton(const char* icon, const ImVec2& size, bool visible, bool highlighted = false) noexcept {
+    void ComponentBase::RenderIconButton(const char* icon, const ImVec2& size, bool visible, bool highlighted) noexcept {
         if (!visible) return;
         const ImVec4 color = highlighted ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImGui::GetStyle().Colors[ImGuiCol_TextDisabled];
         const ImVec2 icon_size = ImGui::CalcTextSize(icon);

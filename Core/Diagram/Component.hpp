@@ -20,6 +20,14 @@ namespace Diagram {
     
     class ComponentBase {
     public:
+        struct GroupState {
+            std::map<std::string, std::string> parents;
+            std::map<std::string, std::string> names;
+            std::map<std::string, bool> expanded;
+            std::function<void(const std::map<std::string, std::string>&)> onGroupsChanged;
+            std::function<void(const std::map<std::string, bool>&)> onExpandedChanged;
+        };
+        
         std::string groupId;
         std::string id;
 
@@ -39,7 +47,7 @@ namespace Diagram {
         static void ClearSelection() noexcept { s_selected = nullptr; }
         
         // UI rendering
-        static void RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& components, const std::map<std::string, std::string>& groups = {}, const std::map<std::string, std::string>& groupNames = {}, std::function<void(const std::map<std::string, std::string>&)> onGroupsChanged = nullptr, const std::map<std::string, bool>& groupExpanded = {}, std::function<void(const std::map<std::string, bool>&)> onExpandedChanged = nullptr) noexcept;
+        static void RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& components, const GroupState& config = {}) noexcept;
         static void RenderComponentEditor() noexcept;
         
     private:
@@ -52,14 +60,6 @@ namespace Diagram {
 
             explicit TreeNode(std::string n, ComponentBase* c = nullptr, bool group = false, std::string gId = "") 
                 : name(std::move(n)), component(c), isGroup(group), groupId(std::move(gId)) {}
-        };
-        
-        struct GroupState {
-            std::map<std::string, std::string> parents;
-            std::map<std::string, std::string> names;
-            std::map<std::string, bool> expanded;
-            std::function<void(const std::map<std::string, std::string>&)> onGroupsChanged;
-            std::function<void(const std::map<std::string, bool>&)> onExpandedChanged;
         };
         
         // Static data
