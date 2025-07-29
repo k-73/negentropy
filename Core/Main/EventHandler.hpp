@@ -33,9 +33,8 @@ public:
         } else if (e.type == SDL_KEYDOWN) {
             if (e.key.keysym.sym == SDLK_DELETE) {
                 if (auto* selected = Diagram::ComponentBase::GetSelected()) {
-                    auto it = std::find_if(components.begin(), components.end(),
-                        [selected](const auto& comp) { return comp.get() == selected; });
-                    if (it != components.end()) {
+                    if (auto it = std::ranges::find_if(components, 
+                        [selected](const auto& comp) { return comp.get() == selected; }); it != components.end()) {
                         components.erase(it);
                         Diagram::ComponentBase::ClearSelection();
                     }

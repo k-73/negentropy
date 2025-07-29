@@ -98,9 +98,9 @@ void DiagramData::SaveHierarchy(pugi::xml_node node, const std::string& groupId)
     for (const auto& component : m_components) {
         if (component->groupId == groupId) {
             auto componentNode = node.append_child("Component");
-            componentNode.append_attribute("id").set_value(component->id.empty() ? 
-                ("comp" + std::to_string(reinterpret_cast<uintptr_t>(component.get()))).c_str() : 
-                component->id.c_str());
+            const auto& id = component->id.empty() ? 
+                "comp" + std::to_string(reinterpret_cast<uintptr_t>(component.get())) : component->id;
+            componentNode.append_attribute("id").set_value(id.c_str());
             componentNode.append_attribute("type").set_value(component->GetTypeName().c_str());
             component->xml_serialize(componentNode);
         }

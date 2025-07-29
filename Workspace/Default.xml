@@ -10,9 +10,9 @@
 		<visible>true</visible>
 	</Grid>
 	<Root>
-		<Group id="group3" name="Logic Components" expanded="true">
+		<Group id="group2" name="Nested Group" expanded="true">
 			<Group id="group1" name="UI Components" expanded="true">
-				<Group id="group2" name="Nested Group" expanded="true">
+				<Group id="group3" name="Logic Components" expanded="true">
 					<Component id="StartID" type="Block">
 						<position x="15" y="-0" />
 						<size x="10" y="5" />

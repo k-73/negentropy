@@ -78,7 +78,7 @@ namespace Diagram {
         const std::string nodeKey = node.name + std::to_string(reinterpret_cast<uintptr_t>(node.component)) + (node.isGroup ? "_group" : "");
         const bool hasChildren = !node.children.empty();
         const bool isSceneRoot = node.name == "Scene" && depth == 0;
-        const bool isExpanded = node.isGroup ? s_groups.expanded.contains(node.groupId) && s_groups.expanded[node.groupId] : isSceneRoot;
+        const bool isExpanded = isSceneRoot || (node.isGroup && s_groups.expanded[node.groupId]);
         
         ImGui::PushID(nodeKey.c_str());
         ImGui::TableNextRow();

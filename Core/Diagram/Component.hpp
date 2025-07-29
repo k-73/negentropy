@@ -85,12 +85,15 @@ namespace Diagram {
     template<typename T>
     std::string demangle() {
         int status;
-        char* demangled = abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, &status);
-        std::string result = demangled ? demangled : "unknown";
-        free(demangled);
-        auto pos = result.find_last_of("::");
-        if (pos != std::string::npos) result = result.substr(pos + 1);
-        return result;
+        std::unique_ptr<char, void(*)(void*)> demangled{
+            abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, &status), std::free};
+        
+        if (!demangled) return "unknown";
+        
+        std::string name{demangled.get()};
+        if (auto pos = name.find_last_of("::"); pos != std::string::npos) 
+            name = name.substr(pos + 1);
+        return name;
     }
     
     template<typename Derived>
