@@ -12,6 +12,8 @@
 #include <map>
 #include <functional>
 
+struct ImVec2;
+
 namespace Diagram {
     struct Camera;
     class Block;
@@ -56,6 +58,9 @@ namespace Diagram {
         static void RenderActionButtons(const std::string& nodeKey, const std::string& hoveredRowId, std::vector<std::unique_ptr<ComponentBase>>* components, ComponentBase* component) noexcept;
         static void RenderGroupActions(const std::string& nodeKey, const std::string& hoveredRowId) noexcept;
         static void RenderCenteredIcon(const char* icon) noexcept;
+        static void RenderIconButton(const char* icon, const ImVec2& size, bool visible, bool highlighted) noexcept;
+        static bool SetupActionButtons(const std::string& nodeKey, const std::string& hoveredRowId, const std::vector<const char*>& icons) noexcept;
+        static void HandleDragDrop(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components) noexcept;
         static std::unique_ptr<TreeNode> BuildHierarchy(const std::vector<std::unique_ptr<ComponentBase>>& components) noexcept;
         static bool IsGroupDescendant(const std::string& groupId, const std::string& potentialAncestor) noexcept;
         

@@ -152,62 +152,7 @@ namespace Diagram {
             ImGui::EndDragDropSource();
         }
         
-        if (ImGui::BeginDragDropTarget()) {
-            if (const auto* payload = ImGui::AcceptDragDropPayload("COMPONENT_DND")) {
-                auto* dragged = static_cast<ComponentBase**>(payload->Data)[0];
-                if (dragged && dragged != node.component) {
-                    if (node.isGroup) {
-                        dragged->groupId = node.groupId;
-                        Notify::Success("Component moved to group: " + node.name);
-                    } else if (node.component) {
-                        auto draggedIt = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == dragged; });
-                        auto targetIt = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == node.component; });
-                        
-                        if (draggedIt != components->end() && targetIt != components->end()) {
-                            std::string draggedGroupId = dragged->groupId;
-                            std::string targetGroupId = node.component->groupId;
-                            
-                            dragged->groupId = targetGroupId;
-                            node.component->groupId = draggedGroupId;
-                            
-                            std::swap(*draggedIt, *targetIt);
-                            Notify::Success("Components swapped positions and groups");
-                        }
-                    } else if (node.name == "Scene") {
-                        dragged->groupId.clear();
-                        Notify::Success("Component moved to Scene");
-                    }
-                }
-            }
-            if (const auto* payload = ImGui::AcceptDragDropPayload("GROUP_DND")) {
-                std::string draggedGroupId(static_cast<const char*>(payload->Data));
-                if (draggedGroupId != node.groupId && !draggedGroupId.empty()) {
-                    if (node.isGroup && !IsGroupDescendant(node.groupId, draggedGroupId)) {
-                        s_groupParents[draggedGroupId] = node.groupId;
-                        if (s_onGroupsChanged) s_onGroupsChanged(s_groupParents);
-                        Notify::Success("Group moved to: " + node.name);
-                    } else if (node.component) {
-                        const std::string& targetGroup = node.component->groupId;
-                        if (!IsGroupDescendant(targetGroup, draggedGroupId)) {
-                            s_groupParents[draggedGroupId] = targetGroup;
-                            if (s_onGroupsChanged) s_onGroupsChanged(s_groupParents);
-                            if (targetGroup.empty()) {
-                                Notify::Success("Group moved to Scene (via component)");
-                            } else {
-                                Notify::Success("Group moved to component's group");
-                            }
-                        } else {
-                            Notify::Warning("Cannot create circular group dependency!");
-                        }
-                    } else if (node.name == "Scene") {
-                        s_groupParents[draggedGroupId] = "";
-                        if (s_onGroupsChanged) s_onGroupsChanged(s_groupParents);
-                        Notify::Success("Group moved to Scene");
-                    }
-                }
-            }
-            ImGui::EndDragDropTarget();
-        }
+        HandleDragDrop(node, components);
         
         ImGui::Unindent(static_cast<float>(depth) * TREE_INDENT);
         ImGui::TableNextColumn();
@@ -230,63 +175,56 @@ namespace Diagram {
         ImGui::PopID();
     }
 
-    void ComponentBase::RenderActionButtons(const std::string& nodeKey, const std::string& hoveredRowId, std::vector<std::unique_ptr<ComponentBase>>* components, ComponentBase* component) noexcept {
-        constexpr float spacing = 2.0f;
-        constexpr float padding = 4.0f;
-        
-        const ImVec2 trash_size = ImGui::CalcTextSize(ICON_FA_TRASH);
-        const ImVec2 more_size = ImGui::CalcTextSize(ICON_FA_ELLIPSIS_H);
+    void ComponentBase::RenderIconButton(const char* icon, const ImVec2& size, bool visible, bool highlighted = false) noexcept {
+        if (!visible) return;
+        const ImVec4 color = highlighted ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImGui::GetStyle().Colors[ImGuiCol_TextDisabled];
+        const ImVec2 icon_size = ImGui::CalcTextSize(icon);
+        ImVec2 pos = ImGui::GetItemRectMin();
+        pos.x += (size.x - icon_size.x) * 0.5f;
+        pos.y += (size.y - icon_size.y) * 0.5f;
+        ImGui::GetWindowDrawList()->AddText(pos, ImGui::GetColorU32(color), icon);
+    }
+
+    bool ComponentBase::SetupActionButtons(const std::string& nodeKey, const std::string& hoveredRowId, const std::vector<const char*>& icons) noexcept {
+        constexpr float spacing = 2.0f, padding = 4.0f;
         const float row_height = ImGui::GetFrameHeight();
-        const ImVec2 btn_size1(trash_size.x + padding, row_height);
-        const ImVec2 btn_size2(more_size.x + padding, row_height);
         
-        const float total_width = btn_size1.x + spacing + btn_size2.x;
+        float total_width = 0;
+        std::vector<ImVec2> sizes;
+        for (const char* icon : icons) {
+            ImVec2 size(ImGui::CalcTextSize(icon).x + padding, row_height);
+            sizes.push_back(size);
+            total_width += size.x + (sizes.size() > 1 ? spacing : 0);
+        }
+        
         const float start_x = ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - total_width) * 0.5f;
         const float adjusted_y = ImGui::GetCursorPosY() + (ImGui::GetTextLineHeightWithSpacing() - row_height) * 0.5f - 1.0f;
-        
         ImGui::SetCursorPos(ImVec2(start_x, adjusted_y));
         
-        const std::string popup_id = "more_popup_" + nodeKey;
+        const std::string popup_id = "popup_" + nodeKey;
         const bool popupOpen = ImGui::IsPopupOpen(popup_id.c_str());
-        static std::string activeButton;
-        const bool visible = hoveredRowId == nodeKey || popupOpen || activeButton == nodeKey;
+        return hoveredRowId == nodeKey || popupOpen;
+    }
+
+    void ComponentBase::RenderActionButtons(const std::string& nodeKey, const std::string& hoveredRowId, std::vector<std::unique_ptr<ComponentBase>>* components, ComponentBase* component) noexcept {
+        const std::vector<const char*> icons = {ICON_FA_TRASH, ICON_FA_ELLIPSIS_H};
+        const bool visible = SetupActionButtons(nodeKey, hoveredRowId, icons);
         
-        if (ImGui::InvisibleButton("##trash", btn_size1)) {
+        if (ImGui::InvisibleButton("##trash", ImVec2(ImGui::CalcTextSize(ICON_FA_TRASH).x + 4, ImGui::GetFrameHeight()))) {
             if (auto it = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == component; }); it != components->end()) {
                 if (s_selected == component) ClearSelection();
                 components->erase(it);
                 return;
             }
         }
+        RenderIconButton(ICON_FA_TRASH, ImGui::GetItemRectSize(), visible, ImGui::IsItemHovered());
         
-        if (visible) {
-            const ImVec4 color = ImGui::IsItemHovered() ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImGui::GetStyle().Colors[ImGuiCol_TextDisabled];
-            ImVec2 pos = ImGui::GetItemRectMin();
-            pos.x += (btn_size1.x - trash_size.x) * 0.5f;
-            pos.y += (btn_size1.y - trash_size.y) * 0.5f;
-            ImGui::GetWindowDrawList()->AddText(pos, ImGui::GetColorU32(color), ICON_FA_TRASH);
-        }
-        
-        ImGui::SameLine(0.0f, spacing);
-        
-        if (ImGui::InvisibleButton("##more", btn_size2)) {
+        ImGui::SameLine(0.0f, 2.0f);
+        const std::string popup_id = "popup_" + nodeKey;
+        if (ImGui::InvisibleButton("##more", ImVec2(ImGui::CalcTextSize(ICON_FA_ELLIPSIS_H).x + 4, ImGui::GetFrameHeight()))) {
             ImGui::OpenPopup(popup_id.c_str());
         }
-        
-        if (ImGui::IsItemActive()) {
-            activeButton = nodeKey;
-        } else if (activeButton == nodeKey && !ImGui::IsItemHovered() && !popupOpen) {
-            activeButton.clear();
-        }
-        
-        if (visible) {
-            const bool highlighted = ImGui::IsItemHovered() || ImGui::IsPopupOpen(popup_id.c_str());
-            const ImVec4 color = highlighted ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImGui::GetStyle().Colors[ImGuiCol_TextDisabled];
-            ImVec2 pos = ImGui::GetItemRectMin();
-            pos.x += (btn_size2.x - more_size.x) * 0.5f;
-            pos.y += (btn_size2.y - more_size.y) * 0.5f;
-            ImGui::GetWindowDrawList()->AddText(pos, ImGui::GetColorU32(color), ICON_FA_ELLIPSIS_H);
-        }
+        RenderIconButton(ICON_FA_ELLIPSIS_H, ImGui::GetItemRectSize(), visible, ImGui::IsItemHovered() || ImGui::IsPopupOpen(popup_id.c_str()));
         
         if (ImGui::BeginPopup(popup_id.c_str())) {
             ImGui::TextDisabled("%s", component->GetDisplayName().c_str());
@@ -297,64 +235,20 @@ namespace Diagram {
     }
 
     void ComponentBase::RenderGroupActions(const std::string& nodeKey, const std::string& hoveredRowId) noexcept {
-        constexpr float spacing = 2.0f;
-        constexpr float padding = 4.0f;
+        const std::vector<const char*> icons = {ICON_FA_PLUS, ICON_FA_ELLIPSIS_H};
+        const bool visible = SetupActionButtons(nodeKey, hoveredRowId, icons);
         
-        const ImVec2 add_size = ImGui::CalcTextSize(ICON_FA_PLUS);
-        const ImVec2 more_size = ImGui::CalcTextSize(ICON_FA_ELLIPSIS_H);
-        const float row_height = ImGui::GetFrameHeight();
-        const ImVec2 btn_size1(add_size.x + padding, row_height);
-        const ImVec2 btn_size2(more_size.x + padding, row_height);
-        
-        const float total_width = btn_size1.x + spacing + btn_size2.x;
-        const float start_x = ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - total_width) * 0.5f;
-        const float adjusted_y = ImGui::GetCursorPosY() + (ImGui::GetTextLineHeightWithSpacing() - row_height) * 0.5f - 1.0f;
-        
-        ImGui::SetCursorPos(ImVec2(start_x, adjusted_y));
-        
-        const std::string popup_id = "group_popup_" + nodeKey;
-        const bool popupOpen = ImGui::IsPopupOpen(popup_id.c_str());
-        static std::string activeGroupButton;
-        const bool visible = hoveredRowId == nodeKey || popupOpen || activeGroupButton == nodeKey;
-        
-        if (ImGui::InvisibleButton("##add", btn_size1)) {
+        if (ImGui::InvisibleButton("##add", ImVec2(ImGui::CalcTextSize(ICON_FA_PLUS).x + 4, ImGui::GetFrameHeight()))) {
             // TODO: Add new component to group
         }
+        RenderIconButton(ICON_FA_PLUS, ImGui::GetItemRectSize(), visible, ImGui::IsItemHovered());
         
-        if (ImGui::IsItemActive()) {
-            activeGroupButton = nodeKey;
-        } else if (activeGroupButton == nodeKey && !ImGui::IsItemHovered() && !popupOpen) {
-            activeGroupButton.clear();
-        }
-        
-        if (visible) {
-            const ImVec4 color = ImGui::IsItemHovered() ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImGui::GetStyle().Colors[ImGuiCol_TextDisabled];
-            ImVec2 pos = ImGui::GetItemRectMin();
-            pos.x += (btn_size1.x - add_size.x) * 0.5f;
-            pos.y += (btn_size1.y - add_size.y) * 0.5f;
-            ImGui::GetWindowDrawList()->AddText(pos, ImGui::GetColorU32(color), ICON_FA_PLUS);
-        }
-        
-        ImGui::SameLine(0.0f, spacing);
-        
-        if (ImGui::InvisibleButton("##group_more", btn_size2)) {
+        ImGui::SameLine(0.0f, 2.0f);
+        const std::string popup_id = "popup_" + nodeKey;
+        if (ImGui::InvisibleButton("##group_more", ImVec2(ImGui::CalcTextSize(ICON_FA_ELLIPSIS_H).x + 4, ImGui::GetFrameHeight()))) {
             ImGui::OpenPopup(popup_id.c_str());
         }
-        
-        if (ImGui::IsItemActive()) {
-            activeGroupButton = nodeKey;
-        } else if (activeGroupButton == nodeKey && !ImGui::IsItemHovered() && !popupOpen) {
-            activeGroupButton.clear();
-        }
-        
-        if (visible) {
-            const bool highlighted = ImGui::IsItemHovered() || ImGui::IsPopupOpen(popup_id.c_str());
-            const ImVec4 color = highlighted ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImGui::GetStyle().Colors[ImGuiCol_TextDisabled];
-            ImVec2 pos = ImGui::GetItemRectMin();
-            pos.x += (btn_size2.x - more_size.x) * 0.5f;
-            pos.y += (btn_size2.y - more_size.y) * 0.5f;
-            ImGui::GetWindowDrawList()->AddText(pos, ImGui::GetColorU32(color), ICON_FA_ELLIPSIS_H);
-        }
+        RenderIconButton(ICON_FA_ELLIPSIS_H, ImGui::GetItemRectSize(), visible, ImGui::IsItemHovered() || ImGui::IsPopupOpen(popup_id.c_str()));
         
         if (ImGui::BeginPopup(popup_id.c_str())) {
             ImGui::TextDisabled("Group Actions");
@@ -365,12 +259,64 @@ namespace Diagram {
     }
 
     void ComponentBase::RenderCenteredIcon(const char* icon) noexcept {
-        const float icon_width = ImGui::CalcTextSize(icon).x;
-        const float start_x = ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - icon_width) * 0.5f;
+        const float start_x = ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(icon).x) * 0.5f;
         ImGui::SetCursorPosX(start_x);
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
         ImGui::Text("%s", icon);
         ImGui::PopStyleColor();
+    }
+
+    void ComponentBase::HandleDragDrop(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components) noexcept {
+        if (!ImGui::BeginDragDropTarget()) return;
+        
+        if (const auto* payload = ImGui::AcceptDragDropPayload("COMPONENT_DND")) {
+            auto* dragged = static_cast<ComponentBase**>(payload->Data)[0];
+            if (!dragged || dragged == node.component) return;
+            
+            if (node.isGroup) {
+                dragged->groupId = node.groupId;
+                Notify::Success("Component moved to group: " + node.name);
+            } else if (node.component) {
+                auto draggedIt = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == dragged; });
+                auto targetIt = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == node.component; });
+                if (draggedIt != components->end() && targetIt != components->end()) {
+                    std::swap(dragged->groupId, node.component->groupId);
+                    std::swap(*draggedIt, *targetIt);
+                    Notify::Success("Components swapped positions and groups");
+                }
+            } else if (node.name == "Scene") {
+                dragged->groupId.clear();
+                Notify::Success("Component moved to Scene");
+            }
+        }
+        
+        if (const auto* payload = ImGui::AcceptDragDropPayload("GROUP_DND")) {
+            std::string draggedGroupId(static_cast<const char*>(payload->Data));
+            if (draggedGroupId == node.groupId || draggedGroupId.empty()) return;
+            
+            std::string targetGroup;
+            std::string successMsg;
+            
+            if (node.isGroup && !IsGroupDescendant(node.groupId, draggedGroupId)) {
+                targetGroup = node.groupId;
+                successMsg = "Group moved to: " + node.name;
+            } else if (node.component && !IsGroupDescendant(node.component->groupId, draggedGroupId)) {
+                targetGroup = node.component->groupId;
+                successMsg = targetGroup.empty() ? "Group moved to Scene (via component)" : "Group moved to component's group";
+            } else if (node.name == "Scene") {
+                targetGroup = "";
+                successMsg = "Group moved to Scene";
+            } else {
+                if (node.component || node.isGroup) Notify::Warning("Cannot create circular group dependency!");
+                return;
+            }
+            
+            s_groupParents[draggedGroupId] = targetGroup;
+            if (s_onGroupsChanged) s_onGroupsChanged(s_groupParents);
+            Notify::Success(successMsg);
+        }
+        
+        ImGui::EndDragDropTarget();
     }
 
     std::unique_ptr<ComponentBase::TreeNode> ComponentBase::BuildHierarchy(const std::vector<std::unique_ptr<ComponentBase>>& components) noexcept {
