@@ -55,7 +55,7 @@ namespace Notify {
             const float PAD = 10.0f;
             ImVec2 work_pos = viewport->WorkPos;
             ImVec2 work_size = viewport->WorkSize;
-            ImVec2 window_pos = ImVec2(work_pos.x + work_size.x - PAD, work_pos.y + PAD);
+            ImVec2 window_pos = ImVec2(work_pos.x + work_size.x - PAD, work_pos.y + PAD * 2);
 
             ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, ImVec2(1.0f, 0.0f));
             ImGui::SetNextWindowBgAlpha(0.9f);
@@ -84,8 +84,18 @@ namespace Notify {
                         case Type::Error:   color = ImVec4(1.0f, 0.3f, 0.3f, 1.0f); icon = ICON_FA_TIMES_CIRCLE; break;
                     }
 
-                    ImGui::PushStyleColor(ImGuiCol_Text, color);
-                    ImGui::Text("%s %s", icon, toast.message.c_str());
+                    ImGui::PushStyleColor(ImGuiCol_Border, color);
+                    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f);
+
+                    if (ImGui::BeginChild(("toast_" + std::to_string(reinterpret_cast<uintptr_t>(&toast))).c_str(), 
+                                         ImVec2(0, 0), ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeX | ImGuiChildFlags_AutoResizeY)) {
+                        ImGui::PushStyleColor(ImGuiCol_Text, color);
+                        ImGui::Text("%s %s", icon, toast.message.c_str());
+                        ImGui::PopStyleColor();
+                    }
+                    ImGui::EndChild();
+                    
+                    ImGui::PopStyleVar(1);
                     ImGui::PopStyleColor();
                     ImGui::PopStyleVar();
                 }

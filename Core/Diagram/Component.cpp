@@ -182,7 +182,7 @@ namespace Diagram {
             if (const auto* payload = ImGui::AcceptDragDropPayload("GROUP_DND")) {
                 std::string draggedGroupId(static_cast<const char*>(payload->Data));
                 if (draggedGroupId != node.groupId && !draggedGroupId.empty()) {
-                    if (node.isGroup && !IsGroupDescendant(node.groupId, draggedGroupId) && !IsGroupDescendant(draggedGroupId, node.groupId)) {
+                    if (node.isGroup && !IsGroupDescendant(node.groupId, draggedGroupId)) {
                         s_groupParents[draggedGroupId] = node.groupId;
                         if (s_onGroupsChanged) s_onGroupsChanged(s_groupParents);
                         Notify::Success("Group moved to: " + node.name);
