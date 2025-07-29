@@ -43,8 +43,8 @@ namespace Diagram {
         }
 
     private:
-        void RenderGridLines(SDL_Renderer* renderer, const Camera& camera, glm::vec2 screenSize, 
-                           glm::vec2 topLeft, glm::vec2 bottomRight, float step, SDL_Color color) const noexcept {
+        static void RenderGridLines(SDL_Renderer* renderer, const Camera& camera, const glm::vec2 screenSize,
+                           glm::vec2 topLeft, glm::vec2 bottomRight, float step, SDL_Color color) noexcept {
             const int firstGridX = static_cast<int>(std::floor(topLeft.x / step));
             const int lastGridX = static_cast<int>(std::ceil(bottomRight.x / step));
             const int firstGridY = static_cast<int>(std::floor(topLeft.y / step));
@@ -67,7 +67,7 @@ namespace Diagram {
             }
         }
 
-        static void RenderOriginCross(SDL_Renderer* renderer, const Camera& camera, glm::vec2 screenSize) noexcept {
+        static void RenderOriginCross(SDL_Renderer* renderer, const Camera& camera, const glm::vec2 screenSize) noexcept {
             constexpr glm::vec2 gridCenterWorld{0.0f, 0.0f};
             constexpr glm::vec2 crossMinWorld{-1.0f, -1.0f};
             constexpr glm::vec2 crossMaxWorld{1.0f, 1.0f};

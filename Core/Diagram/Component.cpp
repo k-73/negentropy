@@ -6,6 +6,7 @@
 #include "../Utils/IconsFontAwesome5.h"
 #include "../Utils/Notification.hpp"
 #include <imgui_internal.h>
+#include <ranges>
 
 namespace Diagram {
     ComponentBase* ComponentBase::s_selected = nullptr;
@@ -71,7 +72,7 @@ namespace Diagram {
         ImGui::End();
     }
 
-    void ComponentBase::RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components, int depth, std::string& hoveredRowId) noexcept {
+    void ComponentBase::RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components, const int depth, std::string& hoveredRowId) noexcept {
         static constexpr float TREE_INDENT = 16.0f;
 
         const char* icon = node.component ? ICON_FA_CUBE : node.isGroup ? ICON_FA_FOLDER : ICON_FA_SITEMAP;
@@ -153,7 +154,7 @@ namespace Diagram {
         ImGui::PopID();
     }
 
-    void ComponentBase::RenderIconButton(const char* icon, const ImVec2& size, bool visible, bool highlighted) noexcept {
+    void ComponentBase::RenderIconButton(const char* icon, const ImVec2& size, const bool visible, const bool highlighted) noexcept {
         if (!visible) return;
         const ImVec4 color = highlighted ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImGui::GetStyle().Colors[ImGuiCol_TextDisabled];
         const ImVec2 icon_size = ImGui::CalcTextSize(icon);
@@ -164,11 +165,12 @@ namespace Diagram {
     }
 
     bool ComponentBase::SetupActionButtons(const std::string& nodeKey, const std::string& hoveredRowId, const std::vector<const char*>& icons) noexcept {
-        constexpr float spacing = 2.0f, padding = 4.0f;
+        constexpr float spacing = 2.0f;
         const float row_height = ImGui::GetFrameHeight();
         
         float total_width = icons.size() > 1 ? (icons.size() - 1) * spacing : 0;
         for (const char* icon : icons) {
+            constexpr float padding = 4.0f;
             total_width += ImGui::CalcTextSize(icon).x + padding;
         }
         
@@ -295,7 +297,7 @@ namespace Diagram {
         std::map<std::string, TreeNode*> groupNodes;
         std::vector<std::unique_ptr<TreeNode>> allGroups;
         
-        for (const auto& [groupId, parentId] : s_groups.parents) {
+        for (const auto &groupId: s_groups.parents | std::views::keys) {
             auto it = s_groups.names.find(groupId);
             std::string groupName = it != s_groups.names.end() ? it->second : groupId;
             auto groupNode = std::make_unique<TreeNode>(groupName, nullptr, true, groupId);

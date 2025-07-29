@@ -6,7 +6,7 @@
 #include <imgui.h>
 
 namespace Diagram {
-    bool Block::HandleEvent(const SDL_Event& event, const Camera& camera, glm::vec2 screenSize) noexcept {
+    bool Block::HandleEvent(const SDL_Event& event, const Camera& camera, const glm::vec2 screenSize) noexcept {
         if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
             const glm::vec2 worldPos = camera.ScreenToWorld({static_cast<float>(event.button.x), static_cast<float>(event.button.y)}, screenSize);
             const bool contains = (data.position.x <= worldPos.x && worldPos.x <= data.position.x + data.size.x &&
@@ -37,7 +37,7 @@ namespace Diagram {
         return false;
     }
 
-    void Block::Render(SDL_Renderer* renderer, const Camera& camera, glm::vec2 screenSize) const noexcept {
+    void Block::Render(SDL_Renderer* renderer, const Camera& camera, const glm::vec2 screenSize) const noexcept {
         const auto screenPos = camera.WorldToScreen(data.position, screenSize);
         const SDL_FRect rect = {screenPos.x, screenPos.y, data.size.x * camera.data.zoom, data.size.y * camera.data.zoom};
 
