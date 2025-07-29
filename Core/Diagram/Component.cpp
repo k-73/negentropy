@@ -2,9 +2,6 @@
 #include "Block.hpp"
 #include "imgui.h"
 #include <algorithm>
-#include <set>
-#include <map>
-#include <functional>
 #include <cstring>
 #include "../Utils/IconsFontAwesome5.h"
 #include "../Utils/Notification.hpp"
@@ -77,10 +74,10 @@ namespace Diagram {
     void ComponentBase::RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components, int depth, std::string& hoveredRowId) noexcept {
         static constexpr float TREE_INDENT = 16.0f;
 
-        const char* icon = node.component ? ICON_FA_CUBE : (node.isGroup ? ICON_FA_FOLDER : ICON_FA_SITEMAP);
+        const char* icon = node.component ? ICON_FA_CUBE : node.isGroup ? ICON_FA_FOLDER : ICON_FA_SITEMAP;
 
-        std::string nodeKey = node.name + std::to_string(reinterpret_cast<uintptr_t>(node.component)) + (node.isGroup ? "_group" : "");
-        bool hasChildren = !node.children.empty();
+        const std::string nodeKey = node.name + std::to_string(reinterpret_cast<uintptr_t>(node.component)) + (node.isGroup ? "_group" : "");
+        const bool hasChildren = !node.children.empty();
         bool isExpanded = false;
         
         if (node.isGroup) {
@@ -89,7 +86,7 @@ namespace Diagram {
             isExpanded = true;
         }
         
-        bool isSceneRoot = node.name == "Scene" && depth == 0;
+        const bool isSceneRoot = node.name == "Scene" && depth == 0;
         
         ImGui::PushID(nodeKey.c_str());
         ImGui::TableNextRow();
@@ -116,15 +113,14 @@ namespace Diagram {
             ImGui::SameLine(0, 4);
         }
         
-        std::string displayText = " " + std::string(icon) + "  " + node.name;
-        bool isSelected = node.component && s_selected == node.component;
-        bool selectableClicked = ImGui::Selectable(displayText.c_str(), isSelected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap);
-        bool nameHovered = ImGui::IsItemHovered();
+        const std::string displayText = " " + std::string(icon) + "  " + node.name;
+        const bool isSelected = node.component && s_selected == node.component;
+        const bool selectableClicked = ImGui::Selectable(displayText.c_str(), isSelected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap);
+        const bool nameHovered = ImGui::IsItemHovered();
         
-        if (selectableClicked && node.component) {
-            Select(node.component);
-        } else if (selectableClicked && node.isGroup) {
-            ClearSelection();
+        if (selectableClicked) {
+            if (node.component) Select(node.component);
+            else if (node.isGroup) ClearSelection();
         }
         
         if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && (node.isGroup || node.name == "Scene") && hasChildren) {
@@ -184,7 +180,7 @@ namespace Diagram {
         float total_width = 0;
         std::vector<ImVec2> sizes;
         for (const char* icon : icons) {
-            ImVec2 size(ImGui::CalcTextSize(icon).x + padding, row_height);
+            const ImVec2 size(ImGui::CalcTextSize(icon).x + padding, row_height);
             sizes.push_back(size);
             total_width += size.x + (sizes.size() > 1 ? spacing : 0);
         }

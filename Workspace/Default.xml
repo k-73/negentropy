@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Diagram>
 	<Camera>
-		<position x="27.5741539" y="7.42004251" />
-		<zoom>14.9042683</zoom>
+		<position x="27.6522293" y="7.11554146" />
+		<zoom>18.7487049</zoom>
 	</Camera>
 	<Grid>
 		<smallStep>1</smallStep>
@@ -14,7 +14,7 @@
 			<Group id="group3" name="Logic Components" expanded="true">
 				<Group id="group2" name="Nested Group" expanded="true">
 					<Component id="StartID" type="Block">
-						<position x="15" y="-0" />
+						<position x="15" y="0" />
 						<size x="10" y="5" />
 						<label>Start</label>
 						<type>Process</type>
@@ -25,7 +25,7 @@
 			</Group>
 		</Group>
 		<Component id="xxx" type="Block">
-			<position x="30" y="0" />
+			<position x="30" y="-0" />
 			<size x="10" y="5" />
 			<label>STM32</label>
 			<type>Process</type>
