@@ -75,18 +75,10 @@ namespace Diagram {
         static constexpr float TREE_INDENT = 16.0f;
 
         const char* icon = node.component ? ICON_FA_CUBE : node.isGroup ? ICON_FA_FOLDER : ICON_FA_SITEMAP;
-
         const std::string nodeKey = node.name + std::to_string(reinterpret_cast<uintptr_t>(node.component)) + (node.isGroup ? "_group" : "");
         const bool hasChildren = !node.children.empty();
-        bool isExpanded = false;
-        
-        if (node.isGroup) {
-            isExpanded = s_groups.expanded.contains(node.groupId) ? s_groups.expanded[node.groupId] : true;
-        } else if (node.name == "Scene" && depth == 0) {
-            isExpanded = true;
-        }
-        
         const bool isSceneRoot = node.name == "Scene" && depth == 0;
+        const bool isExpanded = node.isGroup ? s_groups.expanded.contains(node.groupId) && s_groups.expanded[node.groupId] : isSceneRoot;
         
         ImGui::PushID(nodeKey.c_str());
         ImGui::TableNextRow();
@@ -123,20 +115,19 @@ namespace Diagram {
             else if (node.isGroup) ClearSelection();
         }
         
-        if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && (node.isGroup || node.name == "Scene") && hasChildren) {
-            if (node.isGroup) {
-                s_groups.expanded[node.groupId] = !isExpanded;
-                if (s_groups.onExpandedChanged) s_groups.onExpandedChanged(s_groups.expanded);
-            }
+        if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && node.isGroup && hasChildren) {
+            s_groups.expanded[node.groupId] = !isExpanded;
+            if (s_groups.onExpandedChanged) s_groups.onExpandedChanged(s_groups.expanded);
         }
         
-        if (node.component && ImGui::BeginDragDropSource()) {
-            ImGui::SetDragDropPayload("COMPONENT_DND", &node.component, sizeof(void*));
-            ImGui::Text("Moving: %s", node.name.c_str());
-            ImGui::EndDragDropSource();
-        } else if (node.isGroup && ImGui::BeginDragDropSource()) {
-            ImGui::SetDragDropPayload("GROUP_DND", node.groupId.c_str(), node.groupId.size() + 1);
-            ImGui::Text("Moving Group: %s", node.name.c_str());
+        if (ImGui::BeginDragDropSource()) {
+            if (node.component) {
+                ImGui::SetDragDropPayload("COMPONENT_DND", &node.component, sizeof(void*));
+                ImGui::Text("Moving: %s", node.name.c_str());
+            } else if (node.isGroup) {
+                ImGui::SetDragDropPayload("GROUP_DND", node.groupId.c_str(), node.groupId.size() + 1);
+                ImGui::Text("Moving Group: %s", node.name.c_str());
+            }
             ImGui::EndDragDropSource();
         }
         
@@ -145,14 +136,13 @@ namespace Diagram {
         ImGui::Unindent(static_cast<float>(depth) * TREE_INDENT);
         ImGui::TableNextColumn();
         
+        if (nameHovered) hoveredRowId = nodeKey;
+        
         if (node.component) {
-            if (nameHovered) hoveredRowId = nodeKey;
-            
             RenderActionButtons(nodeKey, hoveredRowId, components, node.component);
         } else if (node.isGroup) {
-            if (nameHovered) hoveredRowId = nodeKey;
             RenderGroupActions(nodeKey, hoveredRowId);
-        } else if (node.name == "Scene") {
+        } else if (isSceneRoot) {
             RenderCenteredIcon(ICON_FA_FOLDER);
         }
         
