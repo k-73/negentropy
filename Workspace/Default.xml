@@ -14,24 +14,16 @@
 			<Group id="group1" name="UI Components" expanded="true">
 				<Group id="group3" name="Logic Components" expanded="true">
 					<Component id="StartID" type="Block">
-						<position x="15" y="-0" />
+						<position x="15" y="0" />
 						<size x="10" y="5" />
 						<label>Start</label>
 						<type>Process</type>
-						<backgroundColor x="1" y="0" z="0" w="0.278431386" />
-						<borderColor x="1" y="0" z="0" w="1" />
+						<backgroundColor x="1" y="0" z="0" w="0.333333343" />
+						<borderColor x="1" y="0" z="0" w="0.592156887" />
 					</Component>
 				</Group>
 			</Group>
 		</Group>
-		<Component id="test1" type="Block">
-			<position x="30" y="10" />
-			<size x="10" y="5" />
-			<label>Block 4</label>
-			<type>Process</type>
-			<backgroundColor x="0.800000012" y="0.329411775" z="0.0784313753" w="0.58431375" />
-			<borderColor x="1" y="0.466666669" z="0" w="0.690196097" />
-		</Component>
 		<Component id="asssxxx" type="Block">
 			<position x="15" y="10" />
 			<size x="10" y="5" />
@@ -47,6 +39,14 @@
 			<type>Process</type>
 			<backgroundColor x="0.635294139" y="0.800000012" z="0.0784313753" w="0.380392164" />
 			<borderColor x="0.53725493" y="1" z="0" w="0.36470589" />
+		</Component>
+		<Component id="test1" type="Block">
+			<position x="30" y="10" />
+			<size x="10" y="5" />
+			<label>Block 4</label>
+			<type>Process</type>
+			<backgroundColor x="0.800000012" y="0.329411775" z="0.0784313753" w="0.58431375" />
+			<borderColor x="1" y="0.466666669" z="0" w="0.690196097" />
 		</Component>
 	</Root>
 </Diagram>
