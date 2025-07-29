@@ -34,7 +34,6 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Core/Diagram/Component.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Diagram/Component.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Core/Diagram/Component.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Diagram/Component.hpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Workspace/Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Workspace/Default.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,14 +49,6 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="mock://diff.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://diff.h" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://diff.h" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://diff.h" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://diff.h" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://diff.h" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://diff.h" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://diff.h" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://diff.h" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock://diff.h" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="ProjectColorInfo">{
@@ -147,7 +138,7 @@
       <workItem from="1753467894794" duration="78000" />
       <workItem from="1753483181647" duration="265000" />
       <workItem from="1753483453967" duration="448000" />
-      <workItem from="1753788092385" duration="2857000" />
+      <workItem from="1753788092385" duration="4077000" />
     </task>
     <servers />
   </component>

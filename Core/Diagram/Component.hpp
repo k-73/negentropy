@@ -22,7 +22,27 @@ namespace Diagram {
     public:
         std::string groupId;
         std::string id;
+
+        virtual ~ComponentBase() = default;
         
+        // Core interface
+        virtual bool HandleEvent(const SDL_Event& event, const Camera& camera, glm::vec2 screenSize) noexcept = 0;
+        virtual void Render(SDL_Renderer* renderer, const Camera& camera, glm::vec2 screenSize) const noexcept = 0;
+        virtual void xml_serialize(pugi::xml_node& node) const = 0;
+        virtual void xml_deserialize(const pugi::xml_node& node) = 0;
+        virtual std::string GetDisplayName() const noexcept = 0;
+        virtual std::string GetTypeName() const noexcept = 0;
+        
+        // Selection management
+        static ComponentBase* GetSelected() noexcept { return s_selected; }
+        static void Select(ComponentBase* component) noexcept { s_selected = component; }
+        static void ClearSelection() noexcept { s_selected = nullptr; }
+        
+        // UI rendering
+        static void RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& components, const std::map<std::string, std::string>& groups = {}, const std::map<std::string, std::string>& groupNames = {}, std::function<void(const std::map<std::string, std::string>&)> onGroupsChanged = nullptr, const std::map<std::string, bool>& groupExpanded = {}, std::function<void(const std::map<std::string, bool>&)> onExpandedChanged = nullptr) noexcept;
+        static void RenderComponentEditor() noexcept;
+        
+    private:
         struct TreeNode {
             std::string name;
             ComponentBase* component = nullptr;
@@ -33,48 +53,39 @@ namespace Diagram {
             explicit TreeNode(std::string n, ComponentBase* c = nullptr, bool group = false, std::string gId = "") 
                 : name(std::move(n)), component(c), isGroup(group), groupId(std::move(gId)) {}
         };
-
-        virtual ~ComponentBase() = default;
         
-        virtual bool HandleEvent(const SDL_Event& event, const Camera& camera, glm::vec2 screenSize) noexcept = 0;
-        virtual void Render(SDL_Renderer* renderer, const Camera& camera, glm::vec2 screenSize) const noexcept = 0;
-        virtual void xml_serialize(pugi::xml_node& node) const = 0;
-        virtual void xml_deserialize(const pugi::xml_node& node) = 0;
+        struct GroupState {
+            std::map<std::string, std::string> parents;
+            std::map<std::string, std::string> names;
+            std::map<std::string, bool> expanded;
+            std::function<void(const std::map<std::string, std::string>&)> onGroupsChanged;
+            std::function<void(const std::map<std::string, bool>&)> onExpandedChanged;
+        };
         
-        virtual std::string GetDisplayName() const noexcept = 0;
-        virtual std::string GetTypeName() const noexcept = 0;
-        
-        static ComponentBase* GetSelected() noexcept { return s_selected; }
-        static void Select(ComponentBase* component) noexcept { s_selected = component; }
-        static void ClearSelection() noexcept { s_selected = nullptr; }
-        
-        static void RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& components, const std::map<std::string, std::string>& groups = {}, const std::map<std::string, std::string>& groupNames = {}, std::function<void(const std::map<std::string, std::string>&)> onGroupsChanged = nullptr, const std::map<std::string, bool>& groupExpanded = {}, std::function<void(const std::map<std::string, bool>&)> onExpandedChanged = nullptr) noexcept;
-        static void RenderComponentEditor() noexcept;
-        
-    private:
+        // Static data
         static ComponentBase* s_selected;
+        static GroupState s_groups;
         
+        // Tree rendering
         static void RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components, int depth, std::string& hoveredRowId) noexcept;
+        static std::unique_ptr<TreeNode> BuildHierarchy(const std::vector<std::unique_ptr<ComponentBase>>& components) noexcept;
+        static bool IsGroupDescendant(const std::string& groupId, const std::string& potentialAncestor) noexcept;
+        
+        // UI components
         static void RenderActionButtons(const std::string& nodeKey, const std::string& hoveredRowId, std::vector<std::unique_ptr<ComponentBase>>* components, ComponentBase* component) noexcept;
         static void RenderGroupActions(const std::string& nodeKey, const std::string& hoveredRowId) noexcept;
         static void RenderCenteredIcon(const char* icon) noexcept;
         static void RenderIconButton(const char* icon, const ImVec2& size, bool visible, bool highlighted) noexcept;
         static bool SetupActionButtons(const std::string& nodeKey, const std::string& hoveredRowId, const std::vector<const char*>& icons) noexcept;
-        static void HandleDragDrop(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components) noexcept;
-        static std::unique_ptr<TreeNode> BuildHierarchy(const std::vector<std::unique_ptr<ComponentBase>>& components) noexcept;
-        static bool IsGroupDescendant(const std::string& groupId, const std::string& potentialAncestor) noexcept;
         
-        static std::map<std::string, std::string> s_groupParents;
-        static std::map<std::string, std::string> s_groupNames;
-        static std::map<std::string, bool> s_groupExpanded;
-        static std::function<void(const std::map<std::string, std::string>&)> s_onGroupsChanged;
-        static std::function<void(const std::map<std::string, bool>&)> s_onExpandedChanged;
+        // Drag & drop
+        static void HandleDragDrop(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components) noexcept;
     };
     
     template<typename T>
     std::string demangle() {
         int status;
-        char* demangled = abi::__cxa_demangle(typeid(T).name(), 0, 0, &status);
+        char* demangled = abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, &status);
         std::string result = demangled ? demangled : "unknown";
         free(demangled);
         auto pos = result.find_last_of("::");

@@ -12,18 +12,10 @@
 
 namespace Diagram {
     ComponentBase* ComponentBase::s_selected = nullptr;
-    std::map<std::string, std::string> ComponentBase::s_groupParents;
-    std::map<std::string, std::string> ComponentBase::s_groupNames;
-    std::map<std::string, bool> ComponentBase::s_groupExpanded;
-    std::function<void(const std::map<std::string, std::string>&)> ComponentBase::s_onGroupsChanged;
-    std::function<void(const std::map<std::string, bool>&)> ComponentBase::s_onExpandedChanged;
+    ComponentBase::GroupState ComponentBase::s_groups;
 
     void ComponentBase::RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& components, const std::map<std::string, std::string>& groups, const std::map<std::string, std::string>& groupNames, std::function<void(const std::map<std::string, std::string>&)> onGroupsChanged, const std::map<std::string, bool>& groupExpanded, std::function<void(const std::map<std::string, bool>&)> onExpandedChanged) noexcept {
-        s_groupParents = groups;
-        s_groupNames = groupNames;
-        s_groupExpanded = groupExpanded;
-        s_onGroupsChanged = onGroupsChanged;
-        s_onExpandedChanged = onExpandedChanged;
+        s_groups = {groups, groupNames, groupExpanded, onGroupsChanged, onExpandedChanged};
         
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.2f, 0.2f, 0.2f, 0.3f));
         ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.25f, 0.25f, 0.25f, 0.3f));
@@ -92,7 +84,7 @@ namespace Diagram {
         bool isExpanded = false;
         
         if (node.isGroup) {
-            isExpanded = s_groupExpanded.contains(node.groupId) ? s_groupExpanded[node.groupId] : true;
+            isExpanded = s_groups.expanded.contains(node.groupId) ? s_groups.expanded[node.groupId] : true;
         } else if (node.name == "Scene" && depth == 0) {
             isExpanded = true;
         }
@@ -113,8 +105,8 @@ namespace Diagram {
             bool arrowClicked = ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left);
             
             if (arrowClicked && node.isGroup) {
-                s_groupExpanded[node.groupId] = !isExpanded;
-                if (s_onExpandedChanged) s_onExpandedChanged(s_groupExpanded);
+                s_groups.expanded[node.groupId] = !isExpanded;
+                if (s_groups.onExpandedChanged) s_groups.onExpandedChanged(s_groups.expanded);
             }
             
             ImGui::PopStyleColor();
@@ -137,8 +129,8 @@ namespace Diagram {
         
         if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && (node.isGroup || node.name == "Scene") && hasChildren) {
             if (node.isGroup) {
-                s_groupExpanded[node.groupId] = !isExpanded;
-                if (s_onExpandedChanged) s_onExpandedChanged(s_groupExpanded);
+                s_groups.expanded[node.groupId] = !isExpanded;
+                if (s_groups.onExpandedChanged) s_groups.onExpandedChanged(s_groups.expanded);
             }
         }
         
@@ -311,8 +303,8 @@ namespace Diagram {
                 return;
             }
             
-            s_groupParents[draggedGroupId] = targetGroup;
-            if (s_onGroupsChanged) s_onGroupsChanged(s_groupParents);
+            s_groups.parents[draggedGroupId] = targetGroup;
+            if (s_groups.onGroupsChanged) s_groups.onGroupsChanged(s_groups.parents);
             Notify::Success(successMsg);
         }
         
@@ -324,8 +316,8 @@ namespace Diagram {
         std::map<std::string, TreeNode*> groupNodes;
         std::vector<std::unique_ptr<TreeNode>> allGroups;
         
-        for (const auto& [groupId, parentId] : s_groupParents) {
-            std::string groupName = s_groupNames.contains(groupId) ? s_groupNames[groupId] : groupId;
+        for (const auto& [groupId, parentId] : s_groups.parents) {
+            std::string groupName = s_groups.names.contains(groupId) ? s_groups.names[groupId] : groupId;
             auto groupNode = std::make_unique<TreeNode>(groupName, nullptr, true, groupId);
             groupNodes[groupId] = groupNode.get();
             allGroups.push_back(std::move(groupNode));
@@ -346,7 +338,7 @@ namespace Diagram {
         }
         
         for (auto& groupNode : allGroups) {
-            const std::string& parentId = s_groupParents[groupNode->groupId];
+            const std::string& parentId = s_groups.parents[groupNode->groupId];
             if (parentId.empty() || !groupNodes.contains(parentId)) {
                 root->children.push_back(std::move(groupNode));
             } else {
@@ -359,13 +351,13 @@ namespace Diagram {
 
     bool ComponentBase::IsGroupDescendant(const std::string& groupId, const std::string& potentialAncestor) noexcept {
         if (groupId == potentialAncestor) return true;
-        if (!s_groupParents.contains(groupId)) return false;
+        if (!s_groups.parents.contains(groupId)) return false;
         
-        std::string parent = s_groupParents[groupId];
+        std::string parent = s_groups.parents[groupId];
         while (!parent.empty()) {
             if (parent == potentialAncestor) return true;
-            if (!s_groupParents.contains(parent)) break;
-            parent = s_groupParents[parent];
+            if (!s_groups.parents.contains(parent)) break;
+            parent = s_groups.parents[parent];
         }
         return false;
     }
