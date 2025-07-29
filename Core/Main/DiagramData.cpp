@@ -66,13 +66,14 @@ std::unique_ptr<Diagram::ComponentBase> DiagramData::CreateComponent(const std::
 
 void DiagramData::LoadHierarchy(pugi::xml_node node, const std::string& parentGroupId) {
     for (auto child : node.children()) {
-        if (strcmp(child.name(), "Group") == 0) {
-            std::string id = child.attribute("id").as_string();
+        const std::string name = child.name();
+        if (name == "Group") {
+            const std::string id = child.attribute("id").as_string();
             m_groups[id] = parentGroupId;
             m_groupNames[id] = child.attribute("name").as_string();
             m_groupExpanded[id] = child.attribute("expanded").as_bool(true);
             LoadHierarchy(child, id);
-        } else if (strcmp(child.name(), "Component") == 0) {
+        } else if (name == "Component") {
             if (auto component = CreateComponent(child.attribute("type").as_string())) {
                 component->groupId = parentGroupId;
                 component->id = child.attribute("id").as_string();
@@ -89,7 +90,7 @@ void DiagramData::SaveHierarchy(pugi::xml_node node, const std::string& groupId)
             auto groupNode = node.append_child("Group");
             groupNode.append_attribute("id").set_value(id.c_str());
             groupNode.append_attribute("name").set_value(m_groupNames.contains(id) ? m_groupNames.at(id).c_str() : id.c_str());
-            groupNode.append_attribute("expanded").set_value(m_groupExpanded.contains(id) ? m_groupExpanded.at(id) : true);
+            groupNode.append_attribute("expanded").set_value(m_groupExpanded.contains(id) && m_groupExpanded.at(id));
             SaveHierarchy(groupNode, id);
         }
     }
@@ -111,20 +112,17 @@ void DiagramData::AddBlock(bool useCursorPosition, SDL_Window* window) noexcept 
     auto newBlock = std::make_unique<Diagram::Block>();
     
     if (useCursorPosition && window) {
-        ImVec2 mousePos = ImGui::GetMousePos();
+        const ImVec2 mousePos = ImGui::GetMousePos();
         int w, h;
         SDL_GetWindowSize(window, &w, &h);
-        glm::vec2 screenCenter(static_cast<float>(w) / 2.0f, static_cast<float>(h) / 2.0f);
-        newBlock->data.position = {(mousePos.x - screenCenter.x) / m_camera.data.zoom + m_camera.data.position.x, 
-                                  (mousePos.y - screenCenter.y) / m_camera.data.zoom + m_camera.data.position.y};
+        const glm::vec2 screenCenter(w * 0.5f, h * 0.5f);
+        newBlock->data.position = (glm::vec2(mousePos.x, mousePos.y) - screenCenter) / m_camera.data.zoom + m_camera.data.position;
     } else {
-        newBlock->data.position = m_camera.data.position - newBlock->data.size / 2.0f;
+        newBlock->data.position = m_camera.data.position - newBlock->data.size * 0.5f;
     }
     
     newBlock->data.label = "Block " + std::to_string(blockCount + 1);
-    auto ptr = reinterpret_cast<uintptr_t>(newBlock.get()) & 0xFFFFFF;
-    std::string id; for(; ptr; ptr/=36) id = static_cast<char>(ptr%36 < 10 ? '0'+ptr%36 : 'a'+ptr%36-10) + id;
-    newBlock->id = id.empty() ? "0" : id;
+    newBlock->id = "block_" + std::to_string(blockCount + 1);
     m_components.push_back(std::move(newBlock));
 }
 

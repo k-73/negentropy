@@ -43,9 +43,9 @@ public:
     const Diagram::Grid& GetGrid() const noexcept { return m_grid; }
     Diagram::Grid& GetGrid() noexcept { return m_grid; }
 
-    const std::map<std::string, std::string>& GetGroups() const noexcept { return m_groups; }
-    const std::map<std::string, std::string>& GetGroupNames() const noexcept { return m_groupNames; }
-    const std::map<std::string, bool>& GetGroupExpanded() const noexcept { return m_groupExpanded; }
+    Diagram::ComponentBase::GroupState GetGroupState() const noexcept { 
+        return {m_groups, m_groupNames, m_groupExpanded, nullptr, nullptr}; 
+    }
     void UpdateGroups(const std::map<std::string, std::string>& groups) noexcept { m_groups = groups; }
     void UpdateGroupExpanded(const std::map<std::string, bool>& expanded) noexcept { m_groupExpanded = expanded; }
 
