@@ -1,3 +1,4 @@
+#include "TreeRenderer.hpp"
 #include "Component.hpp"
 #include "Block.hpp"
 #include "imgui.h"
@@ -9,10 +10,9 @@
 #include <ranges>
 
 namespace Diagram {
-    ComponentBase* ComponentBase::s_selected = nullptr;
-    ComponentBase::GroupState ComponentBase::s_groups;
+    TreeRenderer::GroupState TreeRenderer::s_groups;
 
-    void ComponentBase::RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& components, const GroupState& config) noexcept {
+    void TreeRenderer::RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& components, const GroupState& config) noexcept {
         s_groups = config;
         
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.2f, 0.2f, 0.2f, 0.3f));
@@ -41,12 +41,13 @@ namespace Diagram {
         ImGui::End();
     }
 
-    void ComponentBase::RenderComponentEditor() noexcept {
+    void TreeRenderer::RenderComponentEditor() noexcept {
         if (!ImGui::Begin("Component Editor")) {
             ImGui::End();
             return;
         }
 
+        auto* s_selected = ComponentBase::GetSelected();
         if (!s_selected) {
             ImGui::TextDisabled("Select a component to edit");
             ImGui::End();
@@ -72,7 +73,7 @@ namespace Diagram {
         ImGui::End();
     }
 
-    void ComponentBase::RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components, const int depth, std::string& hoveredRowId) noexcept {
+    void TreeRenderer::RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components, const int depth, std::string& hoveredRowId) noexcept {
         static constexpr float TREE_INDENT = 16.0f;
 
         const char* icon = node.component ? ICON_FA_CUBE : node.isGroup ? ICON_FA_FOLDER : ICON_FA_SITEMAP;
@@ -107,13 +108,13 @@ namespace Diagram {
         }
         
         const std::string displayText = std::string(" ") + icon + "  " + node.name;
-        const bool isSelected = node.component && s_selected == node.component;
+        const bool isSelected = node.component && ComponentBase::GetSelected() == node.component;
         const bool selectableClicked = ImGui::Selectable(displayText.c_str(), isSelected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap);
         const bool nameHovered = ImGui::IsItemHovered();
         
         if (selectableClicked) {
-            if (node.component) Select(node.component);
-            else if (node.isGroup) ClearSelection();
+            if (node.component) ComponentBase::Select(node.component);
+            else if (node.isGroup) ComponentBase::ClearSelection();
         }
         
         if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && node.isGroup && hasChildren) {
@@ -154,7 +155,7 @@ namespace Diagram {
         ImGui::PopID();
     }
 
-    void ComponentBase::RenderIconButton(const char* icon, const ImVec2& size, const bool visible, const bool highlighted) noexcept {
+    void TreeRenderer::RenderIconButton(const char* icon, const ImVec2& size, const bool visible, const bool highlighted) noexcept {
         if (!visible) return;
         const ImVec4 color = highlighted ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImGui::GetStyle().Colors[ImGuiCol_TextDisabled];
         const ImVec2 icon_size = ImGui::CalcTextSize(icon);
@@ -164,7 +165,7 @@ namespace Diagram {
         ImGui::GetWindowDrawList()->AddText(pos, ImGui::GetColorU32(color), icon);
     }
 
-    bool ComponentBase::SetupActionButtons(const std::string& nodeKey, const std::string& hoveredRowId, const std::vector<const char*>& icons) noexcept {
+    bool TreeRenderer::SetupActionButtons(const std::string& nodeKey, const std::string& hoveredRowId, const std::vector<const char*>& icons) noexcept {
         constexpr float spacing = 2.0f;
         const float row_height = ImGui::GetFrameHeight();
         
@@ -183,13 +184,13 @@ namespace Diagram {
         return hoveredRowId == nodeKey || popupOpen;
     }
 
-    void ComponentBase::RenderActionButtons(const std::string& nodeKey, const std::string& hoveredRowId, std::vector<std::unique_ptr<ComponentBase>>* components, ComponentBase* component) noexcept {
+    void TreeRenderer::RenderActionButtons(const std::string& nodeKey, const std::string& hoveredRowId, std::vector<std::unique_ptr<ComponentBase>>* components, ComponentBase* component) noexcept {
         const std::vector<const char*> icons = {ICON_FA_TRASH, ICON_FA_ELLIPSIS_H};
         const bool visible = SetupActionButtons(nodeKey, hoveredRowId, icons);
         
         if (ImGui::InvisibleButton("##trash", ImVec2(ImGui::CalcTextSize(ICON_FA_TRASH).x + 4, ImGui::GetFrameHeight()))) {
             if (auto it = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == component; }); it != components->end()) {
-                if (s_selected == component) ClearSelection();
+                if (ComponentBase::GetSelected() == component) ComponentBase::ClearSelection();
                 components->erase(it);
                 return;
             }
@@ -211,7 +212,7 @@ namespace Diagram {
         }
     }
 
-    void ComponentBase::RenderGroupActions(const std::string& nodeKey, const std::string& hoveredRowId) noexcept {
+    void TreeRenderer::RenderGroupActions(const std::string& nodeKey, const std::string& hoveredRowId) noexcept {
         const std::vector<const char*> icons = {ICON_FA_PLUS, ICON_FA_ELLIPSIS_H};
         const bool visible = SetupActionButtons(nodeKey, hoveredRowId, icons);
         
@@ -235,7 +236,7 @@ namespace Diagram {
         }
     }
 
-    void ComponentBase::RenderCenteredIcon(const char* icon) noexcept {
+    void TreeRenderer::RenderCenteredIcon(const char* icon) noexcept {
         const float start_x = ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(icon).x) * 0.5f;
         ImGui::SetCursorPosX(start_x);
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
@@ -243,7 +244,7 @@ namespace Diagram {
         ImGui::PopStyleColor();
     }
 
-    void ComponentBase::HandleDragDrop(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components) noexcept {
+    void TreeRenderer::HandleDragDrop(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components) noexcept {
         if (!ImGui::BeginDragDropTarget()) return;
         
         if (const auto* payload = ImGui::AcceptDragDropPayload("COMPONENT_DND")) {
@@ -292,7 +293,7 @@ namespace Diagram {
         ImGui::EndDragDropTarget();
     }
 
-    std::unique_ptr<ComponentBase::TreeNode> ComponentBase::BuildHierarchy(const std::vector<std::unique_ptr<ComponentBase>>& components) noexcept {
+    std::unique_ptr<TreeRenderer::TreeNode> TreeRenderer::BuildHierarchy(const std::vector<std::unique_ptr<ComponentBase>>& components) noexcept {
         auto root = std::make_unique<TreeNode>("Scene");
         std::map<std::string, TreeNode*> groupNodes;
         std::vector<std::unique_ptr<TreeNode>> allGroups;
@@ -327,7 +328,7 @@ namespace Diagram {
         return root;
     }
 
-    bool ComponentBase::IsGroupDescendant(const std::string& groupId, const std::string& potentialAncestor) noexcept {
+    bool TreeRenderer::IsGroupDescendant(const std::string& groupId, const std::string& potentialAncestor) noexcept {
         if (groupId == potentialAncestor) return true;
         if (!s_groups.parents.contains(groupId)) return false;
         

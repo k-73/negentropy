@@ -9,8 +9,6 @@
 #include <typeinfo>
 #include <algorithm>
 #include <cxxabi.h>
-#include <map>
-#include <functional>
 
 struct ImVec2;
 
@@ -20,13 +18,6 @@ namespace Diagram {
     
     class ComponentBase {
     public:
-        struct GroupState {
-            std::map<std::string, std::string> parents;
-            std::map<std::string, std::string> names;
-            std::map<std::string, bool> expanded;
-            std::function<void(const std::map<std::string, std::string>&)> onGroupsChanged;
-            std::function<void(const std::map<std::string, bool>&)> onExpandedChanged;
-        };
         
         std::string groupId;
         std::string id;
@@ -46,40 +37,9 @@ namespace Diagram {
         static void Select(ComponentBase* component) noexcept { s_selected = component; }
         static void ClearSelection() noexcept { s_selected = nullptr; }
         
-        // UI rendering
-        static void RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& components, const GroupState& config = {}) noexcept;
-        static void RenderComponentEditor() noexcept;
         
     private:
-        struct TreeNode {
-            std::string name;
-            ComponentBase* component = nullptr;
-            bool isGroup = false;
-            std::string groupId;
-            std::vector<std::unique_ptr<TreeNode>> children;
-
-            explicit TreeNode(std::string n, ComponentBase* c = nullptr, bool group = false, std::string gId = "") 
-                : name(std::move(n)), component(c), isGroup(group), groupId(std::move(gId)) {}
-        };
-        
-        // Static data
-        static ComponentBase* s_selected;
-        static GroupState s_groups;
-        
-        // Tree rendering
-        static void RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components, int depth, std::string& hoveredRowId) noexcept;
-        static std::unique_ptr<TreeNode> BuildHierarchy(const std::vector<std::unique_ptr<ComponentBase>>& components) noexcept;
-        static bool IsGroupDescendant(const std::string& groupId, const std::string& potentialAncestor) noexcept;
-        
-        // UI components
-        static void RenderActionButtons(const std::string& nodeKey, const std::string& hoveredRowId, std::vector<std::unique_ptr<ComponentBase>>* components, ComponentBase* component) noexcept;
-        static void RenderGroupActions(const std::string& nodeKey, const std::string& hoveredRowId) noexcept;
-        static void RenderCenteredIcon(const char* icon) noexcept;
-        static void RenderIconButton(const char* icon, const ImVec2& size, bool visible, bool highlighted) noexcept;
-        static bool SetupActionButtons(const std::string& nodeKey, const std::string& hoveredRowId, const std::vector<const char*>& icons) noexcept;
-        
-        // Drag & drop
-        static void HandleDragDrop(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components) noexcept;
+        inline static ComponentBase* s_selected;
     };
     
     template<typename T>

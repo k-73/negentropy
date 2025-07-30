@@ -9,6 +9,7 @@
 #include "../Utils/Path.hpp"
 #include "../Utils/Notification.hpp"
 #include "../Utils/IconsFontAwesome5.h"
+#include "../Diagram/TreeRenderer.hpp"
 
 namespace fs = std::filesystem;
 
@@ -180,11 +181,11 @@ void Application::RenderUI() noexcept {
         auto groupState = m_diagramData.GetGroupState();
         groupState.onGroupsChanged = [this](const std::map<std::string, std::string>& groups) { m_diagramData.UpdateGroups(groups); };
         groupState.onExpandedChanged = [this](const std::map<std::string, bool>& expanded) { m_diagramData.UpdateGroupExpanded(expanded); };
-        Diagram::ComponentBase::RenderComponentTree(m_diagramData.GetComponents(), groupState);
+        Diagram::TreeRenderer::RenderComponentTree(m_diagramData.GetComponents(), groupState);
     }
     
     if (m_showComponentEditor) {
-        Diagram::ComponentBase::RenderComponentEditor();
+        Diagram::TreeRenderer::RenderComponentEditor();
     }
     
     if (m_showDemo) {

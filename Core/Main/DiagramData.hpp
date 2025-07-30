@@ -8,6 +8,7 @@
 #include "../Diagram/Block.hpp"
 #include "../Diagram/Camera.hpp"
 #include "../Diagram/Grid.hpp"
+#include "../Diagram/TreeRenderer.hpp"
 
 class DiagramData {
 public:
@@ -43,7 +44,7 @@ public:
     const Diagram::Grid& GetGrid() const noexcept { return m_grid; }
     Diagram::Grid& GetGrid() noexcept { return m_grid; }
 
-    Diagram::ComponentBase::GroupState GetGroupState() const noexcept { 
+    Diagram::TreeRenderer::GroupState GetGroupState() const noexcept { 
         return {m_groups, m_groupNames, m_groupExpanded, nullptr, nullptr}; 
     }
     void UpdateGroups(const std::map<std::string, std::string>& groups) noexcept { m_groups = groups; }
