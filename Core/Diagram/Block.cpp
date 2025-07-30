@@ -74,11 +74,11 @@ namespace Diagram {
         }
     }
 
-    void Block::xml_serialize(pugi::xml_node& node) const {
+    void Block::XmlSerialize(pugi::xml_node& node) const {
         XML::auto_serialize(data, node);
     }
 
-    void Block::xml_deserialize(const pugi::xml_node& node) {
+    void Block::XmlDeserialize(const pugi::xml_node& node) {
         XML::auto_deserialize(data, node);
     }
 

@@ -14,11 +14,11 @@ namespace Diagram {
         float largeStep = 50.0f;
         bool visible = false;
 
-        void xml_serialize(pugi::xml_node& node) const {
+        void XmlSerialize(pugi::xml_node& node) const {
             XML::auto_serialize(*this, node);
         }
 
-        void xml_deserialize(const pugi::xml_node& node) {
+        void XmlDeserialize(const pugi::xml_node& node) {
             XML::auto_deserialize(*this, node);
         }
     };
@@ -87,12 +87,12 @@ namespace Diagram {
             return {std::round(position.x / step) * step, std::round(position.y / step) * step};
         }
 
-        void xml_serialize(pugi::xml_node& node) const {
-            settings.xml_serialize(node);
+        void XmlSerialize(pugi::xml_node& node) const {
+            settings.XmlSerialize(node);
         }
 
-        void xml_deserialize(const pugi::xml_node& node) {
-            settings.xml_deserialize(node);
+        void XmlDeserialize(const pugi::xml_node& node) {
+            settings.XmlDeserialize(node);
         }
     };
 }

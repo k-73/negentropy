@@ -32,8 +32,8 @@ namespace Diagram {
 
         bool HandleEvent(const SDL_Event& event, const Camera& camera, glm::vec2 screenSize) noexcept override;
         void Render(SDL_Renderer* renderer, const Camera& camera, glm::vec2 screenSize) const noexcept override;
-        void xml_serialize(pugi::xml_node& node) const override;
-        void xml_deserialize(const pugi::xml_node& node) override;
+        void XmlSerialize(pugi::xml_node& node) const override;
+        void XmlDeserialize(const pugi::xml_node& node) override;
         std::string GetDisplayName() const noexcept override;
 
         void RenderUI(int id) noexcept;

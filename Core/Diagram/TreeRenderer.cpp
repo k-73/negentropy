@@ -12,7 +12,7 @@
 namespace Diagram {
     TreeRenderer::GroupState TreeRenderer::s_groups;
 
-    void TreeRenderer::RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& components, const GroupState& config) noexcept {
+    void TreeRenderer::RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& componentList, const GroupState& config) noexcept {
         s_groups = config;
         
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.2f, 0.2f, 0.2f, 0.3f));
@@ -29,10 +29,10 @@ namespace Diagram {
             ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
             ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 48.0f);
             
-            auto hierarchy = BuildHierarchy(components);
+            auto hierarchy = BuildHierarchy(componentList);
             if (hierarchy) {
                 std::string hoveredRowId;
-                RenderTreeNode(*hierarchy, &components, 0, hoveredRowId);
+                RenderTreeNode(*hierarchy, &componentList, 0, hoveredRowId);
             }
 
             ImGui::EndTable();
@@ -70,7 +70,7 @@ namespace Diagram {
         ImGui::End();
     }
 
-    void TreeRenderer::RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components, const int depth, std::string& hoveredRowId) noexcept {
+    void TreeRenderer::RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* componentList, const int depth, std::string& hoveredRowId) noexcept {
         static constexpr float TREE_INDENT = 16.0f;
 
         const char* icon = node.component ? ICON_FA_CUBE : node.isGroup ? ICON_FA_FOLDER : ICON_FA_SITEMAP;
@@ -130,7 +130,7 @@ namespace Diagram {
             ImGui::EndDragDropSource();
         }
         
-        HandleDragDrop(node, components);
+        HandleDragDrop(node, componentList);
         
         ImGui::Unindent(static_cast<float>(depth) * TREE_INDENT);
         ImGui::TableNextColumn();
@@ -138,7 +138,7 @@ namespace Diagram {
         if (nameHovered) hoveredRowId = nodeKey;
         
         if (node.component) {
-            RenderActionButtons(nodeKey, hoveredRowId, components, node.component);
+            RenderActionButtons(nodeKey, hoveredRowId, componentList, node.component);
         } else if (node.isGroup) {
             RenderGroupActions(nodeKey, hoveredRowId);
         } else if (isSceneRoot) {
@@ -146,7 +146,7 @@ namespace Diagram {
         }
         
         if ((isExpanded || isSceneRoot) && hasChildren) {
-            for (const auto& child : node.children) RenderTreeNode(*child, components, depth + 1, hoveredRowId);
+            for (const auto& child : node.children) RenderTreeNode(*child, componentList, depth + 1, hoveredRowId);
         }
         
         ImGui::PopID();
@@ -181,14 +181,14 @@ namespace Diagram {
         return hoveredRowId == nodeKey || popupOpen;
     }
 
-    void TreeRenderer::RenderActionButtons(const std::string& nodeKey, const std::string& hoveredRowId, std::vector<std::unique_ptr<ComponentBase>>* components, ComponentBase* component) noexcept {
+    void TreeRenderer::RenderActionButtons(const std::string& nodeKey, const std::string& hoveredRowId, std::vector<std::unique_ptr<ComponentBase>>* componentList, ComponentBase* component) noexcept {
         const std::vector<const char*> icons = {ICON_FA_TRASH, ICON_FA_ELLIPSIS_H};
         const bool visible = SetupActionButtons(nodeKey, hoveredRowId, icons);
         
         if (ImGui::InvisibleButton("##trash", ImVec2(ImGui::CalcTextSize(ICON_FA_TRASH).x + 4, ImGui::GetFrameHeight()))) {
-            if (auto it = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == component; }); it != components->end()) {
+            if (auto it = std::ranges::find_if(*componentList, [&](const auto& c) { return c.get() == component; }); it != componentList->end()) {
                 if (ComponentBase::GetSelected() == component) ComponentBase::ClearSelection();
-                components->erase(it);
+                componentList->erase(it);
                 return;
             }
         }
@@ -241,7 +241,7 @@ namespace Diagram {
         ImGui::PopStyleColor();
     }
 
-    void TreeRenderer::HandleDragDrop(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components) noexcept {
+    void TreeRenderer::HandleDragDrop(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* componentList) noexcept {
         if (!ImGui::BeginDragDropTarget()) return;
         
         if (const auto* payload = ImGui::AcceptDragDropPayload("COMPONENT_DND")) {
@@ -252,9 +252,9 @@ namespace Diagram {
                 dragged->groupId = node.groupId;
                 Notify::Success("Component moved to group: " + node.name);
             } else if (node.component) {
-                auto draggedIt = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == dragged; });
-                auto targetIt = std::ranges::find_if(*components, [&](const auto& c) { return c.get() == node.component; });
-                if (draggedIt != components->end() && targetIt != components->end()) {
+                auto draggedIt = std::ranges::find_if(*componentList, [&](const auto& c) { return c.get() == dragged; });
+                auto targetIt = std::ranges::find_if(*componentList, [&](const auto& c) { return c.get() == node.component; });
+                if (draggedIt != componentList->end() && targetIt != componentList->end()) {
                     std::swap(dragged->groupId, node.component->groupId);
                     std::swap(*draggedIt, *targetIt);
                     Notify::Success("Components swapped positions and groups");
@@ -290,7 +290,7 @@ namespace Diagram {
         ImGui::EndDragDropTarget();
     }
 
-    std::unique_ptr<TreeRenderer::TreeNode> TreeRenderer::BuildHierarchy(const std::vector<std::unique_ptr<ComponentBase>>& components) noexcept {
+    std::unique_ptr<TreeRenderer::TreeNode> TreeRenderer::BuildHierarchy(const std::vector<std::unique_ptr<ComponentBase>>& componentList) noexcept {
         auto root = std::make_unique<TreeNode>("Scene");
         std::map<std::string, TreeNode*> groupNodes;
         std::vector<std::unique_ptr<TreeNode>> allGroups;
@@ -303,7 +303,7 @@ namespace Diagram {
             allGroups.push_back(std::move(groupNode));
         }
         
-        for (const auto& component : components) {
+        for (const auto& component : componentList) {
             auto node = std::make_unique<TreeNode>(component->GetDisplayName(), component.get());
             
             if (!component->groupId.empty() && groupNodes.contains(component->groupId)) {

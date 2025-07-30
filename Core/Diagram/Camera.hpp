@@ -32,11 +32,11 @@ namespace Diagram {
             data.position += worldPosBefore - worldPosAfter;
         }
 
-        void xml_serialize(pugi::xml_node& node) const {
+        void XmlSerialize(pugi::xml_node& node) const {
             XML::auto_serialize(data, node);
         }
 
-        void xml_deserialize(const pugi::xml_node& node) {
+        void XmlDeserialize(const pugi::xml_node& node) {
             XML::auto_deserialize(data, node);
         }
     };

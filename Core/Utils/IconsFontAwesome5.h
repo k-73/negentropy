@@ -5,6 +5,8 @@
 
 #pragma once
 
+//TODO: Change to `constexpr const char*`
+
 #define FONT_ICON_FILE_NAME_FAR "fa-regular-400.ttf"
 #define FONT_ICON_FILE_NAME_FAS "fa-solid-900.ttf"
 

@@ -23,7 +23,7 @@ namespace Diagram {
             std::function<void(const std::map<std::string, bool>&)> onExpandedChanged;
         };
         
-        static void RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& components, const GroupState& config = {}) noexcept;
+        static void RenderComponentTree(std::vector<std::unique_ptr<ComponentBase>>& componentList, const GroupState& config = {}) noexcept;
         static void RenderComponentEditor() noexcept;
         
     private:
@@ -40,17 +40,17 @@ namespace Diagram {
         
         static GroupState s_groups;
         
-        static void RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components, int depth, std::string& hoveredRowId) noexcept;
-        static std::unique_ptr<TreeNode> BuildHierarchy(const std::vector<std::unique_ptr<ComponentBase>>& components) noexcept;
+        static void RenderTreeNode(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* componentList, int depth, std::string& hoveredRowId) noexcept;
+        static std::unique_ptr<TreeNode> BuildHierarchy(const std::vector<std::unique_ptr<ComponentBase>>& componentList) noexcept;
         static bool IsGroupDescendant(const std::string& groupId, const std::string& potentialAncestor) noexcept;
         
-        static void RenderActionButtons(const std::string& nodeKey, const std::string& hoveredRowId, std::vector<std::unique_ptr<ComponentBase>>* components, ComponentBase* component) noexcept;
+        static void RenderActionButtons(const std::string& nodeKey, const std::string& hoveredRowId, std::vector<std::unique_ptr<ComponentBase>>* componentList, ComponentBase* component) noexcept;
         static void RenderGroupActions(const std::string& nodeKey, const std::string& hoveredRowId) noexcept;
         static void RenderCenteredIcon(const char* icon) noexcept;
         static void RenderIconButton(const char* icon, const ImVec2& size, bool visible, bool highlighted) noexcept;
         static bool SetupActionButtons(const std::string& nodeKey, const std::string& hoveredRowId, const std::vector<const char*>& icons) noexcept;
         
-        static void HandleDragDrop(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* components) noexcept;
+        static void HandleDragDrop(const TreeNode& node, std::vector<std::unique_ptr<ComponentBase>>* componentList) noexcept;
     };
     
 }

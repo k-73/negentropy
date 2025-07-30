@@ -1,68 +1,70 @@
 #pragma once
 
-#include <vector>
-#include <string>
-#include <memory>
 #include <map>
-#include "../Diagram/Component.hpp"
+#include <memory>
+#include <string>
+#include <vector>
+
 #include "../Diagram/Block.hpp"
 #include "../Diagram/Camera.hpp"
+#include "../Diagram/Component.hpp"
 #include "../Diagram/Grid.hpp"
 #include "../Diagram/TreeRenderer.hpp"
 
-class DiagramData {
+class DiagramData
+{
 public:
-    DiagramData() noexcept;
+	DiagramData() noexcept;
 
-    static DiagramData* GetInstance() noexcept { return s_instance; }
-    static void SetInstance(DiagramData* instance) noexcept { s_instance = instance; }
+	static DiagramData* GetInstance() noexcept { return instance; }
+	static void SetInstance(DiagramData* newInstance) noexcept { instance = newInstance; }
 
-    DiagramData(const DiagramData&) = delete;
-    DiagramData& operator=(const DiagramData&) = delete;
-    DiagramData(DiagramData&&) = delete;
-    DiagramData& operator=(DiagramData&&) = delete;
+	DiagramData(const DiagramData&) = delete;
+	DiagramData& operator=(const DiagramData&) = delete;
+	DiagramData(DiagramData&&) = delete;
+	DiagramData& operator=(DiagramData&&) = delete;
 
-    void Load(const std::string& filePath);
-    void Save(const std::string& filePath) const;
+	void Load(const std::string& filePath);
+	void Save(const std::string& filePath) const;
 
-    const std::vector<std::unique_ptr<Diagram::ComponentBase>>& GetComponents() const noexcept { return m_components; }
-    std::vector<std::unique_ptr<Diagram::ComponentBase>>& GetComponents() noexcept { return m_components; }
-    
-    template<typename T>
-    std::vector<T*> GetComponentsOfType() const noexcept {
-        std::vector<T*> result;
-        for (const auto& comp : m_components) {
-            if (auto* typed = dynamic_cast<T*>(comp.get())) 
-                result.push_back(typed);
-        }
-        return result;
-    }
+	const std::vector<std::unique_ptr<Diagram::ComponentBase>>& GetComponentList() const noexcept { return componentList; }
+	std::vector<std::unique_ptr<Diagram::ComponentBase>>& GetComponentList() noexcept { return componentList; }
 
-    const Diagram::Camera& GetCamera() const noexcept { return m_camera; }
-    Diagram::Camera& GetCamera() noexcept { return m_camera; }
+	template<typename T>
+	std::vector<T*> GetComponentsOfType() const noexcept {
+		std::vector<T*> result;
+		for(const auto& comp: componentList) {
+			if(auto* typed = dynamic_cast<T*>(comp.get()))
+				result.push_back(typed);
+		}
+		return result;
+	}
 
-    const Diagram::Grid& GetGrid() const noexcept { return m_grid; }
-    Diagram::Grid& GetGrid() noexcept { return m_grid; }
+	const Diagram::Camera& GetCamera() const noexcept { return cameraData; }
+	Diagram::Camera& GetCamera() noexcept { return cameraData; }
 
-    Diagram::TreeRenderer::GroupState GetGroupState() const noexcept { 
-        return {m_groups, m_groupNames, m_groupExpanded, nullptr, nullptr}; 
-    }
-    void UpdateGroups(const std::map<std::string, std::string>& groups) noexcept { m_groups = groups; }
-    void UpdateGroupExpanded(const std::map<std::string, bool>& expanded) noexcept { m_groupExpanded = expanded; }
+	const Diagram::Grid& GetGrid() const noexcept { return gridData; }
+	Diagram::Grid& GetGrid() noexcept { return gridData; }
 
-    void AddBlock(bool useCursorPosition = false, SDL_Window* window = nullptr) noexcept;
+	Diagram::TreeRenderer::GroupState GetGroupState() const noexcept {
+		return {groupMap, groupNameMap, isGroupExpandedMap, nullptr, nullptr};
+	}
+	void UpdateGroups(const std::map<std::string, std::string>& groups) noexcept { groupMap = groups; }
+	void UpdateGroupExpanded(const std::map<std::string, bool>& expanded) noexcept { isGroupExpandedMap = expanded; }
+
+	void AddBlock(bool isUseCursorPosition = false, SDL_Window* window = nullptr) noexcept;
 
 private:
-    inline static DiagramData* s_instance = nullptr;
-    
-    std::unique_ptr<Diagram::ComponentBase> CreateComponent(const std::string& type) const;
-    void LoadHierarchy(pugi::xml_node node, const std::string& parentGroupId);
-    void SaveHierarchy(pugi::xml_node node, const std::string& groupId) const;
-    
-    std::vector<std::unique_ptr<Diagram::ComponentBase>> m_components;
-    Diagram::Camera m_camera;
-    Diagram::Grid m_grid;
-    std::map<std::string, std::string> m_groups;
-    std::map<std::string, std::string> m_groupNames;
-    std::map<std::string, bool> m_groupExpanded;
+	inline static DiagramData* instance = nullptr;
+
+	std::unique_ptr<Diagram::ComponentBase> CreateComponent(const std::string& type) const;
+	void LoadHierarchy(pugi::xml_node node, const std::string& parentGroupId);
+	void SaveHierarchy(pugi::xml_node node, const std::string& groupId) const;
+
+	std::vector<std::unique_ptr<Diagram::ComponentBase>> componentList;
+	Diagram::Camera cameraData;
+	Diagram::Grid gridData;
+	std::map<std::string, std::string> groupMap;
+	std::map<std::string, std::string> groupNameMap;
+	std::map<std::string, bool> isGroupExpandedMap;
 };

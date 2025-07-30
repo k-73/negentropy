@@ -27,8 +27,8 @@ namespace Diagram {
         // Core interface
         virtual bool HandleEvent(const SDL_Event& event, const Camera& camera, glm::vec2 screenSize) noexcept = 0;
         virtual void Render(SDL_Renderer* renderer, const Camera& camera, glm::vec2 screenSize) const noexcept = 0;
-        virtual void xml_serialize(pugi::xml_node& node) const = 0;
-        virtual void xml_deserialize(const pugi::xml_node& node) = 0;
+        virtual void XmlSerialize(pugi::xml_node& node) const = 0;
+        virtual void XmlDeserialize(const pugi::xml_node& node) = 0;
         virtual std::string GetDisplayName() const noexcept = 0;
         virtual std::string GetTypeName() const noexcept = 0;
         

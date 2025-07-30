@@ -112,7 +112,7 @@ namespace XML {
 
     template<typename T>
     struct Serializable {
-        void xml_serialize(pugi::xml_node& n)  const { auto_serialize(static_cast<const T&>(*this), n); }
-        void xml_deserialize(const pugi::xml_node& n) { auto_deserialize(static_cast<T&>(*this), n); }
+        void XmlSerialize(pugi::xml_node& n)  const { auto_serialize(static_cast<const T&>(*this), n); }
+        void XmlDeserialize(const pugi::xml_node& n) { auto_deserialize(static_cast<T&>(*this), n); }
     };
 }
