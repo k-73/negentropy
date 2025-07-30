@@ -61,10 +61,7 @@ namespace Diagram {
         }
 
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 6));
-        
-        ImGui::Text(ICON_FA_CUBE " %s", s_selected->GetDisplayName().c_str());
-        ImGui::Separator();
-        
+
         if (auto* block = dynamic_cast<Block*>(s_selected)) {
             block->RenderUI(0);
         }
