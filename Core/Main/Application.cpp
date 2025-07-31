@@ -399,6 +399,29 @@ void Application::SetupFont() noexcept {
 	constexpr float fontSizeBase = 13.0f;
 	constexpr float fontSizeIcon = fontSizeBase * 2.0f / 3.0f;
 	constexpr float fontSizeDefault = 14.0f;
+
+	bool isFontLoaded = false;
+
+#ifdef __EMSCRIPTEN__
+	// For WASM, first try to load from preloaded assets
+	std::vector<std::string> wasmFontPaths = {
+		"Assets/fonts/LiberationSans-Regular.ttf"
+	};
+	
+	for (const auto& fontPath : wasmFontPaths) {
+		if(std::filesystem::exists(fontPath)) {
+			ImFontConfig fontConfig;
+			fontConfig.OversampleH = 3;
+			fontConfig.OversampleV = 2;
+			fontConfig.PixelSnapH = true;
+			io.Fonts->AddFontFromFileTTF(fontPath.c_str(), fontSizeBase, &fontConfig);
+			isFontLoaded = true;
+			spdlog::info("Font loaded from: {}", fontPath);
+			break;
+		}
+	}
+#else
+	// For native builds, try system fonts
 	constexpr const char* fontPathGeneralList[] = {
 		"/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
 		"/usr/share/fonts/TTF/arial.ttf",
@@ -406,7 +429,6 @@ void Application::SetupFont() noexcept {
 		"/Windows/Fonts/arial.ttf",
 		"/Windows/Fonts/segoeui.ttf"};
 
-	bool isFontLoaded = false;
 	for(const char* fontPathGeneral: fontPathGeneralList) {
 		if(std::filesystem::exists(fontPathGeneral)) {
 			ImFontConfig fontConfig;
@@ -418,6 +440,7 @@ void Application::SetupFont() noexcept {
 			break;
 		}
 	}
+#endif
 
 	if(!isFontLoaded) {
 		ImFontConfig fontConfig;
@@ -426,6 +449,7 @@ void Application::SetupFont() noexcept {
 		fontConfig.OversampleV = 2;
 		fontConfig.PixelSnapH = true;
 		io.Fonts->AddFontDefault(&fontConfig);
+		spdlog::warn("Using default ImGui font");
 	}
 
 	// Merge in icons from Font Awesome
