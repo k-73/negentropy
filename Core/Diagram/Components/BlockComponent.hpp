@@ -1,0 +1,151 @@
+#pragma once
+
+#include <SDL.h>
+
+#include <cstring>
+#include <glm/vec2.hpp>
+#include <glm/vec4.hpp>
+#include <memory>
+#include <pugixml.hpp>
+#include <string>
+
+#include "Diagram/Components/Interface/Component.hpp"
+#include "Main/DiagramData.hpp"
+#include "TextComponent.hpp"
+#include "Utils/XMLSerialization.hpp"
+
+namespace Diagram
+{
+	struct Camera;
+
+	class BlockComponent : public Component, public EventHandler
+	{
+	public:
+		enum class Type { Start,
+						  Process,
+						  Decision,
+						  End };
+
+		struct Data {
+			glm::vec2 position {0.0f};
+			glm::vec2 size {10.0f, 5.0f};
+			std::string label;
+			Type type = Type::Process;
+			glm::vec4 backgroundColor {0.8f, 0.33f, 0.08f, 0.7f};
+			glm::vec4 borderColor {0.07f, 0.07f, 0.07f, 1.0f};
+		} data;
+
+	private:
+		bool isBeingDragged = false;
+		glm::vec2 dragStartOffset {0.0f, 0.0f};
+		TextComponent* labelComponent = nullptr;
+
+	public:
+		BlockComponent(const std::string& label, const glm::vec2& pos, const glm::vec2& size) {
+			this->data.label = label;
+			this->data.position = pos;
+			this->data.size = size;
+
+			auto textLabel = std::make_unique<TextComponent>(label, glm::vec2(0.0f, 0.0f));
+			this->labelComponent = textLabel.get();
+
+			this->AddChild(std::move(textLabel));
+		}
+
+		void Render(SDL_Renderer* renderer, const Camera& camera, const glm::vec2& screenSize) const override {
+			if(!isVisible) {
+				return;
+			}
+
+			const glm::vec2 screenPos = camera.WorldToScreen(data.position, screenSize);
+			const SDL_FRect rect = {screenPos.x, screenPos.y, data.size.x * camera.data.zoom, data.size.y * camera.data.zoom};
+
+			const auto bgR = static_cast<Uint8>(data.backgroundColor.r * 255.0f);
+			const auto bgG = static_cast<Uint8>(data.backgroundColor.g * 255.0f);
+			const auto bgB = static_cast<Uint8>(data.backgroundColor.b * 255.0f);
+			const auto bgA = static_cast<Uint8>(data.backgroundColor.a * 255.0f);
+
+			SDL_SetRenderDrawColor(renderer, bgR, bgG, bgB, bgA);
+			SDL_RenderFillRectF(renderer, &rect);
+
+			const auto borderR = static_cast<Uint8>(data.borderColor.r * 255.0f);
+			const auto borderG = static_cast<Uint8>(data.borderColor.g * 255.0f);
+			const auto borderB = static_cast<Uint8>(data.borderColor.b * 255.0f);
+			const auto borderA = static_cast<Uint8>(data.borderColor.a * 255.0f);
+
+			SDL_SetRenderDrawColor(renderer, borderR, borderG, borderB, borderA);
+			SDL_RenderDrawRectF(renderer, &rect);
+		}
+
+		bool HandleEvent(const SDL_Event& event, const Camera& camera, const glm::vec2& screenSize) override {
+			if(event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
+				const glm::vec2 worldMousePos = camera.ScreenToWorld({(float)event.button.x, (float)event.button.y}, screenSize);
+				const bool contains = (data.position.x <= worldMousePos.x && worldMousePos.x <= data.position.x + data.size.x &&
+									   data.position.y <= worldMousePos.y && worldMousePos.y <= data.position.y + data.size.y);
+				if(contains) {
+					isBeingDragged = true;
+					dragStartOffset = worldMousePos - data.position;
+					Component::Select();
+					return true;
+				}
+			}
+
+			if(event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_LEFT) {
+				if(isBeingDragged) {
+					isBeingDragged = false;
+					return true;
+				}
+			}
+
+			if(event.type == SDL_MOUSEMOTION && isBeingDragged) {
+				const glm::vec2 worldMousePos = camera.ScreenToWorld({(float)event.motion.x, (float)event.motion.y}, screenSize);
+				glm::vec2 newPosition = worldMousePos - dragStartOffset;
+
+				if(auto* diagramData = DiagramData::GetInstance()) {
+					newPosition = diagramData->GetGrid().SnapToGrid(newPosition);
+				}
+
+				data.position = newPosition;
+				return true;
+			}
+
+			return false;
+		}
+
+		std::string GetTypeName() const override { return "BlockComponent"; }
+
+		void XmlSerialize(pugi::xml_node& node) const override {
+			XML::auto_serialize(data, node);
+		}
+
+		void XmlDeserialize(const pugi::xml_node& node) override {
+			XML::auto_deserialize(data, node);
+		}
+
+		void RenderUI(int id) {
+			ImGui::PushID(id);
+
+			char labelBuffer[256];
+			std::strncpy(labelBuffer, data.label.c_str(), sizeof(labelBuffer) - 1);
+			labelBuffer[sizeof(labelBuffer) - 1] = '\0';
+			if(ImGui::InputText("Label", labelBuffer, sizeof(labelBuffer))) {
+				data.label = labelBuffer;
+				if(labelComponent) labelComponent->SetText(data.label);
+			}
+
+			ImGui::DragFloat2("Position", &data.position.x, 1.0f);
+			ImGui::DragFloat2("Size", &data.size.x, 1.0f, 10.0f, 500.0f);
+			ImGui::ColorEdit4("Background", &data.backgroundColor.x);
+			ImGui::ColorEdit4("Border", &data.borderColor.x);
+
+			const char* typeNames[] = {"Start", "Process", "Decision", "End"};
+			int currentType = static_cast<int>(data.type);
+			if(ImGui::Combo("Type", &currentType, typeNames, 4)) {
+				data.type = static_cast<Type>(currentType);
+			}
+
+			ImGui::PopID();
+		}
+	};
+
+}
