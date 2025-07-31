@@ -34,9 +34,6 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Core/Main/Application.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Main/Application.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Core/Main/Application.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Main/Application.hpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Core/Utils/Path.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Utils/Path.hpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/shell.html" beforeDir="false" afterPath="$PROJECT_DIR$/shell.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

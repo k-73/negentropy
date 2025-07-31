@@ -32,7 +32,9 @@ Application::Application() {
 
 	InitializeImGui();
 
+#ifndef __EMSCRIPTEN__
 	spdlog::info("Application initialized successfully");
+#endif
 
 	try {
 		currentFilePath = (Utils::GetWorkspacePath() / "Default.xml").string();
@@ -93,6 +95,16 @@ void Application::InitializeImGui() const {
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+#ifdef __EMSCRIPTEN__
+	// Maximum responsiveness settings for WebAssembly
+	io.MouseDrawCursor = false; // Use native cursor for better performance
+	io.ConfigInputTrickleEventQueue = false; // Process events immediately
+	io.ConfigDragClickToInputText = false; // Reduce input latency
+	io.ConfigMacOSXBehaviors = false; // Disable Mac-specific delays
+	io.ConfigInputTextCursorBlink = false; // Disable cursor blinking for performance
+	io.ConfigWindowsResizeFromEdges = false; // Reduce edge detection overhead
+#endif
 
 	DarkStyle();
 	SetupFont();
@@ -265,10 +277,15 @@ void Application::InitSDL() {
 		throw std::runtime_error("SDL_Init error: " + std::string(SDL_GetError()));
 
 #ifdef __EMSCRIPTEN__
-	// Optimized settings for WebAssembly/browser - disable vsync for low latency
+	// Maximum responsiveness settings for WebAssembly
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0"); // Fast nearest neighbor scaling
-	SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0"); // Disable vsync for minimal input lag
+	SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0"); // Disable vsync completely
+	SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengles2"); // Force OpenGL ES2 for better performance
 	SDL_SetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT, "#canvas");
+	SDL_SetHint(SDL_HINT_FRAMEBUFFER_ACCELERATION, "1"); // Enable framebuffer acceleration
+	SDL_SetHint(SDL_HINT_RENDER_BATCHING, "0"); // Disable batching for immediate rendering
+	SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER, "0"); // Prevent screensaver
+	SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1"); // Immediate mouse focus
 #else
 	// Desktop settings
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
