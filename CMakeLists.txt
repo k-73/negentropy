@@ -64,8 +64,15 @@ FetchContent_MakeAvailable(
     pugixml
 )
 
-find_package(SDL2 REQUIRED)
-include_directories(${SDL2_INCLUDE_DIRS})
+if(EMSCRIPTEN)
+    set(USE_FLAGS "-s USE_SDL=2 -s USE_WEBGL2=1 -s WASM=1")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS}")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${USE_FLAGS} -s ALLOW_MEMORY_GROWTH=1 --preload-file ${CMAKE_SOURCE_DIR}/Assets@Assets")
+else()
+    find_package(SDL2 REQUIRED)
+    include_directories(${SDL2_INCLUDE_DIRS})
+endif()
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "Core/*.cpp" "Core/*.hpp")
 
@@ -100,12 +107,30 @@ target_include_directories(negentropy PRIVATE
 
 target_compile_definitions(negentropy PRIVATE PROJECT_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 
-target_link_libraries(negentropy
-        PRIVATE
-        SDL2::SDL2 
-        spdlog::spdlog
-        EnTT::EnTT
-        nlohmann_json::nlohmann_json
-        magic_enum::magic_enum
-        pugixml::pugixml
-)
+if(EMSCRIPTEN)
+    target_link_libraries(negentropy
+            PRIVATE
+            spdlog::spdlog
+            EnTT::EnTT
+            nlohmann_json::nlohmann_json
+            magic_enum::magic_enum
+            pugixml::pugixml
+    )
+else()
+    target_link_libraries(negentropy
+            PRIVATE
+            SDL2::SDL2 
+            spdlog::spdlog
+            EnTT::EnTT
+            nlohmann_json::nlohmann_json
+            magic_enum::magic_enum
+            pugixml::pugixml
+    )
+endif()
+
+if(EMSCRIPTEN)
+    set_target_properties(negentropy PROPERTIES SUFFIX ".html")
+    set_target_properties(negentropy PROPERTIES 
+        LINK_FLAGS "--shell-file ${CMAKE_SOURCE_DIR}/shell.html"
+    )
+endif()

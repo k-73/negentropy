@@ -12,6 +12,25 @@ make
 ./negentropy
 ```
 
+## WebAssembly Build
+
+```bash
+# Install Emscripten
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk && ./emsdk install latest && ./emsdk activate latest
+source ./emsdk_env.sh
+
+# Build for web
+cd /path/to/negentropy
+mkdir build-wasm && cd build-wasm
+emcmake cmake ..
+emmake make
+
+# Run in browser
+python3 -m http.server 8000
+# Open http://localhost:8000/negentropy.html
+```
+
 ## Controls
 
 ## Dependencies

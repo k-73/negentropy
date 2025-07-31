@@ -2,5 +2,13 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build-wasm/_deps/boost_pfr-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build-wasm/_deps/entt-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build-wasm/_deps/glm-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build-wasm/_deps/imgui-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build-wasm/_deps/magic_enum-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build-wasm/_deps/nlohmann_json-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build-wasm/_deps/pugixml-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build-wasm/_deps/spdlog-src" vcs="Git" />
   </component>
 </project>
