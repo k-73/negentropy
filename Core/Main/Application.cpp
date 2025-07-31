@@ -5,6 +5,10 @@
 #include <imgui_impl_sdlrenderer2.h>
 #include <spdlog/spdlog.h>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #include <algorithm>
 #include <filesystem>
 #include <stdexcept>
@@ -30,12 +34,17 @@ Application::Application() {
 
 	spdlog::info("Application initialized successfully");
 
-	currentFilePath = (Utils::GetWorkspacePath() / "Default.xml").string();
-	diagramData.Load(currentFilePath);
+	try {
+		currentFilePath = (Utils::GetWorkspacePath() / "Default.xml").string();
+		diagramData.Load(currentFilePath);
+		RefreshWorkspaceFiles();
+		spdlog::info("Files loaded successfully");
+	} catch (const std::exception& e) {
+		spdlog::warn("Failed to load files: {}", e.what());
+		currentFilePath = "";
+	}
 
 	DiagramData::SetInstance(&diagramData);
-
-	RefreshWorkspaceFiles();
 	SDL_ShowWindow(window);
 }
 
@@ -56,14 +65,27 @@ Application::~Application() {
 }
 
 void Application::Run() {
+#ifdef __EMSCRIPTEN__
+	// Use browser's requestAnimationFrame for smooth 60fps
+	emscripten_set_main_loop_arg([](void* arg) {
+		static_cast<Application*>(arg)->MainLoop();
+	}, this, -1, 1); // -1 = use requestAnimationFrame timing
+#else
 	while(isRunning) {
-		ImGui_ImplSDLRenderer2_NewFrame();
-		ImGui_ImplSDL2_NewFrame();
-		ImGui::NewFrame();
-
-		ProcessEvents();
-		RenderFrame();
+		MainLoop();
 	}
+#endif
+}
+
+void Application::MainLoop() {
+	if (!isRunning) return;
+	
+	ImGui_ImplSDLRenderer2_NewFrame();
+	ImGui_ImplSDL2_NewFrame();
+	ImGui::NewFrame();
+
+	ProcessEvents();
+	RenderFrame();
 }
 
 void Application::InitializeImGui() const {
@@ -242,10 +264,18 @@ void Application::InitSDL() {
 	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0)
 		throw std::runtime_error("SDL_Init error: " + std::string(SDL_GetError()));
 
+#ifdef __EMSCRIPTEN__
+	// Optimized settings for WebAssembly/browser - disable vsync for low latency
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0"); // Fast nearest neighbor scaling
+	SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0"); // Disable vsync for minimal input lag
+	SDL_SetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT, "#canvas");
+#else
+	// Desktop settings
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 	SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0");
 	SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
 	SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
+#endif
 }
 
 void Application::DarkStyle() noexcept {
@@ -388,9 +418,24 @@ void Application::SetupFont() noexcept {
 	iconFontConfig.PixelSnapH = true;
 	iconFontConfig.GlyphMinAdvanceX = fontSizeIcon;
 
-	const std::string fontPathDetail = std::string(PROJECT_SOURCE_DIR) + "/Assets/fonts/fa-solid-900.ttf";
-	if(std::filesystem::exists(fontPathDetail)) {
-		io.Fonts->AddFontFromFileTTF(fontPathDetail.c_str(), fontSizeIcon, &iconFontConfig, iconFontRange);
+	// Try different paths for font loading
+	std::vector<std::string> fontPaths = {
+		"Assets/fonts/fa-solid-900.ttf",  // WASM preloaded path
+		std::string(PROJECT_SOURCE_DIR) + "/Assets/fonts/fa-solid-900.ttf"  // Native path
+	};
+	
+	bool fontAwesomeLoaded = false;
+	for (const auto& fontPath : fontPaths) {
+		if(std::filesystem::exists(fontPath)) {
+			io.Fonts->AddFontFromFileTTF(fontPath.c_str(), fontSizeIcon, &iconFontConfig, iconFontRange);
+			fontAwesomeLoaded = true;
+			spdlog::info("Font Awesome loaded from: {}", fontPath);
+			break;
+		}
+	}
+	
+	if (!fontAwesomeLoaded) {
+		spdlog::warn("Font Awesome not found");
 	}
 }
 

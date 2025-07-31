@@ -2,6 +2,10 @@
 
 #include <SDL.h>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #include <string>
 #include <vector>
 
@@ -22,6 +26,7 @@ public:
 	Application& operator=(Application&&) = delete;
 
 	void Run();
+	void MainLoop();
 
 private:
 	void InitializeImGui() const;
