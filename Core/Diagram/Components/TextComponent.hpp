@@ -1,9 +1,6 @@
 #pragma once
 
-#include <string>
-
-#include "Diagram/Camera.hpp"
-#include "Diagram/Components/Interface/Component.hpp"
+#include "Interface/Component.hpp"
 #include "imgui.h"
 
 namespace Diagram
@@ -42,7 +39,7 @@ namespace Diagram
 			}
 		}
 
-		void Render(SDL_Renderer* renderer, const Camera& camera, const glm::vec2& screenSize) const override {
+		void Render(SDL_Renderer* renderer, const CameraView& view, const glm::vec2& screenSize) const override {
 			if(data.text.empty()) return;
 
 			const auto& worldPos = GetWorldPosition();
@@ -51,7 +48,7 @@ namespace Diagram
 			ImDrawList* drawList = ImGui::GetBackgroundDrawList();
 			ImFont* font = ImGui::GetFont();
 
-			const float scaledFontSize = data.baseFontSize * camera.data.zoom;
+			const float scaledFontSize = data.baseFontSize * view.zoom;
 
 			drawList->AddText(
 				font,
@@ -59,6 +56,16 @@ namespace Diagram
 				(const ImVec2&)screenPos,
 				IM_COL32(255, 255, 255, 255),
 				data.text.c_str());
+		}
+
+		void RenderUI() override {
+			char labelBuffer[256];
+			std::strncpy(labelBuffer, data.text.c_str(), sizeof(labelBuffer) - 1);
+			labelBuffer[sizeof(labelBuffer) - 1] = '\0';
+
+			if(ImGui::InputText("Text", labelBuffer, sizeof(labelBuffer))) {
+				SetText(labelBuffer);
+			}
 		}
 
 		std::string GetTypeName() const override { return "TextComponent"; }

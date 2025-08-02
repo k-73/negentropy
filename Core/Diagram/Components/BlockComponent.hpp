@@ -1,23 +1,11 @@
 #pragma once
 
-#include <SDL.h>
-
-#include <cstring>
-#include <glm/vec2.hpp>
-#include <glm/vec4.hpp>
-#include <memory>
-#include <pugixml.hpp>
-#include <string>
-
-#include "Diagram/Components/Interface/Component.hpp"
+#include "Interface/Component.hpp"
 #include "Main/DiagramData.hpp"
 #include "TextComponent.hpp"
-#include "Utils/XMLSerialization.hpp"
 
 namespace Diagram
 {
-	struct Camera;
-
 	class BlockComponent : public Component, public EventHandler
 	{
 	public:
@@ -52,13 +40,13 @@ namespace Diagram
 			this->AddChild(std::move(textLabel));
 		}
 
-		void Render(SDL_Renderer* renderer, const Camera& camera, const glm::vec2& screenSize) const override {
+		void Render(SDL_Renderer* renderer, const CameraView& view, const glm::vec2& screenSize) const override {
 			if(!isVisible) {
 				return;
 			}
 
-			const glm::vec2 screenPos = camera.WorldToScreen(data.position, screenSize);
-			const SDL_FRect rect = {screenPos.x, screenPos.y, data.size.x * camera.data.zoom, data.size.y * camera.data.zoom};
+			const glm::vec2 screenPos = view.WorldToScreen(data.position, screenSize);
+			const SDL_FRect rect = {screenPos.x, screenPos.y, data.size.x * view.zoom, data.size.y * view.zoom};
 
 			const auto bgR = static_cast<Uint8>(data.backgroundColor.r * 255.0f);
 			const auto bgG = static_cast<Uint8>(data.backgroundColor.g * 255.0f);
@@ -77,9 +65,30 @@ namespace Diagram
 			SDL_RenderDrawRectF(renderer, &rect);
 		}
 
-		bool HandleEvent(const SDL_Event& event, const Camera& camera, const glm::vec2& screenSize) override {
+		void RenderUI() override {
+			char labelBuffer[256];
+			std::strncpy(labelBuffer, data.label.c_str(), sizeof(labelBuffer) - 1);
+			labelBuffer[sizeof(labelBuffer) - 1] = '\0';
+			if(ImGui::InputText("Label", labelBuffer, sizeof(labelBuffer))) {
+				data.label = labelBuffer;
+				if(labelComponent) labelComponent->SetText(data.label);
+			}
+
+			ImGui::DragFloat2("Position", &data.position.x, 1.0f);
+			ImGui::DragFloat2("Size", &data.size.x, 1.0f, 10.0f, 500.0f);
+			ImGui::ColorEdit4("Background", &data.backgroundColor.x);
+			ImGui::ColorEdit4("Border", &data.borderColor.x);
+
+			const char* typeNames[] = {"Start", "Process", "Decision", "End"};
+			int currentType = static_cast<int>(data.type);
+			if(ImGui::Combo("Type", &currentType, typeNames, 4)) {
+				data.type = static_cast<Type>(currentType);
+			}
+		}
+
+		bool HandleEvent(const SDL_Event& event, const CameraView& view, const glm::vec2& screenSize) override {
 			if(event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
-				const glm::vec2 worldMousePos = camera.ScreenToWorld({(float)event.button.x, (float)event.button.y}, screenSize);
+				const glm::vec2 worldMousePos = view.ScreenToWorld({(float)event.button.x, (float)event.button.y}, screenSize);
 				const bool contains = (data.position.x <= worldMousePos.x && worldMousePos.x <= data.position.x + data.size.x &&
 									   data.position.y <= worldMousePos.y && worldMousePos.y <= data.position.y + data.size.y);
 				if(contains) {
@@ -98,7 +107,7 @@ namespace Diagram
 			}
 
 			if(event.type == SDL_MOUSEMOTION && isBeingDragged) {
-				const glm::vec2 worldMousePos = camera.ScreenToWorld({(float)event.motion.x, (float)event.motion.y}, screenSize);
+				const glm::vec2 worldMousePos = view.ScreenToWorld({(float)event.motion.x, (float)event.motion.y}, screenSize);
 				glm::vec2 newPosition = worldMousePos - dragStartOffset;
 
 				if(auto* diagramData = DiagramData::GetInstance()) {
@@ -120,31 +129,6 @@ namespace Diagram
 
 		void XmlDeserialize(const pugi::xml_node& node) override {
 			XML::auto_deserialize(data, node);
-		}
-
-		void RenderUI(int id) {
-			ImGui::PushID(id);
-
-			char labelBuffer[256];
-			std::strncpy(labelBuffer, data.label.c_str(), sizeof(labelBuffer) - 1);
-			labelBuffer[sizeof(labelBuffer) - 1] = '\0';
-			if(ImGui::InputText("Label", labelBuffer, sizeof(labelBuffer))) {
-				data.label = labelBuffer;
-				if(labelComponent) labelComponent->SetText(data.label);
-			}
-
-			ImGui::DragFloat2("Position", &data.position.x, 1.0f);
-			ImGui::DragFloat2("Size", &data.size.x, 1.0f, 10.0f, 500.0f);
-			ImGui::ColorEdit4("Background", &data.backgroundColor.x);
-			ImGui::ColorEdit4("Border", &data.borderColor.x);
-
-			const char* typeNames[] = {"Start", "Process", "Decision", "End"};
-			int currentType = static_cast<int>(data.type);
-			if(ImGui::Combo("Type", &currentType, typeNames, 4)) {
-				data.type = static_cast<Type>(currentType);
-			}
-
-			ImGui::PopID();
 		}
 	};
 

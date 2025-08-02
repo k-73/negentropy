@@ -4,24 +4,45 @@
 #include <cxxabi.h>
 
 #include <algorithm>
+#include <cstring>
 #include <glm/vec2.hpp>
+#include <glm/vec4.hpp>
 #include <memory>
-#include <pugixml.hpp>
 #include <string>
 #include <typeinfo>
+#include <utility>
 #include <vector>
+//
+#include <glm/vec2.hpp>
+#include <pugixml.hpp>
+
+#include "Utils/XMLSerialization.hpp"
+#include "imgui.h"
 
 struct ImVec2;
 
 namespace Diagram
 {
-	struct Camera;
+	struct CameraView {
+		glm::vec2 worldPosition;
+		float zoom;
+
+		glm::vec2 ScreenToWorld(const glm::vec2& screenPos, const glm::vec2& screenSize) const {
+			const glm::vec2 center = screenSize * 0.5f;
+			return ((screenPos - center) / zoom) + worldPosition;
+		}
+
+		glm::vec2 WorldToScreen(const glm::vec2& worldPos, const glm::vec2& screenSize) const {
+			const glm::vec2 center = screenSize * 0.5f;
+			return ((worldPos - worldPosition) * zoom) + center;
+		}
+	};
 
 	class EventHandler
 	{
 	public:
 		virtual ~EventHandler() = default;
-		virtual bool HandleEvent(const SDL_Event& event, const Camera& camera, const glm::vec2& screenSize) = 0;
+		virtual bool HandleEvent(const SDL_Event& event, const CameraView& view, const glm::vec2& screenSize) = 0;
 	};
 
 	class Component
@@ -45,8 +66,10 @@ namespace Diagram
 	public:
 		virtual ~Component() = default;
 
-		virtual void Render(SDL_Renderer* renderer, const Camera& camera, const glm::vec2& screenSize) const {}
+		virtual void Render(SDL_Renderer* renderer, const CameraView& view, const glm::vec2& screenSize) const {}
 		virtual void Update(float deltaTime) {}
+
+		virtual void RenderUI() {}
 
 		virtual std::string GetDisplayName() const { return id.empty() ? GetTypeName() : id; }
 		virtual std::string GetTypeName() const { return "Component"; }
@@ -59,18 +82,106 @@ namespace Diagram
 		void Show() { isVisible = true; }
 
 		Component* GetParent() { return parent; }
+		const std::vector<std::unique_ptr<Component>>& GetChildren() const { return children; }
 
 		void AddChild(std::unique_ptr<Component> child) {
+			AddChildAt(std::move(child), children.size());
+		}
+
+		void AddChildAt(std::unique_ptr<Component> child, size_t index) {
 			if(!child || child.get() == this || IsAncestor(child.get())) {
 				return;
 			}
-
 			child->parent = this;
 			child->DirtyCache();
-
 			RecalculateBounds(child.get());
 
-			children.push_back(std::move(child));
+			index = std::clamp(index, size_t(0), children.size());
+
+			children.insert(children.begin() + index, std::move(child));
+		}
+
+		std::unique_ptr<Component> RemoveChild(Component* childToRemove) {
+			auto it = std::find_if(children.begin(), children.end(),
+								   [&](const std::unique_ptr<Component>& p) {
+									   return p.get() == childToRemove;
+								   });
+
+			if(it != children.end()) {
+				std::unique_ptr<Component> removedChild = std::move(*it);
+				children.erase(it);
+				removedChild->parent = nullptr;
+				return removedChild;
+			}
+			return nullptr;
+		}
+
+		static void Move(Component* componentToMove, Component* newParent, size_t index) {
+			if(!componentToMove || !newParent || componentToMove == newParent || newParent->IsAncestor(componentToMove)) {
+				return;
+			}
+
+			Component* oldParent = componentToMove->GetParent();
+
+			if(oldParent) {
+				std::unique_ptr<Component> ownedComponent = oldParent->RemoveChild(componentToMove);
+				if(ownedComponent) {
+					newParent->AddChildAt(std::move(ownedComponent), index);
+				}
+			}
+		}
+
+		void ReorderChild(Component* child, size_t newIndex) {
+			if(!child || child->GetParent() != this) {
+				return;
+			}
+
+			auto it = std::find_if(children.begin(), children.end(),
+								   [&](const std::unique_ptr<Component>& p) {
+									   return p.get() == child;
+								   });
+
+			if(it == children.end()) {
+				return;	 // Should not happen if parent is correct, but good practice.
+			}
+
+			std::unique_ptr<Component> ownedChild = std::move(*it);
+			children.erase(it);
+
+			if(newIndex > children.size()) {
+				newIndex = children.size();
+			}
+			children.insert(children.begin() + newIndex, std::move(ownedChild));
+		}
+
+		void MoveChildUp(Component* child) {
+			auto it = std::find_if(children.begin(), children.end(),
+								   [&](const std::unique_ptr<Component>& p) {
+									   return p.get() == child;
+								   });
+			if(it != children.end() && it != children.begin()) {
+				size_t currentIndex = std::distance(children.begin(), it);
+				ReorderChild(child, currentIndex - 1);
+			}
+		}
+
+		void MoveChildDown(Component* child) {
+			auto it = std::find_if(children.begin(), children.end(),
+								   [&](const std::unique_ptr<Component>& p) {
+									   return p.get() == child;
+								   });
+			if(it != children.end() && (it + 1) != children.end()) {
+				size_t currentIndex = std::distance(children.begin(), it);
+				ReorderChild(child, currentIndex + 1);
+			}
+		}
+
+		void MoveChildToBack(Component* child) {
+			ReorderChild(child, 0);
+		}
+
+		void MoveChildToFront(Component* child) {
+			ReorderChild(child, children.size());
 		}
 
 		void SetPosition(const glm::vec2& newPosition) {
@@ -125,7 +236,7 @@ namespace Diagram
 			return nullptr;
 		}
 
-		// TODO: Consider moving settings to a separate class
+		// TODO: Consider moving settings to a separate class in future
 		virtual void XmlSerialize(pugi::xml_node& node) const {
 			node.append_attribute("id") = id.c_str();
 
@@ -155,19 +266,31 @@ namespace Diagram
 		}
 
 	protected:
-		virtual void RenderOfficial(SDL_Renderer* renderer, const Camera& camera, const glm::vec2& screenSize) const {
+		void RenderOfficial(SDL_Renderer* renderer, const CameraView& view, const glm::vec2& screenSize) const {
 			if(!isVisible) return;
 
-			Render(renderer, camera, screenSize);
+			Render(renderer, view, screenSize);
 			for(const auto& child: children) {
-				child->RenderOfficial(renderer, camera, screenSize);
+				child->RenderOfficial(renderer, view, screenSize);
 			}
 		}
 
-		virtual void UpdateOfficial(float deltaTime) {
+		void RenderUIOfficial() {
+			if(!isVisible) return;
+
+			ImGui::PushID(&id);
+			RenderUI();
+			ImGui::PopID();
+
+			for(const auto& child: children) {
+				child->RenderUIOfficial();
+			}
+		}
+
+		void UpdateOfficial(float deltaTime) {
 			Update(deltaTime);
 			for(const auto& child: children) {
-				child->Update(deltaTime);
+				child->UpdateOfficial(deltaTime);
 			}
 		}
 
@@ -189,25 +312,24 @@ namespace Diagram
 
 	inline std::vector<std::unique_ptr<Component>> Component::allComponents {};
 
-	inline bool DispatchEvent(Component* root, const SDL_Event& event, const Camera& camera, const glm::vec2& screenSize) {
+	inline bool DispatchEvent(Component* root, const SDL_Event& event, const CameraView& view, const glm::vec2& screenSize) {
 		if(event.type != SDL_MOUSEBUTTONDOWN && event.type != SDL_MOUSEMOTION && event.type != SDL_MOUSEBUTTONUP) {
 			return false;
 		}
 
 		glm::vec2 worldPoint;
 		if(event.type == SDL_MOUSEMOTION) {
-			// worldPoint = ScreenToWorld({event.motion.x, event.motion.y}, camera);
+			worldPoint = view.ScreenToWorld({(float)event.motion.x, (float)event.motion.y}, screenSize);
 		} else {
-			// worldPoint = ScreenToWorld({event.button.x, event.button.y}, camera);
+			worldPoint = view.ScreenToWorld({(float)event.button.x, (float)event.button.y}, screenSize);
 		}
-		// For the sake of this example, let's assume worldPoint is calculated here.
 
 		Component* target = root->FindComponentAt(worldPoint);
 
 		for(Component* current = target; current != nullptr; current = current->GetParent()) {
 			EventHandler* handler = dynamic_cast<EventHandler*>(current);
 			if(handler) {
-				if(handler->HandleEvent(event, camera, screenSize)) {
+				if(handler->HandleEvent(event, view, screenSize)) {
 					return true;
 				}
 			}
@@ -215,57 +337,3 @@ namespace Diagram
 		return false;
 	}
 }
-
-// namespace Diagram
-// {
-// 	struct Camera;
-// 	class Block;
-
-// 	class ComponentBase
-// 	{
-// 	public:
-// 		std::string groupId;
-// 		std::string id;
-
-// 		virtual ~ComponentBase() = default;
-
-// 		// Core interface
-// 		virtual bool HandleEvent(const SDL_Event& event, const Camera& camera, glm::vec2 screenSize) noexcept = 0;
-// 		virtual void Render(SDL_Renderer* renderer, const Camera& camera, glm::vec2 screenSize) const noexcept = 0;
-// 		virtual void XmlSerialize(pugi::xml_node& node) const = 0;
-// 		virtual void XmlDeserialize(const pugi::xml_node& node) = 0;
-// 		virtual std::string GetDisplayName() const noexcept = 0;
-// 		virtual std::string GetTypeName() const noexcept = 0;
-
-// 		// Selection management
-// 		static ComponentBase* GetSelected() noexcept { return selected; }
-// 		static void Select(ComponentBase* component) noexcept { selected = component; }
-// 		static void ClearSelection() noexcept { selected = nullptr; }
-
-// 	private:
-// 		inline static ComponentBase* selected;
-// 	};
-
-// 	template<typename T>
-// 	std::string demangle() {
-// 		int status;
-// 		std::unique_ptr<char, void (*)(void*)> demangled {
-// 			abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, &status), std::free};
-
-// 		if(!demangled) return "unknown";
-
-// 		std::string name {demangled.get()};
-// 		if(auto pos = name.find_last_of("::"); pos != std::string::npos)
-// 			name = name.substr(pos + 1);
-// 		return name;
-// 	}
-
-// 	template<typename Derived>
-// 	class Component : public ComponentBase
-// 	{
-// 	public:
-// 		std::string GetTypeName() const noexcept override { return demangle<Derived>(); }
-// 		static std::string GetStaticTypeName() noexcept { return demangle<Derived>(); }
-// 	};
-
-// }
