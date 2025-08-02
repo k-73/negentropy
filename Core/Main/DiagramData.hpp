@@ -51,6 +51,7 @@ private:
 
 	std::unique_ptr<Diagram::Component> CreateComponent(const std::string& type) const;
 	void LoadHierarchy(pugi::xml_node node, const std::string& parentGroupId);
+	void LoadHierarchyIntoComponent(const pugi::xml_node& node, Diagram::Component* parent);
 	void SaveHierarchy(pugi::xml_node node, const std::string& groupId) const;
 
 	std::vector<std::unique_ptr<Diagram::Component>> componentList;

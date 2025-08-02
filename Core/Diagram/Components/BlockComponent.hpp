@@ -2,6 +2,7 @@
 
 #include "Interface/Component.hpp"
 #include "TextComponent.hpp"
+#include "../../Main/DiagramData.hpp"
 
 namespace Diagram
 {
@@ -24,6 +25,8 @@ namespace Diagram
 
 	private:
 		bool isBeingDragged = false;
+		bool enableGridSnapping = true;
+		bool showSnapPreview = true;
 		glm::vec2 dragStartOffset {0.0f, 0.0f};
 		TextComponent* labelComponent = nullptr;
 
@@ -90,6 +93,20 @@ namespace Diagram
 			ImGui::ColorEdit4("Background", &data.backgroundColor.x);
 			ImGui::ColorEdit4("Border", &data.borderColor.x);
 
+			// Grid snapping controls
+			ImGui::Checkbox("Grid Snapping", &enableGridSnapping);
+			if(ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Enable automatic snapping to grid when dragging");
+			}
+			
+			if(enableGridSnapping) {
+				ImGui::SameLine();
+				ImGui::Checkbox("Show Preview", &showSnapPreview);
+				if(ImGui::IsItemHovered()) {
+					ImGui::SetTooltip("Show visual preview of snap position while dragging");
+				}
+			}
+
 			const char* typeNames[] = {"Start", "Process", "Decision", "End"};
 			int currentType = static_cast<int>(data.type);
 			if(ImGui::Combo("Type", &currentType, typeNames, 4)) {
@@ -122,6 +139,13 @@ namespace Diagram
 				const glm::vec2 worldMousePos = view.ScreenToWorld({(float)event.motion.x, (float)event.motion.y}, screenSize);
 				glm::vec2 newPosition = worldMousePos - dragStartOffset;
 
+				// Apply grid snapping if enabled and we have access to DiagramData
+				if(enableGridSnapping) {
+					if(auto* diagramData = DiagramData::GetInstance()) {
+						newPosition = diagramData->GetGrid().SnapToGrid(newPosition);
+					}
+				}
+
 				// Update both data.position and base class position
 				data.position = newPosition;
 				SetPosition(newPosition);
@@ -135,10 +159,14 @@ namespace Diagram
 
 		void XmlSerialize(pugi::xml_node& node) const override {
 			XML::auto_serialize(data, node);
+			node.append_attribute("enableGridSnapping") = enableGridSnapping;
+			node.append_attribute("showSnapPreview") = showSnapPreview;
 		}
 
 		void XmlDeserialize(const pugi::xml_node& node) override {
 			XML::auto_deserialize(data, node);
+			enableGridSnapping = node.attribute("enableGridSnapping").as_bool(true); // Default to true
+			showSnapPreview = node.attribute("showSnapPreview").as_bool(true); // Default to true
 		}
 	};
 

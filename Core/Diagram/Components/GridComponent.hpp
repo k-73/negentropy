@@ -77,8 +77,23 @@ namespace Diagram
 			ImGui::Separator();
 			
 			ImGui::Checkbox("Visible", &data.visible);
-			ImGui::DragFloat("Small Step", &data.smallStep, 0.1f, 0.1f, 100.0f);
-			ImGui::DragFloat("Large Step", &data.largeStep, 1.0f, 1.0f, 500.0f);
+			
+			ImGui::Text("Grid Spacing:");
+			if(ImGui::DragFloat("Small Step (Snap)", &data.smallStep, 0.1f, 0.1f, 100.0f)) {
+				// Ensure small step is reasonable for snapping
+				if(data.smallStep < 0.1f) data.smallStep = 0.1f;
+			}
+			if(ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Grid spacing used for component snapping");
+			}
+			
+			if(ImGui::DragFloat("Large Step (Visual)", &data.largeStep, 1.0f, 1.0f, 500.0f)) {
+				// Ensure large step is at least as big as small step
+				if(data.largeStep < data.smallStep) data.largeStep = data.smallStep;
+			}
+			if(ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Larger grid lines for visual reference");
+			}
 			
 			ImGui::ColorEdit4("Background Color", &backgroundColor.r);
 			

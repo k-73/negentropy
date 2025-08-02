@@ -275,8 +275,6 @@ namespace Diagram
 			}
 		}
 
-	protected:
-
 		void RenderUIOfficial() {
 			if(!isVisible) return;
 
@@ -296,6 +294,7 @@ namespace Diagram
 			}
 		}
 
+	protected:
 		bool IsAncestor(const Component* potentialAncestor) const {
 			for(const Component* p = parent; p != nullptr; p = p->parent) {
 				if(p == potentialAncestor) return true;
@@ -315,6 +314,8 @@ namespace Diagram
 	inline std::vector<std::unique_ptr<Component>> Component::allComponents {};
 
 	inline bool DispatchEvent(Component* root, const SDL_Event& event, const CameraView& view, const glm::vec2& screenSize) {
+		static Component* capturedComponent = nullptr; // Component that has captured mouse events
+		
 		if(event.type != SDL_MOUSEBUTTONDOWN && event.type != SDL_MOUSEMOTION && event.type != SDL_MOUSEBUTTONUP) {
 			return false;
 		}
@@ -326,12 +327,40 @@ namespace Diagram
 			worldPoint = view.ScreenToWorld({(float)event.button.x, (float)event.button.y}, screenSize);
 		}
 
+		// Handle mouse button up - always send to captured component first, then release capture
+		if(event.type == SDL_MOUSEBUTTONUP) {
+			if(capturedComponent) {
+				EventHandler* handler = dynamic_cast<EventHandler*>(capturedComponent);
+				if(handler) {
+					bool handled = handler->HandleEvent(event, view, screenSize);
+					capturedComponent = nullptr; // Release capture after mouse up
+					if(handled) return true;
+				}
+				capturedComponent = nullptr; // Release capture even if not handled
+			}
+		}
+
+		// Handle mouse motion - send to captured component if exists
+		if(event.type == SDL_MOUSEMOTION && capturedComponent) {
+			EventHandler* handler = dynamic_cast<EventHandler*>(capturedComponent);
+			if(handler) {
+				if(handler->HandleEvent(event, view, screenSize)) {
+					return true;
+				}
+			}
+		}
+
+		// For mouse down or uncaptured motion, find component at mouse position
 		Component* target = root->FindComponentAt(worldPoint);
 
 		for(Component* current = target; current != nullptr; current = current->GetParent()) {
 			EventHandler* handler = dynamic_cast<EventHandler*>(current);
 			if(handler) {
 				if(handler->HandleEvent(event, view, screenSize)) {
+					// If this was a mouse down event, capture this component for future motion events
+					if(event.type == SDL_MOUSEBUTTONDOWN) {
+						capturedComponent = current;
+					}
 					return true;
 				}
 			}

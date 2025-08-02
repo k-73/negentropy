@@ -55,11 +55,12 @@ namespace Diagram
 		}
 
 		bool HandleEvent(const SDL_Event& event, const CameraView& view, const glm::vec2& screenSize) override {
-			if(event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_MIDDLE) {
+			// Right-click or middle-click to pan camera
+			if(event.type == SDL_MOUSEBUTTONDOWN && (event.button.button == SDL_BUTTON_RIGHT || event.button.button == SDL_BUTTON_MIDDLE)) {
 				isPanning = true;
 				return true;
 			}
-			if(event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_MIDDLE) {
+			if(event.type == SDL_MOUSEBUTTONUP && (event.button.button == SDL_BUTTON_RIGHT || event.button.button == SDL_BUTTON_MIDDLE)) {
 				isPanning = false;
 				return true;
 			}

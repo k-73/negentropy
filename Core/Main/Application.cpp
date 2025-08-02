@@ -271,13 +271,94 @@ void Application::RenderUI() noexcept {
 	if(isShownComponentTreePanel) {
 		ImGui::Begin("Component Tree", &isShownComponentTreePanel);
 		
+		// Drag and drop state variables
+		static Diagram::Component* draggedComponent = nullptr;
+		static Diagram::Component* dropTarget = nullptr;
+		static bool isDragging = false;
+		static bool showInsertionLine = false;
+		static float insertionLineY = 0.0f;
+		static bool insertBelow = false;
+		
 		// Variable to track component to delete (to avoid modifying tree during iteration)
 		Diagram::Component* componentToDelete = nullptr;
 		
 		// Custom tree rendering for our specific hierarchy
-		if(ImGui::BeginTable("TreeTable", 2, ImGuiTableFlags_SizingStretchProp)) {
+		if(ImGui::BeginTable("TreeTable", 3, ImGuiTableFlags_SizingStretchProp)) {
 			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
-			ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 64.0f);
+			ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 84.0f);
+			ImGui::TableSetupColumn("Group", ImGuiTableColumnFlags_WidthFixed, 52.0f);
+			
+			// Table header with group controls
+			ImGui::TableHeadersRow();
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			ImGui::Text("Components");
+			ImGui::TableNextColumn();
+			ImGui::Text("Actions");
+			ImGui::TableNextColumn();
+			
+			// Count selected components
+			int selectedCount = 0;
+			std::function<void(Diagram::Component*)> countSelected = [&](Diagram::Component* comp) {
+				if(comp->IsSelected()) selectedCount++;
+				for(const auto& child : comp->GetChildren()) {
+					countSelected(child.get());
+				}
+			};
+			countSelected(&diagramData.GetGrid());
+			
+			// Group controls in header
+			if(selectedCount > 1) {
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+				if(ImGui::Button(ICON_FA_OBJECT_GROUP "##group_selected")) {
+					// Find a suitable parent for the group (first selected component's parent or grid)
+					Diagram::Component* groupParent = &diagramData.GetGrid();
+					std::vector<Diagram::Component*> selectedComponents;
+					
+					std::function<void(Diagram::Component*)> collectSelected = [&](Diagram::Component* comp) {
+						if(comp->IsSelected() && comp != &diagramData.GetCamera() && comp != &diagramData.GetGrid()) {
+							selectedComponents.push_back(comp);
+							if(comp->GetParent()) {
+								groupParent = comp->GetParent();
+							}
+						}
+						for(const auto& child : comp->GetChildren()) {
+							collectSelected(child.get());
+						}
+					};
+					collectSelected(&diagramData.GetGrid());
+					
+					if(!selectedComponents.empty()) {
+						auto newGroup = std::make_unique<Diagram::GroupComponent>("Group_" + std::to_string(groupParent->GetChildren().size() + 1));
+						
+						// Remove selected components and add to group
+						for(auto* selectedComp : selectedComponents) {
+							if(selectedComp->GetParent()) {
+								auto removedComp = selectedComp->GetParent()->RemoveChild(selectedComp);
+								if(removedComp) {
+									newGroup->AddChild(std::move(removedComp));
+								}
+							}
+						}
+						
+						groupParent->AddChild(std::move(newGroup));
+					}
+				}
+				if(ImGui::IsItemHovered()) {
+					ImGui::SetTooltip("Group %d selected components", selectedCount);
+				}
+				ImGui::PopStyleVar();
+			} else {
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+				if(ImGui::Button(ICON_FA_PLUS "##new_group")) {
+					auto newGroup = std::make_unique<Diagram::GroupComponent>("Empty Group");
+					diagramData.GetGrid().AddChild(std::move(newGroup));
+				}
+				if(ImGui::IsItemHovered()) {
+					ImGui::SetTooltip("Create empty group");
+				}
+				ImGui::PopStyleVar();
+			}
 			
 			// Helper function to render a component and its children
 			std::function<void(Diagram::Component*, int)> renderComponentRecursive = [&](Diagram::Component* component, int depth) {
@@ -291,28 +372,171 @@ void Application::RenderUI() noexcept {
 				if(Diagram::TreeRenderer::GetActiveComponent() == component) flags |= ImGuiTreeNodeFlags_Selected;
 				if(component->GetChildren().empty()) flags |= ImGuiTreeNodeFlags_Leaf;
 				
+				// Handle multi-selection highlighting manually
+				bool isMultiSelected = component->IsSelected() && component != Diagram::TreeRenderer::GetActiveComponent();
+				if(isMultiSelected) {
+					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.9f, 0.9f, 1.0f)); // Bright text for multi-selected
+				}
+				
 				const char* icon = ICON_FA_CUBE;
 				if(dynamic_cast<Diagram::CameraComponent*>(component)) icon = ICON_FA_VIDEO;
 				else if(dynamic_cast<Diagram::GridComponent*>(component)) icon = ICON_FA_TH;
 				else if(dynamic_cast<Diagram::BlockComponent*>(component)) icon = ICON_FA_SQUARE;
+				else if(dynamic_cast<Diagram::GroupComponent*>(component)) icon = ICON_FA_OBJECT_GROUP;
 				
 				ImGui::PushID(component);
 				
 				const std::string label = " " + std::string(icon) + "  " + component->GetDisplayName();
 				bool isOpen = ImGui::TreeNodeEx(label.c_str(), flags);
 				
+				// Draw multi-selection background after the item is rendered
+				if(isMultiSelected) {
+					ImVec2 itemMin = ImGui::GetItemRectMin();
+					ImVec2 itemMax = ImGui::GetItemRectMax();
+					ImDrawList* drawList = ImGui::GetWindowDrawList();
+					drawList->AddRectFilled(itemMin, itemMax, IM_COL32(0, 120, 215, 60)); // Semi-transparent blue background
+					ImGui::PopStyleColor(); // Restore text color
+				}
+				
+				// Drag and drop source
+				if(ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+					ImGui::SetDragDropPayload("COMPONENT_REORDER", &component, sizeof(Diagram::Component*));
+					ImGui::Text("%s Move %s", icon, component->GetDisplayName().c_str());
+					draggedComponent = component;
+					isDragging = true;
+					ImGui::EndDragDropSource();
+				} else {
+					// Reset drag state when not dragging
+					if(draggedComponent == component) {
+						draggedComponent = nullptr;
+						isDragging = false;
+						showInsertionLine = false;
+					}
+				}
+				
+				// Drag and drop target with visual feedback
+				if(ImGui::BeginDragDropTarget()) {
+					// Get item rectangle for insertion line calculation
+					ImVec2 itemMin = ImGui::GetItemRectMin();
+					ImVec2 itemMax = ImGui::GetItemRectMax();
+					ImVec2 mousePos = ImGui::GetMousePos();
+					
+					// Determine if we should insert above or below based on mouse position
+					float itemCenterY = (itemMin.y + itemMax.y) * 0.5f;
+					bool shouldInsertBelow = mousePos.y > itemCenterY;
+					
+					// Check for sibling drops first (these take priority over container drops)
+					Diagram::Component* targetParent = component->GetParent();
+					bool canDropAsSibling = targetParent && draggedComponent && 
+											draggedComponent->GetParent();
+					
+					// Check for container drops (only if not a sibling drop in same parent)
+					bool canDropOntoContainer = (dynamic_cast<Diagram::GridComponent*>(component) || 
+												 dynamic_cast<Diagram::GroupComponent*>(component)) &&
+												draggedComponent && draggedComponent != component;
+					
+					if(canDropAsSibling) {
+						// Show insertion line for sibling positioning - no container highlight
+						showInsertionLine = true;
+						insertionLineY = shouldInsertBelow ? itemMax.y : itemMin.y;
+						insertBelow = shouldInsertBelow;
+						
+						// Draw insertion line
+						ImDrawList* drawList = ImGui::GetWindowDrawList();
+						ImVec2 lineStart = ImVec2(itemMin.x, insertionLineY);
+						ImVec2 lineEnd = ImVec2(itemMax.x, insertionLineY);
+						drawList->AddLine(lineStart, lineEnd, IM_COL32(0, 120, 215, 255), 2.0f);
+						
+						// Draw insertion indicator
+						ImVec2 indicatorPos = ImVec2(itemMin.x - 5, insertionLineY);
+						drawList->AddCircleFilled(indicatorPos, 3.0f, IM_COL32(0, 120, 215, 255));
+					}
+					
+					if(const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT_REORDER")) {
+						Diagram::Component* sourceComponent = *(Diagram::Component**)payload->Data;
+						
+						// Only allow valid moves
+						if(sourceComponent && sourceComponent != component) {
+							Diagram::Component* targetParent = component->GetParent();
+							Diagram::Component* sourceParent = sourceComponent->GetParent();
+							
+							// Check if we can drop as sibling (same parent or different parent)
+							bool canDropAsSibling = targetParent && sourceParent;
+							bool canDropOntoContainer = (dynamic_cast<Diagram::GridComponent*>(component) || 
+														 dynamic_cast<Diagram::GroupComponent*>(component)) &&
+														sourceComponent != component;
+							
+							if(canDropAsSibling) {
+								// Remove from source parent
+								auto removedComponent = sourceParent->RemoveChild(sourceComponent);
+								
+								// Drop as sibling - insert at correct position based on insertion line
+								auto& siblings = targetParent->GetChildren();
+								
+								// Find the position of the target component
+								size_t insertPos = siblings.size(); // Default to end
+								for(size_t i = 0; i < siblings.size(); ++i) {
+									if(siblings[i].get() == component) {
+										insertPos = shouldInsertBelow ? i + 1 : i;
+										break;
+									}
+								}
+								
+								targetParent->AddChildAt(std::move(removedComponent), insertPos);
+							} else if(canDropOntoContainer) {
+								// Remove from source parent
+								auto removedComponent = sourceParent->RemoveChild(sourceComponent);
+								
+								// Drop onto container - add as child
+								component->AddChild(std::move(removedComponent));
+							}
+						}
+						
+						// Reset insertion line
+						showInsertionLine = false;
+					}
+					
+					// No need to clean up style color - we removed all drag drop target highlighting
+					ImGui::EndDragDropTarget();
+				} else {
+					// Reset insertion line when not hovering
+					if(draggedComponent != component) {
+						showInsertionLine = false;
+					}
+				}
+				
 				if(ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
 					Diagram::TreeRenderer::SetActiveComponent(component);
 					
-					// Clear all selections
-					auto& componentList = diagramData.GetComponentList();
-					for(auto& comp : componentList) {
-						comp->Deselect();
+					// Support multi-selection with Ctrl
+					if(!ImGui::GetIO().KeyCtrl) {
+						// Clear all selections if Ctrl is not held
+						auto& componentList = diagramData.GetComponentList();
+						for(auto& comp : componentList) {
+							comp->Deselect();
+						}
+						diagramData.GetCamera().Deselect();
+						diagramData.GetGrid().Deselect();
+						
+						// Clear all children selections recursively
+						std::function<void(Diagram::Component*)> clearSelections = [&](Diagram::Component* comp) {
+							comp->Deselect();
+							for(const auto& child : comp->GetChildren()) {
+								clearSelections(child.get());
+							}
+						};
+						clearSelections(&diagramData.GetGrid());
+						
+						// Select only this component
+						component->Select();
+					} else {
+						// Toggle selection for this component when Ctrl is held
+						if(component->IsSelected()) {
+							component->Deselect();
+						} else {
+							component->Select();
+						}
 					}
-					diagramData.GetCamera().Deselect();
-					diagramData.GetGrid().Deselect();
-					
-					component->Select();
 				}
 				
 				ImGui::TableNextColumn();
@@ -321,21 +545,28 @@ void Application::RenderUI() noexcept {
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 				
 				// Add button for container components
-				if(dynamic_cast<Diagram::GridComponent*>(component)) {
+				if(dynamic_cast<Diagram::GridComponent*>(component) || dynamic_cast<Diagram::GroupComponent*>(component)) {
 					if(ImGui::Button(ICON_FA_PLUS)) {
 						auto newBlock = std::make_unique<Diagram::BlockComponent>("New Block", glm::vec2{0.0f, 0.0f}, glm::vec2{100.0f, 50.0f});
 						newBlock->id = "block_" + std::to_string(component->GetChildren().size() + 1);
 						component->AddChild(std::move(newBlock));
 					}
+					if(ImGui::IsItemHovered()) {
+						ImGui::SetTooltip("Add new block to this container");
+					}
 					ImGui::SameLine();
 				}
 				
-				// Delete button for deletable components (not camera or grid)
+				// Delete button for deletable components (not camera or main grid)
 				if(!dynamic_cast<Diagram::CameraComponent*>(component) && 
-				   !dynamic_cast<Diagram::GridComponent*>(component)) {
+				   !(dynamic_cast<Diagram::GridComponent*>(component) && component == &diagramData.GetGrid())) {
 					if(ImGui::Button(ICON_FA_TRASH)) {
 						// Mark for deletion - we'll handle it after the tree rendering
 						componentToDelete = component;
+						spdlog::info("Marking component for deletion: {}", component->GetDisplayName());
+					}
+					if(ImGui::IsItemHovered()) {
+						ImGui::SetTooltip("Delete this component");
 					}
 					ImGui::SameLine();
 				}
@@ -344,8 +575,16 @@ void Application::RenderUI() noexcept {
 				if(ImGui::Button(ICON_FA_COG)) {
 					Diagram::TreeRenderer::AddToEditor(component);
 				}
+				if(ImGui::IsItemHovered()) {
+					ImGui::SetTooltip("Add to component editor");
+				}
 				
 				ImGui::PopStyleVar();
+				
+				ImGui::TableNextColumn();
+				
+				// This column is now used for the global group controls in the header
+				// Individual rows don't need group buttons anymore
 				
 				// Render children
 				if(isOpen) {
@@ -375,31 +614,46 @@ void Application::RenderUI() noexcept {
 			ImGui::EndTable();
 		}
 		
-		// Add a button to migrate orphaned blocks to grid
-		if(ImGui::Button("Fix Hierarchy - Move Orphaned Blocks to Grid")) {
-			auto& componentList = diagramData.GetComponentList();
-			std::vector<std::unique_ptr<Diagram::Component>> blocksToMove;
-			
-			// Find orphaned BlockComponents
-			for(auto it = componentList.begin(); it != componentList.end();) {
-				if(auto* blockComp = dynamic_cast<Diagram::BlockComponent*>(it->get())) {
-					if(!blockComp->GetParent()) {
-						blocksToMove.push_back(std::move(*it));
-						it = componentList.erase(it);
-						continue;
-					}
+		// Check if there are orphaned components that need fixing
+		auto& componentList = diagramData.GetComponentList();
+		bool hasOrphanedBlocks = false;
+		for(const auto& component : componentList) {
+			if(auto* blockComp = dynamic_cast<Diagram::BlockComponent*>(component.get())) {
+				if(!blockComp->GetParent()) {
+					hasOrphanedBlocks = true;
+					break;
 				}
-				++it;
 			}
-			
-			// Move them to grid
-			for(auto& block : blocksToMove) {
-				diagramData.GetGrid().AddChild(std::move(block));
+		}
+		
+		// Only show fix hierarchy button if there are orphaned blocks
+		if(hasOrphanedBlocks) {
+			if(ImGui::Button("Fix Hierarchy - Move Orphaned Blocks to Grid")) {
+				std::vector<std::unique_ptr<Diagram::Component>> blocksToMove;
+				
+				// Find orphaned BlockComponents
+				for(auto it = componentList.begin(); it != componentList.end();) {
+					if(auto* blockComp = dynamic_cast<Diagram::BlockComponent*>(it->get())) {
+						if(!blockComp->GetParent()) {
+							blocksToMove.push_back(std::move(*it));
+							it = componentList.erase(it);
+							continue;
+						}
+					}
+					++it;
+				}
+				
+				// Move them to grid
+				for(auto& block : blocksToMove) {
+					diagramData.GetGrid().AddChild(std::move(block));
+				}
 			}
 		}
 		
 		// Handle component deletion after tree rendering to avoid modifying during iteration
 		if(componentToDelete) {
+			spdlog::info("Deleting component: {}", componentToDelete->GetDisplayName());
+			
 			// First, clear any selections that might reference this component
 			if(componentToDelete->IsSelected()) {
 				componentToDelete->Deselect();
@@ -423,10 +677,13 @@ void Application::RenderUI() noexcept {
 			// Now safely remove the component
 			if(componentToDelete->GetParent()) {
 				// Remove from parent - this will destroy the component
+				spdlog::info("Removing component from parent");
 				auto removedComponent = componentToDelete->GetParent()->RemoveChild(componentToDelete);
+				spdlog::info("Component removed from parent successfully");
 				// removedComponent will be destroyed when it goes out of scope
 			} else {
 				// Remove from main component list if it's orphaned
+				spdlog::info("Removing orphaned component from main list");
 				componentList.erase(
 					std::remove_if(componentList.begin(), componentList.end(),
 						[componentToDelete](const std::unique_ptr<Diagram::Component>& comp) {
@@ -434,9 +691,12 @@ void Application::RenderUI() noexcept {
 						}),
 					componentList.end()
 				);
+				spdlog::info("Orphaned component removed from main list successfully");
 			}
 			
 			// componentToDelete is now invalid - don't use it after this point
+			componentToDelete = nullptr;  // Reset the pointer to avoid accidental reuse
+			spdlog::info("Component deletion completed");
 		}
 		
 		ImGui::End();
@@ -472,6 +732,40 @@ void Application::RenderPropertiesPanel() noexcept {
 		
 		// Add the block as a child of the grid component
 		diagramData.GetGrid().AddChild(std::move(newBlock));
+	}
+
+	ImGui::Separator();
+
+	// Show UI for selected components
+	Diagram::Component* selectedComponent = nullptr;
+	
+	// Check camera
+	if(camera.IsSelected()) {
+		selectedComponent = &camera;
+	}
+	
+	// Check grid
+	if(!selectedComponent && diagramData.GetGrid().IsSelected()) {
+		selectedComponent = &diagramData.GetGrid();
+	}
+	
+	// Check all components in hierarchy
+	if(!selectedComponent) {
+		std::function<Diagram::Component*(Diagram::Component*)> findSelected = [&](Diagram::Component* comp) -> Diagram::Component* {
+			if(comp->IsSelected()) return comp;
+			for(const auto& child : comp->GetChildren()) {
+				if(auto found = findSelected(child.get())) return found;
+			}
+			return nullptr;
+		};
+		selectedComponent = findSelected(&diagramData.GetGrid());
+	}
+
+	if(selectedComponent) {
+		ImGui::Text("Selected: %s", selectedComponent->GetDisplayName().c_str());
+		selectedComponent->RenderUIOfficial();
+	} else {
+		ImGui::TextDisabled("No component selected");
 	}
 
 	ImGui::End();

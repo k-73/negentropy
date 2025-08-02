@@ -48,14 +48,14 @@ namespace Diagram
 
 			if(sUiComponents.empty()) {
 				if(sActiveComponent) {
-					sActiveComponent->RenderUI();
+					sActiveComponent->RenderUIOfficial();
 				} else {
 					ImGui::TextDisabled("Select a component to edit");
 				}
 			} else {
 				for(auto* component: sUiComponents) {
 					if(ImGui::CollapsingHeader(component->GetDisplayName().c_str())) {
-						component->RenderUI();
+						component->RenderUIOfficial();
 					}
 				}
 			}
