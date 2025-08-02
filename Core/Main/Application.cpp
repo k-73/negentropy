@@ -4,6 +4,7 @@
 #include <imgui_impl_sdl2.h>
 #include <imgui_impl_sdlrenderer2.h>
 #include <spdlog/spdlog.h>
+#include <SDL2/SDL_ttf.h>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -14,6 +15,7 @@
 #include <stdexcept>
 //
 #include "../Diagram/TreeRenderer.hpp"
+#include "../Diagram/Components/MinimapComponent.hpp"
 #include "../Utils/IconsFontAwesome5.h"
 #include "../Utils/Notification.hpp"
 #include "../Utils/Path.hpp"
@@ -62,6 +64,7 @@ Application::~Application() {
 		window = nullptr;
 	}
 
+	TTF_Quit();
 	SDL_Quit();
 	spdlog::info("Application shutdown complete");
 }
@@ -140,6 +143,16 @@ void Application::ProcessEvents() noexcept {
 			return;
 		}
 
+		if(event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F2) {
+			// Toggle minimap visibility
+			auto minimaps = diagramData.GetComponentsOfType<Diagram::MinimapComponent>();
+			if(!minimaps.empty()) {
+				auto* minimap = minimaps[0];
+				minimap->data.visible = !minimap->data.visible;
+			}
+			return;
+		}
+
 		bool shouldProcessEvent = true;
 		if(event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP || event.type == SDL_MOUSEMOTION || event.type == SDL_MOUSEWHEEL) {
 			shouldProcessEvent = !ImGui::GetIO().WantCaptureMouse;
@@ -185,6 +198,11 @@ void Application::ProcessEvents() noexcept {
 				}
 			}
 			
+			// Try minimap next (screen overlay should have priority over camera)
+			if(!eventHandled) {
+				eventHandled = HandleMinimapEvent(event, cameraView, screenSize);
+			}
+			
 			// Finally, try camera if nothing else handled it
 			if(!eventHandled) {
 				if(auto* cameraHandler = dynamic_cast<Diagram::EventHandler*>(&camera)) {
@@ -212,6 +230,9 @@ void Application::RenderFrame() noexcept {
 	
 	// Render any orphaned components from the main list
 	renderer.DrawComponents(diagramData.GetComponentList(), cameraView);
+
+	// Render minimap as screen overlay AFTER all world-space components
+	diagramData.GetMinimap().RenderWithContent(renderer.GetSDLRenderer(), cameraView, screenSize, diagramData.GetGrid());
 
 	ImGui::Render();
 	ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer.GetSDLRenderer());
@@ -383,6 +404,7 @@ void Application::RenderUI() noexcept {
 				else if(dynamic_cast<Diagram::GridComponent*>(component)) icon = ICON_FA_TH;
 				else if(dynamic_cast<Diagram::BlockComponent*>(component)) icon = ICON_FA_SQUARE;
 				else if(dynamic_cast<Diagram::GroupComponent*>(component)) icon = ICON_FA_OBJECT_GROUP;
+				else if(dynamic_cast<Diagram::MinimapComponent*>(component)) icon = ICON_FA_MAP;
 				
 				ImGui::PushID(component);
 				
@@ -597,6 +619,9 @@ void Application::RenderUI() noexcept {
 				ImGui::PopID();
 			};
 			
+			// Render minimap as screen overlay component (first, so it appears at top)
+			renderComponentRecursive(&diagramData.GetMinimap(), 0);
+			
 			// Render camera as root component
 			renderComponentRecursive(&diagramData.GetCamera(), 0);
 			
@@ -749,6 +774,11 @@ void Application::RenderPropertiesPanel() noexcept {
 		selectedComponent = &diagramData.GetGrid();
 	}
 	
+	// Check minimap
+	if(!selectedComponent && diagramData.GetMinimap().IsSelected()) {
+		selectedComponent = &diagramData.GetMinimap();
+	}
+	
 	// Check all components in hierarchy
 	if(!selectedComponent) {
 		std::function<Diagram::Component*(Diagram::Component*)> findSelected = [&](Diagram::Component* comp) -> Diagram::Component* {
@@ -793,6 +823,11 @@ void Application::InitSDL() {
 	spdlog::info("Initializing SDL...");
 	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0)
 		throw std::runtime_error("SDL_Init error: " + std::string(SDL_GetError()));
+
+	// Initialize SDL_ttf
+	if(TTF_Init() == -1) {
+		throw std::runtime_error("TTF_Init error: " + std::string(TTF_GetError()));
+	}
 
 #ifdef __EMSCRIPTEN__
 	// Maximum responsiveness settings for WebAssembly
@@ -996,6 +1031,89 @@ void Application::SetupFont() noexcept {
 	if (!fontAwesomeLoaded) {
 		spdlog::warn("Font Awesome not found");
 	}
+}
+
+bool Application::HandleMinimapEvent(const SDL_Event& event, const Diagram::CameraView& view, const glm::vec2& screenSize) noexcept {
+	auto& minimap = diagramData.GetMinimap();
+	
+	if(!minimap.data.visible || !minimap.IsVisible()) {
+		return false;
+	}
+
+	// Calculate minimap screen position (right side)
+	const float minimapX = screenSize.x - minimap.size.x - 10.0f;
+	const float minimapY = 10.0f;
+
+	// Check if mouse is over minimap
+	glm::vec2 mousePos;
+	if(event.type == SDL_MOUSEMOTION) {
+		mousePos = {(float)event.motion.x, (float)event.motion.y};
+	} else if(event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) {
+		mousePos = {(float)event.button.x, (float)event.button.y};
+	} else {
+		return false;
+	}
+
+	const bool isOverMinimap = (mousePos.x >= minimapX && mousePos.x <= minimapX + minimap.size.x &&
+							   mousePos.y >= minimapY && mousePos.y <= minimapY + minimap.size.y);
+
+	static bool isDraggingViewport = false;
+
+	if(event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT && isOverMinimap) {
+		isDraggingViewport = true;
+		
+		// Jump camera to clicked position (with sensitivity control)
+		JumpCameraToMinimapPosition(mousePos, {minimapX, minimapY}, view, screenSize, minimap);
+		return true;
+	}
+
+	if(event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_LEFT) {
+		if(isDraggingViewport) {
+			isDraggingViewport = false;
+			return true;
+		}
+	}
+
+	if(event.type == SDL_MOUSEMOTION && isDraggingViewport) {
+		// Move camera based on minimap drag (with sensitivity control)
+		JumpCameraToMinimapPosition(mousePos, {minimapX, minimapY}, view, screenSize, minimap);
+		return true;
+	}
+
+	return false;
+}
+
+void Application::JumpCameraToMinimapPosition(const glm::vec2& mousePos, const glm::vec2& minimapPos, const Diagram::CameraView& view, const glm::vec2& screenSize, const Diagram::MinimapComponent& minimap) noexcept {
+	// Safety check for zoom level
+	const float safeZoom = std::max(0.001f, std::min(1000.0f, view.zoom));
+	
+	// Convert minimap click to world position with sensitivity control
+	const glm::vec2 minimapWorldSize = minimap.size * minimap.data.zoomFactor / safeZoom;
+	const glm::vec2 minimapWorldMin = view.worldPosition - minimapWorldSize * 0.5f;
+	const glm::vec2 minimapWorldMax = view.worldPosition + minimapWorldSize * 0.5f;
+
+	// Safety check for world bounds
+	const float worldWidth = minimapWorldMax.x - minimapWorldMin.x;
+	const float worldHeight = minimapWorldMax.y - minimapWorldMin.y;
+	if(worldWidth <= 0.0f || worldHeight <= 0.0f) return;
+
+	const float normalizedX = std::max(0.0f, std::min(1.0f, (mousePos.x - minimapPos.x) / minimap.size.x));
+	const float normalizedY = std::max(0.0f, std::min(1.0f, (mousePos.y - minimapPos.y) / minimap.size.y));
+
+	const glm::vec2 targetWorldPos = minimapWorldMin + glm::vec2(normalizedX, normalizedY) * glm::vec2(worldWidth, worldHeight);
+
+	// Safety check for target position
+	if(std::abs(targetWorldPos.x) > 100000.0f || std::abs(targetWorldPos.y) > 100000.0f) {
+		return;  // Skip if target position is too extreme
+	}
+
+	// Apply sensitivity - interpolate between current and target position
+	const glm::vec2 currentPos = view.worldPosition;
+	const glm::vec2 newPos = currentPos + (targetWorldPos - currentPos) * minimap.data.cameraSensitivity;
+
+	// Update camera position
+	auto& camera = diagramData.GetCamera();
+	camera.SetPosition(newPos);
 }
 
 void Application::CreateWindow() {

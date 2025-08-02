@@ -3,8 +3,10 @@
 
 #include <iostream>
 #include <pugixml.hpp>
+#include <spdlog/spdlog.h>
 
 #include "../Diagram/Components/BlockComponent.hpp"
+#include "../Diagram/Components/MinimapComponent.hpp"
 #include "../Utils/Notification.hpp"
 #include "../Utils/Path.hpp"
 
@@ -12,10 +14,12 @@ DiagramData::DiagramData() noexcept {
 	// Initialize camera and grid components
 	cameraData = std::make_unique<Diagram::CameraComponent>();
 	gridData = std::make_unique<Diagram::GridComponent>(glm::vec2{1000.0f, 1000.0f});
+	minimapData = std::make_unique<Diagram::MinimapComponent>();
 	
 	// Set IDs for the components
 	cameraData->id = "Main Camera";
 	gridData->id = "Background Grid";
+	minimapData->id = "Minimap";
 	
 	// Add them to the component list so they appear in the tree
 	// Note: We store raw pointers in componentList but manage memory separately
@@ -53,6 +57,10 @@ void DiagramData::Load(const std::string& filePath) {
 		LoadHierarchyIntoComponent(gridNode, gridData.get());
 	}
 
+	if(auto minimapNode = diagram.child("Minimap")) {
+		minimapData->XmlDeserialize(minimapNode);
+	}
+
 	// Load orphaned components (for backward compatibility)
 	if(auto rootNode = diagram.child("Root")) {
 		LoadHierarchy(rootNode, "");
@@ -76,6 +84,9 @@ void DiagramData::Save(const std::string& filePath) const {
 	auto gridNode = diagram.append_child("Grid");
 	gridData->XmlSerialize(gridNode);  // This will automatically save all children in hierarchy
 
+	auto minimapNode = diagram.append_child("Minimap");
+	minimapData->XmlSerialize(minimapNode);
+
 	// Only save orphaned components (those not in the hierarchy)
 	auto rootNode = diagram.append_child("OrphanedComponents");
 	for(const auto& component: componentList) {
@@ -98,6 +109,9 @@ void DiagramData::Save(const std::string& filePath) const {
 std::unique_ptr<Diagram::Component> DiagramData::CreateComponent(const std::string& type) const {
 	if(type == "Block" || type == "BlockComponent") {
 		return std::make_unique<Diagram::BlockComponent>("New Block", glm::vec2{0.0f, 0.0f}, glm::vec2{100.0f, 50.0f});
+	}
+	if(type == "Minimap" || type == "MinimapComponent") {
+		return std::make_unique<Diagram::MinimapComponent>();
 	}
 	return nullptr;
 }

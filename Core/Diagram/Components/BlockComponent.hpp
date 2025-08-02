@@ -2,7 +2,7 @@
 
 #include "Interface/Component.hpp"
 #include "TextComponent.hpp"
-#include "../../Main/DiagramData.hpp"
+#include <cmath>
 
 namespace Diagram
 {
@@ -40,10 +40,25 @@ namespace Diagram
 			this->position = pos;
 			this->size = size;
 
-			auto textLabel = std::make_unique<TextComponent>(label, glm::vec2(5.0f, 5.0f)); // Small offset for padding
+			// Create text label centered in the block
+			auto textLabel = std::make_unique<TextComponent>(data.label, glm::vec2(0.0f, 0.0f));
 			this->labelComponent = textLabel.get();
-
 			this->AddChild(std::move(textLabel));
+			
+			// Center the text in the block
+			CenterText();
+		}
+
+		void CenterText() {
+			if(labelComponent) {
+				// Calculate proper center based on text size
+				const glm::vec2& textSize = labelComponent->size;
+				glm::vec2 textPos = glm::vec2(
+					(size.x - textSize.x) * 0.5f,
+					(size.y - textSize.y) * 0.5f
+				);
+				labelComponent->SetPosition(textPos);
+			}
 		}
 
 		void Render(SDL_Renderer* renderer, const CameraView& view, const glm::vec2& screenSize) const override {
@@ -51,26 +66,90 @@ namespace Diagram
 				return;
 			}
 
-			// Use base class position instead of data.position for proper hierarchy
-			const glm::vec2& worldPos = GetWorldPosition();
-			const glm::vec2 screenPos = view.WorldToScreen(worldPos, screenSize);
-			const SDL_FRect rect = {screenPos.x, screenPos.y, size.x * view.zoom, size.y * view.zoom};
+			// Draw the block background based on type
+			const glm::vec2 screenPos = view.WorldToScreen(GetWorldPosition(), screenSize);
+			const glm::vec2 screenSize_block = size * view.zoom;
 
-			const auto bgR = static_cast<Uint8>(data.backgroundColor.r * 255.0f);
-			const auto bgG = static_cast<Uint8>(data.backgroundColor.g * 255.0f);
-			const auto bgB = static_cast<Uint8>(data.backgroundColor.b * 255.0f);
-			const auto bgA = static_cast<Uint8>(data.backgroundColor.a * 255.0f);
+			// Set the block colors
+			const SDL_Color fillColor = {
+				(Uint8)(data.backgroundColor.r * 255),
+				(Uint8)(data.backgroundColor.g * 255),
+				(Uint8)(data.backgroundColor.b * 255),
+				(Uint8)(data.backgroundColor.a * 255)
+			};
+			const SDL_Color borderColor = {
+				(Uint8)(data.borderColor.r * 255),
+				(Uint8)(data.borderColor.g * 255),
+				(Uint8)(data.borderColor.b * 255),
+				(Uint8)(data.borderColor.a * 255)
+			};
 
-			SDL_SetRenderDrawColor(renderer, bgR, bgG, bgB, bgA);
-			SDL_RenderFillRectF(renderer, &rect);
+			// Set blend mode for transparency
+			SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
-			const auto borderR = static_cast<Uint8>(data.borderColor.r * 255.0f);
-			const auto borderG = static_cast<Uint8>(data.borderColor.g * 255.0f);
-			const auto borderB = static_cast<Uint8>(data.borderColor.b * 255.0f);
-			const auto borderA = static_cast<Uint8>(data.borderColor.a * 255.0f);
-
-			SDL_SetRenderDrawColor(renderer, borderR, borderG, borderB, borderA);
-			SDL_RenderDrawRectF(renderer, &rect);
+			switch(data.type) {
+				case Type::Start:
+				case Type::End: {
+					// Draw circle
+					const float radius = std::min(screenSize_block.x, screenSize_block.y) * 0.4f;
+					const glm::vec2 center = screenPos + screenSize_block * 0.5f;
+					
+					// Simple circle drawing with lines
+					SDL_SetRenderDrawColor(renderer, fillColor.r, fillColor.g, fillColor.b, fillColor.a);
+					for(int y = -radius; y <= radius; y++) {
+						for(int x = -radius; x <= radius; x++) {
+							if(x*x + y*y <= radius*radius) {
+								SDL_RenderDrawPoint(renderer, center.x + x, center.y + y);
+							}
+						}
+					}
+					
+					// Draw border
+					SDL_SetRenderDrawColor(renderer, borderColor.r, borderColor.g, borderColor.b, borderColor.a);
+					for(int angle = 0; angle < 360; angle += 2) {
+						float rad = angle * M_PI / 180.0f;
+						int x = center.x + radius * cos(rad);
+						int y = center.y + radius * sin(rad);
+						SDL_RenderDrawPoint(renderer, x, y);
+					}
+					break;
+				}
+				case Type::Decision: {
+					// Draw diamond/rhombus
+					const glm::vec2 center = screenPos + screenSize_block * 0.5f;
+					const float halfWidth = screenSize_block.x * 0.4f;
+					const float halfHeight = screenSize_block.y * 0.4f;
+					
+					// Simple diamond fill
+					SDL_SetRenderDrawColor(renderer, fillColor.r, fillColor.g, fillColor.b, fillColor.a);
+					for(int y = -halfHeight; y <= halfHeight; y++) {
+						float widthAtY = halfWidth * (1.0f - abs(y) / halfHeight);
+						for(int x = -widthAtY; x <= widthAtY; x++) {
+							SDL_RenderDrawPoint(renderer, center.x + x, center.y + y);
+						}
+					}
+					break;
+				}
+				case Type::Process:
+				default: {
+					// Draw rectangle
+					SDL_Rect fillRect = {
+						(int)screenPos.x,
+						(int)screenPos.y,
+						(int)screenSize_block.x,
+						(int)screenSize_block.y
+					};
+					
+					// Fill
+					SDL_SetRenderDrawColor(renderer, fillColor.r, fillColor.g, fillColor.b, fillColor.a);
+					SDL_RenderFillRect(renderer, &fillRect);
+					
+					// Border
+					SDL_SetRenderDrawColor(renderer, borderColor.r, borderColor.g, borderColor.b, borderColor.a);
+					SDL_RenderDrawRect(renderer, &fillRect);
+					break;
+				}
+			}
 		}
 
 		void RenderUI() override {
@@ -79,7 +158,10 @@ namespace Diagram
 			labelBuffer[sizeof(labelBuffer) - 1] = '\0';
 			if(ImGui::InputText("Label", labelBuffer, sizeof(labelBuffer))) {
 				data.label = labelBuffer;
-				if(labelComponent) labelComponent->SetText(data.label);
+				if(labelComponent) {
+					labelComponent->SetText(data.label);
+					CenterText(); // Re-center text when label changes
+				}
 			}
 
 			// Sync position and size changes with base class
@@ -89,6 +171,7 @@ namespace Diagram
 			}
 			if(ImGui::DragFloat2("Size", &data.size.x, 1.0f, 10.0f, 500.0f)) {
 				size = data.size;
+				CenterText(); // Re-center text when size changes
 			}
 			ImGui::ColorEdit4("Background", &data.backgroundColor.x);
 			ImGui::ColorEdit4("Border", &data.borderColor.x);
@@ -111,6 +194,7 @@ namespace Diagram
 			int currentType = static_cast<int>(data.type);
 			if(ImGui::Combo("Type", &currentType, typeNames, 4)) {
 				data.type = static_cast<Type>(currentType);
+				// No need to recreate anything - just the shape changes in Render()
 			}
 		}
 
@@ -139,11 +223,9 @@ namespace Diagram
 				const glm::vec2 worldMousePos = view.ScreenToWorld({(float)event.motion.x, (float)event.motion.y}, screenSize);
 				glm::vec2 newPosition = worldMousePos - dragStartOffset;
 
-				// Apply grid snapping if enabled and we have access to DiagramData
 				if(enableGridSnapping) {
-					if(auto* diagramData = DiagramData::GetInstance()) {
-						newPosition = diagramData->GetGrid().SnapToGrid(newPosition);
-					}
+					newPosition.x = std::round(newPosition.x / 10.0f) * 10.0f;
+					newPosition.y = std::round(newPosition.y / 10.0f) * 10.0f;
 				}
 
 				// Update both data.position and base class position
@@ -156,6 +238,18 @@ namespace Diagram
 		}
 
 		std::string GetTypeName() const override { return "BlockComponent"; }
+
+		void OnCacheDirty() override {
+			// Re-center text when position or size changes
+			CenterText();
+		}
+
+		void OnChildSizeChanged(Component* child) override {
+			// If our text component size changed, re-center it
+			if(child == labelComponent) {
+				CenterText();
+			}
+		}
 
 		void XmlSerialize(pugi::xml_node& node) const override {
 			XML::auto_serialize(data, node);

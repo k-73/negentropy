@@ -1,4 +1,5 @@
 #include "Renderer.hpp"
+#include <imgui.h>
 
 bool Renderer::Initialize(SDL_Window* window) noexcept {
 	const int AUTO_INDEX = -1;

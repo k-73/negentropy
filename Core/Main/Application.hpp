@@ -36,6 +36,8 @@ private:
 	void RenderPropertiesPanel() noexcept;
 	void RefreshWorkspaceFiles();
 	void SaveDiagram() noexcept;
+	bool HandleMinimapEvent(const SDL_Event& event, const Diagram::CameraView& view, const glm::vec2& screenSize) noexcept;
+	void JumpCameraToMinimapPosition(const glm::vec2& mousePos, const glm::vec2& minimapPos, const Diagram::CameraView& view, const glm::vec2& screenSize, const Diagram::MinimapComponent& minimap) noexcept;
 	static void DarkStyle() noexcept;
 	static void SetupFont() noexcept;
 

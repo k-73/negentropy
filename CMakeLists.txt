@@ -74,6 +74,8 @@ if(EMSCRIPTEN)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${USE_FLAGS} ${PERFORMANCE_FLAGS} ${RESPONSIVENESS_FLAGS} ${IMMEDIATE_FLAGS} -s ALLOW_MEMORY_GROWTH=1 --preload-file ${CMAKE_SOURCE_DIR}/Assets@Assets --preload-file ${CMAKE_SOURCE_DIR}/Workspace@Workspace")
 else()
     find_package(SDL2 REQUIRED)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(SDL2_TTF REQUIRED IMPORTED_TARGET SDL2_ttf)
     include_directories(${SDL2_INCLUDE_DIRS})
 endif()
 
@@ -123,6 +125,7 @@ else()
     target_link_libraries(negentropy
             PRIVATE
             SDL2::SDL2 
+            PkgConfig::SDL2_TTF
             spdlog::spdlog
             EnTT::EnTT
             nlohmann_json::nlohmann_json

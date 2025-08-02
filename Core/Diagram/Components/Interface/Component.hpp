@@ -71,6 +71,12 @@ namespace Diagram
 
 		virtual void RenderUI() {}
 
+		// Called when a child component's size changes
+		virtual void OnChildSizeChanged(Component* child) {}
+
+		// Called when cache becomes dirty (position/size changes)
+		virtual void OnCacheDirty() {}
+
 		virtual std::string GetDisplayName() const { return id.empty() ? GetTypeName() : id; }
 		virtual std::string GetTypeName() const { return "Component"; }
 
@@ -203,6 +209,7 @@ namespace Diagram
 
 		void DirtyCache() {
 			isCacheDirty = true;
+			OnCacheDirty(); // Call virtual method when cache becomes dirty
 			for(const auto& child: children) {
 				child->DirtyCache();
 			}

@@ -8,6 +8,7 @@
 #include "../Diagram/Components/Interface/Component.hpp"
 #include "../Diagram/Components/CameraComponent.hpp"
 #include "../Diagram/Components/GridComponent.hpp"
+#include "../Diagram/Components/MinimapComponent.hpp"
 
 class DiagramData
 {
@@ -44,6 +45,9 @@ public:
 	const Diagram::GridComponent& GetGrid() const noexcept { return *gridData; }
 	Diagram::GridComponent& GetGrid() noexcept { return *gridData; }
 
+	const Diagram::MinimapComponent& GetMinimap() const noexcept { return *minimapData; }
+	Diagram::MinimapComponent& GetMinimap() noexcept { return *minimapData; }
+
 	void AddComponent(std::unique_ptr<Diagram::Component> component) noexcept;
 
 private:
@@ -57,4 +61,5 @@ private:
 	std::vector<std::unique_ptr<Diagram::Component>> componentList;
 	std::unique_ptr<Diagram::CameraComponent> cameraData;
 	std::unique_ptr<Diagram::GridComponent> gridData;
+	std::unique_ptr<Diagram::MinimapComponent> minimapData;
 };
