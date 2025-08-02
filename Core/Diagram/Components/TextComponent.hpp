@@ -43,7 +43,7 @@ namespace Diagram
 			if(data.text.empty()) return;
 
 			const auto& worldPos = GetWorldPosition();
-			const glm::vec2 screenPos = worldPos;
+			const glm::vec2 screenPos = view.WorldToScreen(worldPos, screenSize);
 
 			ImDrawList* drawList = ImGui::GetBackgroundDrawList();
 			ImFont* font = ImGui::GetFont();
@@ -53,7 +53,7 @@ namespace Diagram
 			drawList->AddText(
 				font,
 				scaledFontSize,
-				(const ImVec2&)screenPos,
+				ImVec2(screenPos.x, screenPos.y),
 				IM_COL32(255, 255, 255, 255),
 				data.text.c_str());
 		}

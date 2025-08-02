@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Interface/Component.hpp"
-#include "Main/DiagramData.hpp"
 #include "TextComponent.hpp"
 
 namespace Diagram
@@ -33,8 +32,12 @@ namespace Diagram
 			this->data.label = label;
 			this->data.position = pos;
 			this->data.size = size;
+			
+			// Sync with base class members
+			this->position = pos;
+			this->size = size;
 
-			auto textLabel = std::make_unique<TextComponent>(label, glm::vec2(0.0f, 0.0f));
+			auto textLabel = std::make_unique<TextComponent>(label, glm::vec2(5.0f, 5.0f)); // Small offset for padding
 			this->labelComponent = textLabel.get();
 
 			this->AddChild(std::move(textLabel));
@@ -45,8 +48,10 @@ namespace Diagram
 				return;
 			}
 
-			const glm::vec2 screenPos = view.WorldToScreen(data.position, screenSize);
-			const SDL_FRect rect = {screenPos.x, screenPos.y, data.size.x * view.zoom, data.size.y * view.zoom};
+			// Use base class position instead of data.position for proper hierarchy
+			const glm::vec2& worldPos = GetWorldPosition();
+			const glm::vec2 screenPos = view.WorldToScreen(worldPos, screenSize);
+			const SDL_FRect rect = {screenPos.x, screenPos.y, size.x * view.zoom, size.y * view.zoom};
 
 			const auto bgR = static_cast<Uint8>(data.backgroundColor.r * 255.0f);
 			const auto bgG = static_cast<Uint8>(data.backgroundColor.g * 255.0f);
@@ -74,8 +79,14 @@ namespace Diagram
 				if(labelComponent) labelComponent->SetText(data.label);
 			}
 
-			ImGui::DragFloat2("Position", &data.position.x, 1.0f);
-			ImGui::DragFloat2("Size", &data.size.x, 1.0f, 10.0f, 500.0f);
+			// Sync position and size changes with base class
+			if(ImGui::DragFloat2("Position", &data.position.x, 1.0f)) {
+				position = data.position;
+				DirtyCache();
+			}
+			if(ImGui::DragFloat2("Size", &data.size.x, 1.0f, 10.0f, 500.0f)) {
+				size = data.size;
+			}
 			ImGui::ColorEdit4("Background", &data.backgroundColor.x);
 			ImGui::ColorEdit4("Border", &data.borderColor.x);
 
@@ -89,11 +100,12 @@ namespace Diagram
 		bool HandleEvent(const SDL_Event& event, const CameraView& view, const glm::vec2& screenSize) override {
 			if(event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
 				const glm::vec2 worldMousePos = view.ScreenToWorld({(float)event.button.x, (float)event.button.y}, screenSize);
-				const bool contains = (data.position.x <= worldMousePos.x && worldMousePos.x <= data.position.x + data.size.x &&
-									   data.position.y <= worldMousePos.y && worldMousePos.y <= data.position.y + data.size.y);
+				const glm::vec2& worldPos = GetWorldPosition();
+				const bool contains = (worldPos.x <= worldMousePos.x && worldMousePos.x <= worldPos.x + size.x &&
+									   worldPos.y <= worldMousePos.y && worldMousePos.y <= worldPos.y + size.y);
 				if(contains) {
 					isBeingDragged = true;
-					dragStartOffset = worldMousePos - data.position;
+					dragStartOffset = worldMousePos - worldPos;
 					Component::Select();
 					return true;
 				}
@@ -110,11 +122,9 @@ namespace Diagram
 				const glm::vec2 worldMousePos = view.ScreenToWorld({(float)event.motion.x, (float)event.motion.y}, screenSize);
 				glm::vec2 newPosition = worldMousePos - dragStartOffset;
 
-				if(auto* diagramData = DiagramData::GetInstance()) {
-					newPosition = diagramData->GetGrid().SnapToGrid(newPosition);
-				}
-
+				// Update both data.position and base class position
 				data.position = newPosition;
+				SetPosition(newPosition);
 				return true;
 			}
 

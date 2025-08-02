@@ -265,7 +265,7 @@ namespace Diagram
 			}
 		}
 
-	protected:
+	public:
 		void RenderOfficial(SDL_Renderer* renderer, const CameraView& view, const glm::vec2& screenSize) const {
 			if(!isVisible) return;
 
@@ -274,6 +274,8 @@ namespace Diagram
 				child->RenderOfficial(renderer, view, screenSize);
 			}
 		}
+
+	protected:
 
 		void RenderUIOfficial() {
 			if(!isVisible) return;

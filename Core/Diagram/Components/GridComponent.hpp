@@ -72,6 +72,24 @@ namespace Diagram
 			XML::auto_deserialize(data, node);
 		}
 
+		void RenderUI() override {
+			ImGui::Text("Grid Component");
+			ImGui::Separator();
+			
+			ImGui::Checkbox("Visible", &data.visible);
+			ImGui::DragFloat("Small Step", &data.smallStep, 0.1f, 0.1f, 100.0f);
+			ImGui::DragFloat("Large Step", &data.largeStep, 1.0f, 1.0f, 500.0f);
+			
+			ImGui::ColorEdit4("Background Color", &backgroundColor.r);
+			
+			if(ImGui::Button("Reset Grid")) {
+				data.smallStep = 5.0f;
+				data.largeStep = 50.0f;
+				data.visible = true;
+				backgroundColor = {0.15f, 0.15f, 0.15f, 1.0f};
+			}
+		}
+
 		glm::vec2 SnapToGrid(const glm::vec2& worldPosition) const {
 			const float step = data.smallStep;
 			return {std::round(worldPosition.x / step) * step, std::round(worldPosition.y / step) * step};

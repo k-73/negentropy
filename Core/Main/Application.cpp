@@ -131,7 +131,12 @@ void Application::ProcessEvents() noexcept {
 		}
 
 		if(event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F1) {
-			diagramData.AddBlock(true, window);
+			// Create a new block component as a child of the grid
+			auto newBlock = std::make_unique<Diagram::BlockComponent>("New Block", glm::vec2{0.0f, 0.0f}, glm::vec2{100.0f, 50.0f});
+			newBlock->id = "block_" + std::to_string(diagramData.GetComponentList().size() + 1);
+			
+			// Add the block as a child of the grid component
+			diagramData.GetGrid().AddChild(std::move(newBlock));
 			return;
 		}
 
@@ -143,10 +148,49 @@ void Application::ProcessEvents() noexcept {
 		}
 
 		if(shouldProcessEvent) {
+			// TODO: Update event handling for new component system
 			int windowWidth, windowHeight;
 			SDL_GetWindowSize(window, &windowWidth, &windowHeight);
 			const glm::vec2 screenSize {static_cast<float>(windowWidth), static_cast<float>(windowHeight)};
-			EventHandler::HandleEvent(event, diagramData.GetCamera(), diagramData.GetComponentList(), screenSize);
+			
+			// Basic camera event handling
+			auto& camera = diagramData.GetCamera();
+			if(event.type == SDL_MOUSEWHEEL) {
+				int mousePositionX, mousePositionY;
+				SDL_GetMouseState(&mousePositionX, &mousePositionY);
+				const glm::vec2 mousePosition {static_cast<float>(mousePositionX), static_cast<float>(mousePositionY)};
+				camera.ZoomAt(mousePosition, screenSize, event.wheel.y > 0 ? 1.1f : 0.9f);
+			}
+			
+			// Handle component events using the proper hierarchy
+			bool eventHandled = false;
+			const auto cameraView = camera.GetView();
+			
+			// Use the DispatchEvent function to handle events through the hierarchy
+			// Start with the grid (which contains the blocks)
+			eventHandled = Diagram::DispatchEvent(&diagramData.GetGrid(), event, cameraView, screenSize);
+			
+			// If grid didn't handle it, try orphaned components from the main list
+			if(!eventHandled) {
+				auto& componentList = diagramData.GetComponentList();
+				for(auto& component : componentList) {
+					if(!component->GetParent()) { // Only check orphaned components
+						if(auto* eventHandler = dynamic_cast<Diagram::EventHandler*>(component.get())) {
+							if(eventHandler->HandleEvent(event, cameraView, screenSize)) {
+								eventHandled = true;
+								break;
+							}
+						}
+					}
+				}
+			}
+			
+			// Finally, try camera if nothing else handled it
+			if(!eventHandled) {
+				if(auto* cameraHandler = dynamic_cast<Diagram::EventHandler*>(&camera)) {
+					eventHandled = cameraHandler->HandleEvent(event, cameraView, screenSize);
+				}
+			}
 		}
 	}
 }
@@ -155,8 +199,19 @@ void Application::RenderFrame() noexcept {
 	RenderUI();
 
 	renderer.Clear();
-	renderer.DrawGrid(diagramData.GetCamera(), diagramData.GetGrid());
-	renderer.DrawComponents(diagramData.GetComponentList(), diagramData.GetCamera());
+	
+	// Render grid first
+	int windowWidth, windowHeight;
+	SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+	const glm::vec2 screenSize {static_cast<float>(windowWidth), static_cast<float>(windowHeight)};
+	
+	const auto& cameraView = diagramData.GetCamera().GetView();
+	
+	// Use RenderOfficial to render grid and its children properly
+	diagramData.GetGrid().RenderOfficial(renderer.GetSDLRenderer(), cameraView, screenSize);
+	
+	// Render any orphaned components from the main list
+	renderer.DrawComponents(diagramData.GetComponentList(), cameraView);
 
 	ImGui::Render();
 	ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer.GetSDLRenderer());
@@ -214,14 +269,177 @@ void Application::RenderUI() noexcept {
 	}
 
 	if(isShownComponentTreePanel) {
-		auto groupState = diagramData.GetGroupState();
-		groupState.onGroupsChanged = [this](const std::map<std::string, std::string>& groups) {
-			diagramData.UpdateGroups(groups);
-		};
-		groupState.onExpandedChanged = [this](const std::map<std::string, bool>& expanded) {
-			diagramData.UpdateGroupExpanded(expanded);
-		};
-		Diagram::TreeRenderer::RenderComponentTree(diagramData.GetComponentList(), groupState);
+		ImGui::Begin("Component Tree", &isShownComponentTreePanel);
+		
+		// Variable to track component to delete (to avoid modifying tree during iteration)
+		Diagram::Component* componentToDelete = nullptr;
+		
+		// Custom tree rendering for our specific hierarchy
+		if(ImGui::BeginTable("TreeTable", 2, ImGuiTableFlags_SizingStretchProp)) {
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 64.0f);
+			
+			// Helper function to render a component and its children
+			std::function<void(Diagram::Component*, int)> renderComponentRecursive = [&](Diagram::Component* component, int depth) {
+				if(!component) return;
+				
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+				
+				// Determine flags and icon
+				ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_AllowItemOverlap;
+				if(Diagram::TreeRenderer::GetActiveComponent() == component) flags |= ImGuiTreeNodeFlags_Selected;
+				if(component->GetChildren().empty()) flags |= ImGuiTreeNodeFlags_Leaf;
+				
+				const char* icon = ICON_FA_CUBE;
+				if(dynamic_cast<Diagram::CameraComponent*>(component)) icon = ICON_FA_VIDEO;
+				else if(dynamic_cast<Diagram::GridComponent*>(component)) icon = ICON_FA_TH;
+				else if(dynamic_cast<Diagram::BlockComponent*>(component)) icon = ICON_FA_SQUARE;
+				
+				ImGui::PushID(component);
+				
+				const std::string label = " " + std::string(icon) + "  " + component->GetDisplayName();
+				bool isOpen = ImGui::TreeNodeEx(label.c_str(), flags);
+				
+				if(ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+					Diagram::TreeRenderer::SetActiveComponent(component);
+					
+					// Clear all selections
+					auto& componentList = diagramData.GetComponentList();
+					for(auto& comp : componentList) {
+						comp->Deselect();
+					}
+					diagramData.GetCamera().Deselect();
+					diagramData.GetGrid().Deselect();
+					
+					component->Select();
+				}
+				
+				ImGui::TableNextColumn();
+				
+				// Action buttons
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+				
+				// Add button for container components
+				if(dynamic_cast<Diagram::GridComponent*>(component)) {
+					if(ImGui::Button(ICON_FA_PLUS)) {
+						auto newBlock = std::make_unique<Diagram::BlockComponent>("New Block", glm::vec2{0.0f, 0.0f}, glm::vec2{100.0f, 50.0f});
+						newBlock->id = "block_" + std::to_string(component->GetChildren().size() + 1);
+						component->AddChild(std::move(newBlock));
+					}
+					ImGui::SameLine();
+				}
+				
+				// Delete button for deletable components (not camera or grid)
+				if(!dynamic_cast<Diagram::CameraComponent*>(component) && 
+				   !dynamic_cast<Diagram::GridComponent*>(component)) {
+					if(ImGui::Button(ICON_FA_TRASH)) {
+						// Mark for deletion - we'll handle it after the tree rendering
+						componentToDelete = component;
+					}
+					ImGui::SameLine();
+				}
+				
+				// Settings button
+				if(ImGui::Button(ICON_FA_COG)) {
+					Diagram::TreeRenderer::AddToEditor(component);
+				}
+				
+				ImGui::PopStyleVar();
+				
+				// Render children
+				if(isOpen) {
+					for(const auto& child : component->GetChildren()) {
+						renderComponentRecursive(child.get(), depth + 1);
+					}
+					ImGui::TreePop();
+				}
+				
+				ImGui::PopID();
+			};
+			
+			// Render camera as root component
+			renderComponentRecursive(&diagramData.GetCamera(), 0);
+			
+			// Render grid as root component (this will show its children - the blocks)
+			renderComponentRecursive(&diagramData.GetGrid(), 0);
+			
+			// Show any orphaned components from the main list (shouldn't be any now)
+			auto& componentList = diagramData.GetComponentList();
+			for(const auto& component : componentList) {
+				if(!component->GetParent()) { // Only show orphaned components
+					renderComponentRecursive(component.get(), 0);
+				}
+			}
+			
+			ImGui::EndTable();
+		}
+		
+		// Add a button to migrate orphaned blocks to grid
+		if(ImGui::Button("Fix Hierarchy - Move Orphaned Blocks to Grid")) {
+			auto& componentList = diagramData.GetComponentList();
+			std::vector<std::unique_ptr<Diagram::Component>> blocksToMove;
+			
+			// Find orphaned BlockComponents
+			for(auto it = componentList.begin(); it != componentList.end();) {
+				if(auto* blockComp = dynamic_cast<Diagram::BlockComponent*>(it->get())) {
+					if(!blockComp->GetParent()) {
+						blocksToMove.push_back(std::move(*it));
+						it = componentList.erase(it);
+						continue;
+					}
+				}
+				++it;
+			}
+			
+			// Move them to grid
+			for(auto& block : blocksToMove) {
+				diagramData.GetGrid().AddChild(std::move(block));
+			}
+		}
+		
+		// Handle component deletion after tree rendering to avoid modifying during iteration
+		if(componentToDelete) {
+			// First, clear any selections that might reference this component
+			if(componentToDelete->IsSelected()) {
+				componentToDelete->Deselect();
+			}
+			
+			// Clear it from TreeRenderer if it's the active component
+			if(Diagram::TreeRenderer::GetActiveComponent() == componentToDelete) {
+				Diagram::TreeRenderer::SetActiveComponent(nullptr);
+			}
+			
+			// Clear all selections to ensure no dangling references
+			auto& componentList = diagramData.GetComponentList();
+			for(auto& comp : componentList) {
+				if(comp.get() != componentToDelete) {
+					comp->Deselect();
+				}
+			}
+			diagramData.GetCamera().Deselect();
+			diagramData.GetGrid().Deselect();
+			
+			// Now safely remove the component
+			if(componentToDelete->GetParent()) {
+				// Remove from parent - this will destroy the component
+				auto removedComponent = componentToDelete->GetParent()->RemoveChild(componentToDelete);
+				// removedComponent will be destroyed when it goes out of scope
+			} else {
+				// Remove from main component list if it's orphaned
+				componentList.erase(
+					std::remove_if(componentList.begin(), componentList.end(),
+						[componentToDelete](const std::unique_ptr<Diagram::Component>& comp) {
+							return comp.get() == componentToDelete;
+						}),
+					componentList.end()
+				);
+			}
+			
+			// componentToDelete is now invalid - don't use it after this point
+		}
+		
+		ImGui::End();
 	}
 
 	if(isShownComponentEditorPanel) {
@@ -241,13 +459,19 @@ void Application::RenderPropertiesPanel() noexcept {
 	auto& componentList = diagramData.GetComponentList();
 	auto& camera = diagramData.GetCamera();
 
-	size_t blockCount = diagramData.GetComponentsOfType<Diagram::Block>().size();
+	size_t componentCount = componentList.size();
 
-	ImGui::Text("Camera: (%.1f, %.1f) Zoom: %.2f", camera.data.position.x, camera.data.position.y, camera.data.zoom);
-	ImGui::Text("Blocks: %zu", blockCount);
+	const auto cameraView = camera.GetView();
+	ImGui::Text("Camera: (%.1f, %.1f) Zoom: %.2f", camera.position.x, camera.position.y, cameraView.zoom);
+	ImGui::Text("Components: %zu", componentCount);
 
 	if(ImGui::Button((ICON_FA_PLUS "  [F1] Add Block"))) {
-		diagramData.AddBlock(false, window);
+		// Create a new block component as a child of the grid
+		auto newBlock = std::make_unique<Diagram::BlockComponent>("New Block", glm::vec2{0.0f, 0.0f}, glm::vec2{100.0f, 50.0f});
+		newBlock->id = "block_" + std::to_string(componentCount + 1);
+		
+		// Add the block as a child of the grid component
+		diagramData.GetGrid().AddChild(std::move(newBlock));
 	}
 
 	ImGui::End();

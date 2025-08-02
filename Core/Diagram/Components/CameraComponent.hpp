@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Utils/XMLSerialization.hpp"
+#include "../../Utils/XMLSerialization.hpp"
 #include "Interface/Component.hpp"
 
 namespace Diagram
@@ -77,6 +77,20 @@ namespace Diagram
 				return true;
 			}
 			return false;
+		}
+
+		void RenderUI() override {
+			ImGui::Text("Camera Component");
+			ImGui::Separator();
+			
+			ImGui::DragFloat2("Position", &position.x, 1.0f);
+			ImGui::DragFloat("Zoom", &data.zoom, 0.01f, 0.1f, 10.0f);
+			
+			if(ImGui::Button("Reset Camera")) {
+				position = {0.0f, 0.0f};
+				data.zoom = 1.0f;
+				DirtyCache();
+			}
 		}
 
 		void XmlSerialize(pugi::xml_node& node) const override {
